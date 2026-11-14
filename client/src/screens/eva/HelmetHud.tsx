@@ -1,12 +1,18 @@
 import { useEffect, useRef } from 'react';
-import { audio } from '../../audio';
-import { O2, RETURN, returnCost } from '@rs/shared';
+import { FLARE, O2, RETURN, returnCost } from '@rs/shared';
 import type { EvaState, MissionParams } from '@rs/shared';
-import { evaText as t } from '../../i18n/en/eva';
+import { audio } from '../../audio';
+import { t } from '../../i18n';
 import { usePrefs } from '../../state/prefs';
+import { MissionObjectives, ActTitle } from './MissionStatus';
+import { Scanner } from './Scanner';
+import { RadioLine } from './RadioLine';
+import { actionHint, hudBanner } from './hudView';
+import { HUD } from './style';
+import '../../ui/hudV2.css';
 
-export function clock(t: number): string {
-  const s = Math.max(0, Math.ceil(t));
+export function clock(time: number): string {
+  const s = Math.max(0, Math.ceil(time));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 export function HelmetHud({
@@ -36,28 +42,9 @@ export function HelmetHud({
   first.moved ||= Math.hypot(a.x - first.x, a.y - first.y) > 12;
   first.dug ||= a.carrying.length > 0 || snap.lander.cache.length > 0;
   first.returned ||= snap.lander.cache.length > 0;
-  const frac = a.o2 / a.o2Max,
-    low = frac < O2.lowFrac;
-  const tremor = snap.fx.some((f) => f.type === 'tremor' && snap.t - f.t < 2);
-  const danger = a.linked && snap.t < a.dangerUntil;
-  const storm = snap.weather.storm;
-  const active = storm && snap.t >= storm.tStart && snap.t < storm.tEnd;
-  const nearbyDown = snap.astronauts.some(
-    (b) =>
-      b.id !== a.id && b.status === 'down' && Math.hypot(a.x - b.x, a.y - b.y) <= O2.shareRange,
-  );
-  const atLander = Math.hypot(a.x - snap.lander.x, a.y - snap.lander.y) <= O2.airlockRadius;
-  const log = snap.log.at(-1);
-  const hint =
-    a.status === 'inside'
-      ? 'eva.exit'
-      : a.status !== 'active'
-        ? ''
-        : nearbyDown
-          ? 'eva.rescue'
-          : atLander
-            ? 'eva.airlock'
-            : '';
+  const frac = a.o2 / a.o2Max;
+  const banner = hudBanner(snap, a, needed);
+  const hint = actionHint(snap, a);
   const lesson =
     snap.t >= 0 && snap.t < 60
       ? !first.moved
@@ -68,9 +55,10 @@ export function HelmetHud({
             ? 'eva.return'
             : ''
       : '';
+  const log = snap.log.at(-1);
   return (
     <div
-      className={`helmet-hud ${low ? 'low-oxygen' : ''} ${a.leak ? 'suit-breach' : ''} ${reduce ? 'reduce-motion' : ''}`}
+      className={`helmet-hud ${frac < O2.lowFrac ? 'low-oxygen' : ''} ${a.leak ? 'suit-breach' : ''} ${reduce ? 'reduce-motion' : ''}`}
       data-status={a.status}
       data-return-cost={needed.toFixed(2)}
     >
@@ -100,83 +88,78 @@ export function HelmetHud({
             <span>{t('eva.return_cost', { n: Math.ceil(needed) })}</span>
           </div>
           {a.leak && <b className="helmet-warning">{t('eva.breach')}</b>}
+          {params.scenario !== 'free' && (
+            <label className="helmet-dose">
+              {t('eva.dose', { n: Math.round(a.dose) })}
+              <meter
+                min={0}
+                max={FLARE.doseLimit}
+                value={a.dose}
+                aria-label={t('eva.dose_label')}
+              />
+            </label>
+          )}
         </div>
         <div className="helmet-clock">
           {snap.t < 0 ? `T−${Math.ceil(-snap.t)}` : clock(snap.durationS - snap.t)}
+          {params.scenario !== 'free' && (
+            <small>
+              {t('eva.act', { n: snap.act })} · {t(`eva.act.${snap.act}`)}
+            </small>
+          )}
         </div>
         <div className={`helmet-block link-block ${a.linked ? '' : 'helmet-warning'}`}>
           {t(a.linked ? 'eva.link' : 'eva.no_signal')}
-          <small>
-            {t('eva.deposited')} {snap.lander.cache.length}/{params.quota}
-          </small>
+          <MissionObjectives snap={snap} />
+          {snap.objectives.length === 0 && (
+            <small>
+              {t('eva.deposited')} {snap.lander.cache.length}/{params.quota}
+            </small>
+          )}
         </div>
       </header>
+      <ActTitle snap={snap} />
       <div className="helmet-banners" role="status">
-        {snap.t < 0 && (
-          <div className="helmet-banner">{t('eva.countdown', { n: Math.ceil(-snap.t) })}</div>
-        )}
-        {a.status === 'down' && (
-          <div className="helmet-banner critical">
-            {t('eva.down', { time: clock(a.downUntil - snap.t) })}
+        {banner && (
+          <div
+            className={`helmet-banner ${banner.critical ? 'critical' : ''}`}
+            data-alert={banner.key}
+            data-return-warning={banner.key === 'eva.return_now' ? true : undefined}
+          >
+            {t(banner.key, banner.params)}
           </div>
-        )}
-        {a.status === 'inside' && <div className="helmet-banner">{t('eva.inside')}</div>}
-        {a.status === 'lost' && <div className="helmet-banner critical">{t('eva.lost')}</div>}
-        {a.status === 'active' && (
-          <>
-            {returnNow && (
-              <div className="helmet-banner critical" data-return-warning>
-                {t('eva.return_now')}
-              </div>
-            )}
-            {!returnNow && danger && (
-              <div className="helmet-banner critical">{t('eva.danger')}</div>
-            )}
-            {!returnNow && tremor && <div className="helmet-banner">{t('eva.tremor')}</div>}
-            {!a.linked && <div className="helmet-banner">{t('eva.no_signal')}</div>}
-            {!returnNow && active ? (
-              <div className="helmet-banner">{t('eva.storm')}</div>
-            ) : !returnNow && storm && snap.t < storm.tStart ? (
-              <div className="helmet-banner">
-                {t('eva.forecast', { n: Math.ceil(storm.tStart - snap.t) })}
-              </div>
-            ) : null}
-            {a.wantsRefill && (
-              <div className="helmet-banner">
-                {t(snap.lander.ration && !a.refillGranted ? 'eva.ration' : 'eva.refill')}
-              </div>
-            )}
-          </>
         )}
       </div>
       <footer className="helmet-bottom">
-        <div className="helmet-samples">
-          <span>{t('eva.samples')}</span>
-          {[0, 1].map((i) => (
-            <div className={`sample-slot ${a.carrying[i] ? 'occupied' : ''}`} key={i}>
-              {a.carrying[i]
-                ? `${t(`eva.${a.carrying[i]!.tier}`)} +${a.carrying[i]!.value}`
-                : t('eva.empty')}
-            </div>
-          ))}
+        <div className="helmet-inventory">
+          <div className="helmet-samples">
+            <span>{t('eva.samples')}</span>
+            {Array.from({ length: params.carryCap }, (_, i) => (
+              <div className={`sample-slot ${a.carrying[i] ? 'occupied' : ''}`} key={i}>
+                {a.carrying[i]
+                  ? `${t(`eva.${a.carrying[i]!.tier}`)} +${a.carrying[i]!.value}`
+                  : t('eva.empty')}
+              </div>
+            ))}
+          </div>
+          {params.deployStations && (
+            <small className="helmet-kits">{t('eva.kits', { n: a.kits })}</small>
+          )}
         </div>
+        <Scanner astronaut={a} />
         {a.linked && a.waypoint && (
           <div className="helmet-beacon">
             {t('eva.waypoint', {
-              n: Math.round(Math.hypot(a.x - a.waypoint.x, a.y - a.waypoint.y) * 0.25),
+              n: Math.round(Math.hypot(a.x - a.waypoint.x, a.y - a.waypoint.y) * HUD.metresPerPx),
             })}
           </div>
         )}
         <div className="helmet-instructions">
-          {hint && <b>{t(hint)}</b>}
+          <b>{t(hint.key, hint.params)}</b>
           {lesson && <span>{t(lesson)}</span>}
           <small>{t('eva.controls')}</small>
         </div>
-        {log && a.linked && (
-          <div className="helmet-radio" key={log.id}>
-            <span>{t(log.key, log.params)}</span>
-          </div>
-        )}
+        {log && a.linked && <RadioLine entry={log} />}
       </footer>
     </div>
   );
