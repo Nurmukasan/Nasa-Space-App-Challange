@@ -78,7 +78,7 @@ export function ChoiceCards({
                     ? `icon_relay_${id}`
                     : ''
               }
-              fallback={field === 'site' ? '◎' : '◇'}
+              fallback="◇"
             />
             <b>{t(`${field}.${id}.name`)}</b>
             <small>{brief(field, id)}</small>
