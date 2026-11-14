@@ -1,0 +1,205 @@
+/* Additions to Sanzhar's design theme; existing cards, colors and typography stay in design.css. */
+.design-screen {
+  justify-content: flex-start;
+  padding-top: 52px;
+  padding-bottom: 48px;
+}
+.gauge-bar {
+  background: var(--s-inset);
+}
+.gauge-bar i {
+  display: block;
+  height: 100%;
+  background: var(--tone);
+  transition: width 250ms ease;
+}
+.resource-why {
+  display: block;
+  font: 14px/1.3 var(--font-crt);
+  color: var(--s-dim);
+  margin-top: 7px;
+}
+.spacecraft-layout {
+  display: grid;
+  grid-template-columns: 105px 1fr;
+  gap: 18px;
+  align-items: center;
+  width: 100%;
+  padding: 18px;
+  background: var(--s-inset);
+  border: 2px solid var(--s-line);
+}
+.rocket-figure {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  text-align: center;
+  font-size: 10px;
+}
+.rocket-figure small {
+  font: 17px var(--font-crt);
+}
+.rocket-figure img {
+  image-rendering: pixelated;
+}
+.rocket-placeholder {
+  display: block;
+  position: relative;
+  width: 48px;
+  height: 128px;
+  border: 2px solid var(--s-line);
+  background: #26374c;
+  overflow: hidden;
+  font-size: 32px;
+  color: #d6e5eb;
+}
+.rocket-placeholder i {
+  position: absolute;
+  bottom: 0;
+  inset-inline: 0;
+  background: #50e6f077;
+  transition: height 250ms ease;
+}
+.cutaway {
+  position: relative;
+  isolation: isolate;
+  text-align: center;
+  min-height: 210px;
+}
+.cutaway h2 {
+  font-size: 13px;
+}
+.cutaway-art {
+  position: absolute;
+  width: 100%;
+  height: calc(100% - 30px);
+  top: 26px;
+  left: 0;
+  object-fit: contain;
+  opacity: 0.45;
+  z-index: -1;
+  image-rendering: pixelated;
+}
+.cutaway-outline {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 3px solid #78969e;
+  border-radius: 50% 50% 20% 20%;
+  background: #243346;
+}
+.bay-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 10px;
+}
+.bay {
+  min-height: 68px;
+  min-width: 0;
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  font-size: 8px;
+  padding: 5px;
+  background: #0d2038e8;
+  animation: bay-enter 250ms ease-out;
+}
+.bay img {
+  image-rendering: pixelated;
+}
+.empty-bay {
+  border: 1px dashed #52707b;
+  color: #a1b4c7;
+  background: #0b182888;
+  animation: none;
+}
+.bay-power {
+  border-color: var(--amber);
+}
+.bay-life {
+  border-color: var(--cyan);
+}
+.bay-science {
+  border-color: var(--green);
+}
+.suit-tanks {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  font-size: 9px;
+  margin-top: 12px;
+}
+.choice-section {
+  min-width: 0;
+}
+.choice-section h2 {
+  font-size: 12px;
+}
+.choice-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 9px;
+}
+.choice-cards button {
+  display: grid;
+  justify-items: start;
+  align-content: start;
+  gap: 8px;
+  text-align: left;
+  padding: 12px;
+}
+.choice-cards b {
+  font-size: 11px;
+  line-height: 1.5;
+}
+.choice-cards small {
+  font: 16px/1.2 var(--font-crt);
+}
+.choice-cards img {
+  image-rendering: pixelated;
+}
+.suggested {
+  outline: 2px solid var(--amber);
+  outline-offset: 3px;
+}
+.suggested em {
+  font: 16px var(--font-crt);
+  color: var(--amber);
+}
+@keyframes bay-enter {
+  from {
+    transform: translateY(10px);
+    opacity: 0.3;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@media (max-width: 550px) {
+  .spacecraft-layout {
+    grid-template-columns: 70px 1fr;
+    gap: 8px;
+    padding: 8px;
+  }
+  .bay-grid {
+    gap: 4px;
+    padding: 4px;
+  }
+  .bay {
+    font-size: 7px;
+  }
+}
+html[data-reduce-motion='true'] .design-screen * {
+  animation: none !important;
+  transition: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .design-screen * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

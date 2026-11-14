@@ -8,19 +8,18 @@ import {
   SITES,
   VEHICLES,
   PRESETS,
-  MISSION_DURATION_S,
-  POWER,
 } from '@rs/shared';
 import type { DesignField, PresetId } from '@rs/shared';
 import { send } from '../net/session';
 import { me, useApp } from '../state/store';
 import { t } from '../i18n';
-import { PixelIcon } from '../ui/PixelIcon';
-import { Gauge } from './design/Gauge';
+import { ResourceGauges } from './design/ResourceGauges';
+import { ChoiceCards } from './design/ChoiceCards';
+import { LanderCutaway } from './design/LanderCutaway';
 import { ModuleCard } from './design/ModuleCard';
-import { FIELD_ICON_SCALE } from './design/constants';
 import '../ui/menu.css';
 import '../ui/design.css';
+import '../ui/designV2.css';
 const fields: { field: DesignField; options: string[]; step: number }[] = [
   { field: 'objective', options: Object.keys(OBJECTIVES), step: 0 },
   { field: 'site', options: Object.keys(SITES), step: 0 },
@@ -38,43 +37,10 @@ export function DesignScreen() {
   const { design, check } = room;
   const totals = check.totals;
   const prediction = check.prediction;
-  const indicators = [
-    {
-      key: 'budget',
-      value: `${totals.cost} / ${totals.budget}`,
-      ratio: totals.cost / totals.budget,
-      bad: totals.cost > totals.budget,
-    },
-    {
-      key: 'mass',
-      value: `${totals.massKg} / ${totals.massCapKg} kg`,
-      ratio: totals.massKg / totals.massCapKg,
-      bad: totals.massKg > totals.massCapKg,
-    },
-    {
-      key: 'power',
-      value: `${totals.powerUseW} / ${totals.powerGenW} W`,
-      ratio:
-        totals.powerGenW > 0 ? totals.powerUseW / totals.powerGenW : totals.powerUseW > 0 ? 2 : 0,
-      bad: totals.powerUseW > totals.powerGenW,
-    },
-    {
-      key: 'data',
-      value: `${totals.dataGen} / ${totals.dataCap} Mb/sol`,
-      ratio: totals.dataCap > 0 ? totals.dataGen / totals.dataCap : totals.dataGen > 0 ? 2 : 0,
-      bad: totals.dataGen > totals.dataCap,
-    },
-    { key: 'comms', value: `${prediction.commsRangeM} m`, ratio: undefined, bad: false },
-    {
-      key: 'time',
-      value: t('design.window', { duration: MISSION_DURATION_S / 60, sunset: POWER.duskEndS / 60 }),
-      ratio: undefined,
-      bad: false,
-    },
-  ];
   return (
     <main className="screen design-screen">
       <h1>{t('design.title')}</h1>
+      {room.scenario === 'training' && <p className="dim">{t('design.training_fixed')}</p>}
       <nav className="stepper" aria-label={t('design.steps')}>
         {steps.map((key, i) => (
           <button key={key} className={step === i ? 'on' : ''} onClick={() => setStep(i)}>
@@ -83,40 +49,13 @@ export function DesignScreen() {
           </button>
         ))}
       </nav>
-      <section className="design-indicators">
-        {indicators.map((item) => (
-          <Gauge
-            key={item.key}
-            label={t(`design.${item.key}`)}
-            value={item.value}
-            ratio={item.ratio}
-            bad={item.bad}
-          />
-        ))}
-      </section>
+      <ResourceGauges check={check} scenario={room.scenario} />
+      <LanderCutaway design={design} mass={totals.massKg} />
       <section className="fields">
         {fields
           .filter((f) => f.step === step || step === 4)
           .map(({ field, options }) => (
-            <label key={field} className="panel field">
-              {(field === 'vehicle' || field === 'relay') && (
-                <PixelIcon name={`icon_${field}_${design[field]}`} scale={FIELD_ICON_SCALE} />
-              )}
-              <span className="field-body">
-                <span className="field-label">{t(`design.field.${field}`)}</span>
-                <select
-                  value={design[field]}
-                  onChange={(e) => send({ t: 'design:set', field, value: e.target.value })}
-                >
-                  {options.map((id) => (
-                    <option key={id} value={id}>
-                      {t(`${field}.${id}.name`)}
-                    </option>
-                  ))}
-                </select>
-                <span className="field-desc">{t(`${field}.${design[field]}.desc`)}</span>
-              </span>
-            </label>
+            <ChoiceCards key={field} field={field} options={options} selected={design[field]} />
           ))}
       </section>
       {(step === 2 || step === 3 || step === 4) && (
