@@ -1,6 +1,7 @@
 import type Phaser from 'phaser';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { EvaState } from '@rs/shared';
+import { audio } from '../audio';
 import { fxBus } from '../fx/FxBus';
 import { FieldFx } from './fieldFx';
 vi.mock('../audio', () => ({
@@ -46,4 +47,15 @@ describe('FieldFx lifecycle', () => {
     expect(current.cameras.main.shake).toHaveBeenCalledTimes(1);
     current.events.emit('destroy');
   });
+});
+
+it('plays an objective cue once when a snapshot repeats the same effect', () => {
+  const current = scene();
+  new FieldFx(current as unknown as Phaser.Scene);
+  const calls = vi.mocked(audio.sfx).mock.calls.length;
+  const snapshot = { tick: 5, fx: [{ id: 7, t: 1, type: 'objective_done' }] } as EvaState;
+  fxBus.consume(snapshot);
+  fxBus.consume(snapshot);
+  expect(vi.mocked(audio.sfx).mock.calls.length).toBe(calls + 1);
+  current.events.emit('destroy');
 });

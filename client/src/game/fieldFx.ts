@@ -1,11 +1,12 @@
 import type Phaser from 'phaser';
-import { O2 } from '@rs/shared';
+import { O2, RETURN, returnCost } from '@rs/shared';
 import type { EvaState, FxEvent, FxType } from '@rs/shared';
 import { audio } from '../audio';
 import type { SfxName } from '../audio';
 import { fxBus } from '../fx/FxBus';
 import { prefs } from '../state/prefs';
 import { evaText as t } from '../i18n/en/eva';
+import { store } from '../state/store';
 import { FIELD } from './style';
 import { worldLabels } from './WorldLabels';
 
@@ -30,6 +31,14 @@ const SOUNDS: Partial<Record<FxType, SfxName>> = {
   storm_start: 'tremor_loop',
   deploy: 'deploy',
   signal_pulse: 'signal_pulse',
+  discovery: 'discovery',
+  repair_done: 'repair_done',
+  fault: 'fault_alarm',
+  flare_warn: 'flare_alarm',
+  window_closing: 'window_alarm',
+  objective_done: 'objective_done',
+  act: 'act_sting',
+  panel_clean: 'panel_clean',
 };
 
 /** All listeners are released with the scene; effect IDs are consumed by the session. */
@@ -83,25 +92,6 @@ export class FieldFx {
     const a = this.snap?.astronauts.find((a) => a.id === event.playerId);
     const x = event.x ?? a?.x ?? mine?.x ?? 0,
       y = event.y ?? a?.y ?? mine?.y ?? 0;
-    if (event.type === 'rockfall') {
-      for (let i = 0; i < 6; i++) {
-        const angle = (i * Math.PI) / 3;
-        const bit = this.scene.add
-          .image(x + Math.cos(angle) * 10, y + Math.sin(angle) * 8, 'fx_debris', i % 4)
-          .setDepth(y + 2);
-        if (reduce) this.scene.time.delayedCall(FIELD.fxDurationMs, () => bit.destroy());
-        else
-          this.scene.tweens.add({
-            targets: bit,
-            x: x + Math.cos(angle) * 28,
-            y: y + Math.sin(angle) * 18,
-            alpha: 0,
-            angle: i * 90,
-            duration: FIELD.fxDurationMs,
-            onComplete: () => bit.destroy(),
-          });
-      }
-    }
     if (event.type === 'deploy') {
       const kit = this.scene.add.image(x, y, 'station_kit').setDepth(y + 1);
       if (reduce) this.scene.time.delayedCall(FIELD.fxDurationMs, () => kit.destroy());
@@ -125,20 +115,12 @@ export class FieldFx {
       this.float(x, y, t(`eva.ping.${event.s ?? 'ok'}`), '#e2ecff', reduce);
     else if (event.type === 'breach') this.float(x, y, t('eva.breach'), '#ffb030', reduce);
     this.callout(event, x, y);
-    if (event.type === 'fireball' && !reduce) {
-      const meteor = this.scene.add
-        .rectangle(x - 260, y - 170, 45, 2, FIELD.gold)
-        .setRotation(0.5)
-        .setDepth(1400);
-      this.scene.tweens.add({
-        targets: meteor,
-        x,
-        y,
-        duration: 1900,
-        onComplete: () => meteor.destroy(),
-      });
+    if (event.type === 'discovery') {
+      if (!reduce) this.scene.cameras.main.flash(100, 120, 255, 190, false);
+      this.float(x, y, t('eva.discovery_found', { id: event.s ?? '' }), '#a4ec9c', reduce);
     }
   }
+
   /** Say what is happening, where, so nobody has to guess what the bang was. */
   private callout(event: FxEvent, x: number, y: number): void {
     const kinds: Partial<Record<FxType, string>> = {
@@ -197,18 +179,23 @@ export class FieldFx {
       this.musicStarted = true;
     }
     this.footsteps(mine.x, mine.y, mine.status === 'active');
-    audio.setStorm(snap.weather.storm ? 1 : 0);
+    const storm = snap.weather.storm;
+    audio.setStorm(storm && snap.t >= storm.tStart && snap.t < storm.tEnd ? 1 : 0);
+    if (mine.status === 'active' && snap.t >= 0) audio.loop('breath_loop');
+    else audio.stop('breath_loop');
+    if (mine.repairing) audio.loop('repair_loop');
+    else audio.stop('repair_loop');
     const low = mine.o2 / mine.o2Max < O2.lowFrac && mine.status === 'active';
     if (low) audio.loop('heartbeat_loop');
     else audio.stop('heartbeat_loop');
-    if (mine.digging) audio.loop('dig_loop');
+    if (mine.digging && !mine.repairing) audio.loop('dig_loop');
     else audio.stop('dig_loop');
     if (mine.wantsRefill && (!snap.lander.ration || mine.refillGranted)) audio.loop('refill_loop');
     else audio.stop('refill_loop');
     const latest = snap.log.at(-1);
     if (latest && latest.id !== this.logId) {
       this.logId = latest.id;
-      if (mine.linked) audio.sfx('radio_in');
+      if (mine.linked) audio.sfx(latest.from === 'earth' ? 'radio_earth' : 'radio_in');
     }
     const inDevil = snap.devils.some(
       (d) => snap.t < d.until && Math.hypot(mine.x - d.x, mine.y - d.y) <= d.r,
@@ -216,8 +203,14 @@ export class FieldFx {
     if (inDevil && mine.status === 'active') audio.loop('devil_loop');
     else audio.stop('devil_loop');
     const unresolved = snap.seismic.some((e) => e.truth === null);
+    const params = store.getState().room?.params;
+    const returnNow =
+      params && mine.o2 < returnCost(params, snap.weather, mine.x, mine.y) + RETURN.warningUnits;
     const danger =
-      mine.o2 / mine.o2Max < 0.2 || snap.t < mine.dangerUntil || snap.durationS - snap.t < 60;
+      returnNow ||
+      mine.o2 / mine.o2Max < 0.2 ||
+      snap.t < mine.dangerUntil ||
+      snap.durationS - snap.t < 60;
     audio.setTension(
       danger ? 1 : unresolved || mine.o2 / mine.o2Max < 0.4 ? 0.65 : 1 - snap.weather.light,
     );

@@ -1,7 +1,7 @@
 import { Howl } from 'howler';
 import { prefs } from '../state/prefs';
 import { FIELD } from '../game/style';
-import { sources } from './sounds';
+import { MUSIC_NAMES, sources } from './sounds';
 import type { MusicName, SfxName } from './sounds';
 import { playSynth, startBed } from './synth';
 import type { Bed } from './synth';
@@ -14,11 +14,19 @@ export interface SfxOptions {
 }
 type SoundName = SfxName | MusicName;
 const musicNames: MusicName[] = ['music_eva_base', 'music_eva_tension', 'music_eva_danger'];
-const isMusic = (name: string) => name.startsWith('music_') || name.startsWith('sting_');
+const isMusic = (name: string) => (MUSIC_NAMES as readonly string[]).includes(name);
+const LOOP_MS: Partial<Record<SfxName, number>> = {
+  breath_loop: 2400,
+  heartbeat_loop: 900,
+  dig_loop: 220,
+  repair_loop: 350,
+  devil_loop: 600,
+};
 const clamp = (v: number) => Math.max(0, Math.min(1, Number.isFinite(v) ? v : 0));
 
 class AudioManager {
   private context: AudioContext | null = null;
+  private master: GainNode | null = null;
   private cache = new Map<SoundName, Howl | null>();
   private loops = new Map<SoundName, ReturnType<typeof setInterval> | null>();
   private tension = 0;
@@ -39,6 +47,9 @@ class AudioManager {
     if (!this.context) {
       try {
         this.context = new AudioContext();
+        this.master = this.context.createGain();
+        this.master.gain.value = prefs.getState().muted ? 0 : 1;
+        this.master.connect(this.context.destination);
       } catch {
         return Promise.resolve();
       }
@@ -82,7 +93,7 @@ class AudioManager {
   private tone(name: SfxName, volume: number): void {
     const ctx = this.context;
     if (!this.ready || !ctx || volume <= 0) return;
-    if (playSynth(ctx, ctx.destination, name, volume)) this.diagnostics.tones++;
+    if (playSynth(ctx, this.master ?? ctx.destination, name, volume)) this.diagnostics.tones++;
   }
   sfx(name: SfxName, opts: SfxOptions = {}): void {
     if (!this.ready) return;
@@ -93,7 +104,19 @@ class AudioManager {
       const id = sound.play();
       sound.volume(volume, id);
     } else this.tone(name, volume);
-    if (['alarm_seismic', 'tremor_loop', 'breach', 'radio_in'].includes(name)) this.duck();
+    if (
+      [
+        'alarm_seismic',
+        'tremor_loop',
+        'breach',
+        'radio_in',
+        'radio_earth',
+        'fault_alarm',
+        'flare_alarm',
+        'window_alarm',
+      ].includes(name)
+    )
+      this.duck();
   }
   loop(name: SoundName): void {
     if (!this.ready || this.loops.has(name)) return;
@@ -104,7 +127,7 @@ class AudioManager {
       sound.play();
       this.loops.set(name, null);
     } else if (!isMusic(name)) {
-      const interval = name === 'heartbeat_loop' ? 900 : name === 'dig_loop' ? 220 : 400;
+      const interval = LOOP_MS[name as SfxName] ?? 400;
       const play = () => this.tone(name as SfxName, this.volume(name));
       play();
       this.loops.set(name, setInterval(play, interval));
@@ -129,11 +152,14 @@ class AudioManager {
     prefs.setState({ muted: value });
   }
   private applyVolumes(): void {
+    if (this.master && this.context)
+      this.master.gain.setValueAtTime(prefs.getState().muted ? 0 : 1, this.context.currentTime);
     this.syncBeds();
     for (const [name, sound] of this.cache)
       if (sound) {
         const v = this.volume(name);
-        if (isMusic(name) && this.loops.has(name)) sound.fade(sound.volume(), v, FIELD.musicFadeMs);
+        if (isMusic(name) && this.loops.has(name) && !prefs.getState().muted)
+          sound.fade(sound.volume(), v, this.ducked ? 120 : FIELD.musicFadeMs);
         else sound.volume(v);
       }
   }
@@ -161,16 +187,18 @@ class AudioManager {
   private syncBeds(): void {
     const ctx = this.context;
     if (!this.ready || !ctx) return;
-    const music = prefs.getState().muted ? 0 : prefs.getState().musicVolume;
+    const music = prefs.getState().muted
+      ? 0
+      : prefs.getState().musicVolume * (this.ducked ? 0.7 : 1);
     if (this.inEva) {
       this.menuBed?.stop();
       this.menuBed = null;
-      this.bed ??= startBed(ctx, ctx.destination);
+      this.bed ??= startBed(ctx, this.master ?? ctx.destination);
       this.bed.setLevel(music, this.tension, this.storm);
     } else {
       this.bed?.stop();
       this.bed = null;
-      this.menuBed ??= startMenuBed(ctx, ctx.destination);
+      this.menuBed ??= startMenuBed(ctx, this.master ?? ctx.destination);
       this.menuBed.setLevel(music, 0, 0);
     }
   }

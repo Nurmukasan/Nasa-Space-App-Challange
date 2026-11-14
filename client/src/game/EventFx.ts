@@ -3,59 +3,9 @@ import type { EvaState, FxEvent } from '@rs/shared';
 import { fxBus } from '../fx/FxBus';
 import { prefs } from '../state/prefs';
 import { FIELD } from './style';
+import { EVENT_FX } from './eventStyle';
 
 /** Tuning for the big world events. Visual only, gameplay lives in @rs/shared. */
-const EVENT_FX = {
-  /** Depth above terrain and crew, below the lighting layer. */
-  depth: 1300,
-  stormDepth: 908,
-  stormRampS: 3,
-  stormMaxPerFrame: 6,
-  stormSpeed: { min: 520, max: 900 },
-  stormLifeMs: 900,
-  stormAlive: 320,
-  impact: {
-    ringStartPx: 6,
-    ringEndScale: 9,
-    ringMs: 1500,
-    flashPx: 26,
-    flashMs: 520,
-    debris: 26,
-    scorchPx: 22,
-    scorchAlpha: 0.55,
-    scorchMs: 20000,
-    shockPx: 70,
-    pillarW: 7,
-    pillarH: 150,
-    pillarMs: 650,
-    secondRingDelayMs: 130,
-    craterPx: 20,
-    craterMs: 14000,
-    craterPulses: 10,
-    column: 22,
-    columnDelayMs: 140,
-  },
-  fireball: { fromX: -260, fromY: -170, ms: 1900, trailEveryMs: 24, trailCount: 3, headPx: 6 },
-  rockfall: {
-    rocks: 11,
-    spreadPx: 26,
-    heightPx: 90,
-    fallMs: 750,
-    dust: 14,
-    ringPx: 8,
-    ringScale: 7,
-  },
-  tremor: {
-    puffs: 18,
-    viewPx: 220,
-    ms: 1300,
-    cracks: 6,
-    crackSegs: 5,
-    crackStepPx: 22,
-    crackMs: 4200,
-  },
-  colors: { hot: 0xfff0c8, orange: 0xff8a30, rock: 0x5b3a34, rockLight: 0x9a6a56, dust: 0xe8b890 },
-};
 
 /**
  * Big, readable effects for world events: dust storm streaks, impact shockwave and scorch,
@@ -80,6 +30,7 @@ export class EventFx {
         alpha: { start: 0.75, end: 0 },
         tint: EVENT_FX.colors.dust,
         maxAliveParticles: EVENT_FX.stormAlive,
+        maxParticles: EVENT_FX.stormAlive,
       })
       .setScrollFactor(0)
       .setDepth(EVENT_FX.stormDepth);
@@ -92,7 +43,8 @@ export class EventFx {
         scale: { start: 0.9, end: 0 },
         alpha: { start: 1, end: 0 },
         tint: [EVENT_FX.colors.hot, EVENT_FX.colors.orange, FIELD.gold],
-        maxAliveParticles: FIELD.maxParticles,
+        maxAliveParticles: FIELD.eventDebris,
+        maxParticles: FIELD.eventDebris,
       })
       .setDepth(EVENT_FX.depth);
     this.puffs = scene.add
@@ -104,7 +56,8 @@ export class EventFx {
         scale: { start: 1.1, end: 0 },
         alpha: { start: 0.55, end: 0 },
         tint: EVENT_FX.colors.dust,
-        maxAliveParticles: FIELD.maxParticles,
+        maxAliveParticles: FIELD.eventPuffs,
+        maxParticles: FIELD.eventPuffs,
       })
       .setDepth(EVENT_FX.depth - 1);
     this.off.push(
@@ -129,6 +82,12 @@ export class EventFx {
 
   /** Per frame: dust streaks fly across the screen while a storm is active. */
   update(snap: EvaState): void {
+    if (this.reduce) {
+      this.stormDust.killAll();
+      this.debris.killAll();
+      this.puffs.killAll();
+      return;
+    }
     const storm = snap.weather.storm;
     if (!storm || this.reduce || snap.t < storm.tStart || snap.t >= storm.tEnd) return;
     const ramp = EVENT_FX.stormRampS;
@@ -188,6 +147,7 @@ export class EventFx {
       onComplete: () => pillar.destroy(),
     });
     this.scene.time.delayedCall(cfg.secondRingDelayMs, () => {
+      if (this.reduce) return;
       const ring2 = this.scene.add
         .circle(x, y, cfg.ringStartPx)
         .setStrokeStyle(2, EVENT_FX.colors.orange, 0.9)
@@ -215,9 +175,9 @@ export class EventFx {
     });
     this.debris.emitParticleAt(x, y, cfg.debris);
     this.puffs.emitParticleAt(x, y, cfg.debris / 2);
-    this.scene.time.delayedCall(cfg.columnDelayMs, () =>
-      this.puffs.emitParticleAt(x, y - 6, cfg.column),
-    );
+    this.scene.time.delayedCall(cfg.columnDelayMs, () => {
+      if (!this.reduce) this.puffs.emitParticleAt(x, y - 6, cfg.column);
+    });
     this.scene.cameras.main.flash(160, 255, 240, 200, false);
   }
 
@@ -252,7 +212,6 @@ export class EventFx {
     const { x = 0, y = 0 } = e;
     const cfg = EVENT_FX.rockfall;
     if (this.reduce) {
-      this.puffs.emitParticleAt(x, y, 3);
       return;
     }
     for (let i = 0; i < cfg.rocks; i++) {
@@ -274,13 +233,14 @@ export class EventFx {
         duration: cfg.fallMs + i * 25,
         ease: 'Quad.easeIn',
         onComplete: () => {
-          this.puffs.emitParticleAt(rock.x, rock.y, 2);
+          if (!this.reduce) this.puffs.emitParticleAt(rock.x, rock.y, 2);
           rock.destroy();
         },
       });
     }
     this.puffs.emitParticleAt(x, y, cfg.dust);
     this.scene.time.delayedCall(cfg.fallMs + cfg.rocks * 20, () => {
+      if (this.reduce) return;
       const ring = this.scene.add
         .circle(x, y, cfg.ringPx)
         .setStrokeStyle(2, EVENT_FX.colors.dust, 0.9)

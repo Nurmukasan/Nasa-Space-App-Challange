@@ -59,6 +59,10 @@ export class FieldJuice {
   }
   update(snap: EvaState, id: string, x: number, y: number, time: number): void {
     const reduce = prefs.getState().reduceMotion;
+    if (reduce) {
+      this.dust.killAll();
+      this.spark.killAll();
+    }
     let own = snap.astronauts[0];
     for (const a of snap.astronauts) {
       if (a.id === id) own = a;
