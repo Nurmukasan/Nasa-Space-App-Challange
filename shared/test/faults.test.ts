@@ -7,7 +7,12 @@ import { handleSimMsg } from '../src/sim/input';
 import { clearFault, faultActive, portPos, spawnFault } from '../src/sim/faults';
 
 function setup(preset: keyof typeof PRESETS = 'balanced') {
-  const sim = createSim(deriveParams(PRESETS[preset], 3, 'signal'), ['a', 'b']);
+  // Neither class has the engineer repair perk, so FAULTS.repairS is the plain rate.
+  const sim = createSim(
+    deriveParams(PRESETS[preset], 3, 'signal'),
+    ['a', 'b'],
+    ['scout', 'geologist'],
+  );
   sim.pub.t = 10;
   for (const a of sim.pub.astronauts) a.status = 'inside';
   return sim;

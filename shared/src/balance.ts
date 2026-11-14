@@ -310,6 +310,18 @@ export const DIRECTOR = {
 };
 
 export const SOLO = { classifyMul: 1.5 };
+
+/**
+ * One small perk per crew class (types.ts CrewClassId). A value of 1 means no effect.
+ * scout walks and runs faster, geologist digs faster, engineer repairs faster,
+ * biologist gets more science value from each sample.
+ */
+export const CREW = {
+  speedMul: { engineer: 1, scout: 1.12, geologist: 1, biologist: 1 },
+  digMul: { engineer: 1, scout: 1, geologist: 1.3, biologist: 1 },
+  repairMul: { engineer: 1.5, scout: 1, geologist: 1, biologist: 1 },
+  sampleMul: { engineer: 1, scout: 1, geologist: 1, biologist: 1.2 },
+} as const;
 export const OBJECTIVE = { secondaryBonus: 20 };
 export const REPORT = { timelineMax: 80 };
 /** v2 causal findings thresholds (docs/product-logic.md 8.2). */

@@ -1,4 +1,4 @@
-import { DIG, SAMPLE, SIGNAL } from '../balance';
+import { CREW, DIG, SAMPLE, SIGNAL } from '../balance';
 import type { MissionParams, SampleSite, SampleTier } from '../types';
 import { dist, pushFx, pushLog } from './sim';
 import type { System } from './sim';
@@ -48,7 +48,10 @@ export const diggingSystem: System = (sim, dt) => {
       a.digging = false;
       continue;
     }
-    const depth = Math.min(sim.params.maxDepth, site.depth + sim.params.digRate * dt);
+    const depth = Math.min(
+      sim.params.maxDepth,
+      site.depth + sim.params.digRate * CREW.digMul[a.crewClass] * dt,
+    );
     site.depth = depth;
     for (const [tier, threshold] of THRESHOLDS) {
       if (!yields(site, tier)) continue;
@@ -58,7 +61,7 @@ export const diggingSystem: System = (sim, dt) => {
         a.digging = false;
         break;
       }
-      const value = sampleValue(site, tier, sim.params);
+      const value = Math.round(sampleValue(site, tier, sim.params) * CREW.sampleMul[a.crewClass]);
       a.carrying.push({ siteId: site.id, kind: site.kind, tier, value, by: a.id });
       site.taken.push(tier);
       pushFx(sim, { type: 'sample', playerId: a.id, x: site.x, y: site.y, n: value });

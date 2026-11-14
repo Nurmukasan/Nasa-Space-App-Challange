@@ -16,6 +16,7 @@ import { initDiscovery } from './discovery';
 import { initSignal } from './signal';
 import { buildObjectives } from './objectives';
 import type {
+  CrewClassId,
   Astronaut,
   CrewStats,
   EvaState,
@@ -172,13 +173,17 @@ export function emptyStats(crew: number, ids: string[] = []): MissionStats {
   };
 }
 
-export function createSim(params: MissionParams, astronautIds: string[]): Sim {
+export function createSim(
+  params: MissionParams,
+  astronautIds: string[],
+  crewClasses: readonly CrewClassId[] = [],
+): Sim {
   const n = astronautIds.length;
   const astronauts: Astronaut[] = astronautIds.map((id, i) => {
     const ang = (i / Math.max(1, n)) * Math.PI * 2 + Math.PI / 2;
     return {
       id,
-      crewClass: defaultCrewClass(i),
+      crewClass: crewClasses[i] ?? defaultCrewClass(i),
       x: LANDER_POS.x + Math.cos(ang) * 22,
       y: LANDER_POS.y + Math.sin(ang) * 22,
       facing: ang,

@@ -1,7 +1,7 @@
-import { LANDER_POS, O2, RETURN, WEATHER } from '../balance';
+import { CREW, LANDER_POS, O2, RETURN, WEATHER } from '../balance';
 import { SITES } from '../catalog';
 import { terrainMul } from './devils';
-import type { EvaState, MissionParams, WeatherState } from '../types';
+import type { CrewClassId, EvaState, MissionParams, WeatherState } from '../types';
 
 import { stormActive } from './weather';
 
@@ -33,9 +33,11 @@ export function fieldSpeed(
   x: number,
   y: number,
   running: boolean,
+  crewClass?: CrewClassId,
 ): number {
   return (
     moveSpeed(params, state.weather, running) *
-    terrainMul(state, SITES[params.site].terrainSalt, x, y).speed
+    terrainMul(state, SITES[params.site].terrainSalt, x, y).speed *
+    (crewClass ? CREW.speedMul[crewClass] : 1)
   );
 }

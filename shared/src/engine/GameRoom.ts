@@ -2,7 +2,7 @@
 // Pure logic, no network and no timers: the server (Socket.IO) and the client
 // (LocalTransport for solo/offline play) both drive this same class.
 import { MAX_EVA, MAX_PLAYERS, SEISMIC, SOLO, WEATHER } from '../balance';
-import { PRESETS, defaultCrewClass } from '../catalog';
+import { PRESETS, defaultCrewClass, isCrewClassId } from '../catalog';
 import { SCENARIOS, isScenarioId } from '../scenarios';
 import { debugSim } from '../sim/debug';
 import {
@@ -182,6 +182,12 @@ export class GameRoom {
           this.emit(me.id, { t: 'error', code: 'not_allowed' });
         }
         return;
+      case 'lobby:class':
+        // Changeable until the crew walks out; Fly again keeps the last choice.
+        if (phase === 'eva' || !isCrewClassId(msg.crewClass)) return;
+        me.crewClass = msg.crewClass;
+        this.dirty = true;
+        return;
       case 'lobby:scenario':
         if ((phase !== 'lobby' && phase !== 'design') || !isHost || !isScenarioId(msg.id)) return;
         this.state.scenario = msg.id;
@@ -329,6 +335,7 @@ export class GameRoom {
     this.sim = createSim(
       params,
       crew.map((p) => p.id),
+      crew.map((p) => p.crewClass),
     );
     this.state.params = params;
     this.state.report = null;
