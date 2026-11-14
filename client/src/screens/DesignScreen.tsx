@@ -16,6 +16,7 @@ import { t } from '../i18n';
 import { designHint, useDesignHint } from '../state/designHint';
 import { ResourceGauges } from './design/ResourceGauges';
 import { ChoiceCards } from './design/ChoiceCards';
+import { ForecastChart } from './design/ForecastChart';
 import { LanderCutaway } from './design/LanderCutaway';
 import { ModuleCard } from './design/ModuleCard';
 import '../ui/menu.css';
@@ -65,7 +66,13 @@ export function DesignScreen() {
         {fields
           .filter((f) => f.step === step || step === 4)
           .map(({ field, options }) => (
-            <ChoiceCards key={field} field={field} options={options} selected={design[field]} />
+            <ChoiceCards
+              key={field}
+              field={field}
+              options={options}
+              selected={design[field]}
+              suggested={fix?.field === field ? fix.value : undefined}
+            />
           ))}
       </section>
       {(step === 2 || step === 3 || step === 4) && (
@@ -97,6 +104,11 @@ export function DesignScreen() {
         </span>
         {totals.baysUsed} / {totals.baysMax}
       </div>
+      <ForecastChart
+        forecast={check.forecast}
+        scenario={room.scenario}
+        site={room.scenario === 'training' ? 'jezero' : design.site}
+      />
       <section className="panel issues">
         <h2 className="panel-title">{t('design.review')}</h2>
         {check.issues.length === 0 && <div className="all-clear">{t('design.allClear')}</div>}

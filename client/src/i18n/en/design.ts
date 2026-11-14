@@ -1,4 +1,28 @@
 export default {
+  'design.forecast_graph': 'MISSION FORECAST',
+  'design.forecast_pending': 'Forecast unavailable for this design.',
+  'design.forecast_graph_help':
+    'Projected power, demand and oxygen over mission time. Night and possible storm periods are shaded.',
+  'design.forecast_watts': 'POWER · W',
+  'design.forecast_oxygen': 'OXYGEN',
+  'design.forecast_available': 'Available power',
+  'design.forecast_need': 'Power needed',
+  'design.forecast_night': 'Blue: night',
+  'design.forecast_storm': 'Brown: possible storm',
+  'design.forecast_cursor': 'Inspect forecast time',
+  'design.forecast_at': '{time} · {power} W available · {need} W needed · {oxygen} oxygen in store',
+  'design.forecast_power_short': 'Power runs short at {time}.',
+  'design.forecast_power_ok': 'Power lasts the whole mission.',
+  'design.forecast_o2_short': 'Oxygen store runs out at {time}.',
+  'design.forecast_o2_ok': 'Oxygen store lasts the whole mission.',
+  'design.forecast_reach': 'Deep samples reachable within {n} m.',
+  'design.site_stats': 'Sun {sun}% · {quakes} quakes · storm {storm}%',
+  'design.site_fact.jezero':
+    'An ancient river delta. Perseverance explores rocks that preserve this watery history.',
+  'design.site_fact.elysium':
+    'A volcanic plain. InSight listened to the interior of Mars from this region.',
+  'design.site_fact.arcadia':
+    'A candidate region for accessible buried water ice, identified from orbit.',
   'design.resources': 'Mission resource budgets',
   'design.ship': 'TULPAR-1 · EQUIPMENT BAYS',
   'design.predictions': 'EXPECTED PERFORMANCE',
