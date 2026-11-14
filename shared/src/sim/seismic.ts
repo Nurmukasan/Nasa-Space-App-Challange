@@ -1,7 +1,8 @@
-import { LOCATE, SAMPLE, SEISMIC, SIGNALS } from '../balance';
+import { LOCATE, SAMPLE, SEISMIC, SIGNAL, SIGNALS } from '../balance';
 import { createRng, hashString } from '../rng';
 import type { EventKind, SeismicEvent, Vec2 } from '../types';
 import { dist, pushFx } from './sim';
+import { onSignalFired, onSignalResolved } from './signal';
 import type { Sim, System } from './sim';
 
 /** v2 rules (pick-centred warnings) apply outside the classic free mission. */
@@ -37,17 +38,19 @@ export const seismicSystem: System = (sim) => {
     }
     if (event.fired || t < event.t0) continue;
     event.fired = true;
-    const signature = SIGNALS[event.kind];
+    const pulse = event.signal === true;
+    const signature = pulse ? SIGNAL.signature : SIGNALS[event.kind];
+    const ampMul = pulse ? SIGNAL.amp : 1;
     const distances = sim.pub.stations.map((s) => dist(s.x, s.y, event.x, event.y));
     const nearest = distances.indexOf(Math.min(...distances));
     sim.pub.seismic.push({
       id: event.id,
       t0: event.t0,
-      deadline: event.t0 + sim.params.classifyWindowS,
+      deadline: event.t0 + sim.params.classifyWindowS * (pulse ? SIGNAL.windowMul : 1),
       guess: null,
       truth: null,
       estimate: null,
-      signal: false,
+      signal: pulse,
       pick: null,
       signals: distances.map((d, stationIdx) => ({
         ...signature,
@@ -56,7 +59,7 @@ export const seismicSystem: System = (sim) => {
         amp:
           event.kind === 'wind' && stationIdx !== nearest
             ? 0
-            : Math.max(SEISMIC.minAmp, 1 - d / SEISMIC.ampFalloff),
+            : ampMul * Math.max(SEISMIC.minAmp, 1 - d / SEISMIC.ampFalloff),
         noise: signature.noise * (1 + (1 - sim.pub.lander.power.eff.scan) * SEISMIC.noisePenalty),
         pressureDip:
           event.kind === 'wind' && stationIdx === nearest && sim.params.hasWeather
@@ -65,6 +68,10 @@ export const seismicSystem: System = (sim) => {
         ...rangeEstimates(sim, event.id, event.x, event.y, stationIdx),
       })),
     });
+    if (pulse) {
+      onSignalFired(sim, event.x, event.y);
+      continue;
+    }
     if (event.kind === 'quake')
       sim.hidden.pendingRockfalls.push({
         id: event.id,
@@ -91,8 +98,13 @@ export const seismicSystem: System = (sim) => {
     pushFx(sim, { type: event.kind === 'impact' ? 'impact' : 'tremor', x: event.x, y: event.y });
   }
   for (const event of sim.pub.seismic) {
-    if (event.truth === null && t >= event.deadline) resolveEvent(sim, event, null);
     if (t >= event.deadline) scorePick(sim, event);
+    if (event.truth !== null || t < event.deadline) continue;
+    if (event.signal) {
+      // Pulses are never classified: no statistics, only the search zone narrows.
+      event.truth = 'quake';
+      onSignalResolved(sim, event);
+    } else resolveEvent(sim, event, null);
   }
   const resolved = sim.pub.seismic.filter((e) => e.truth !== null).slice(-SEISMIC.resolvedKeep);
   sim.pub.seismic = sim.pub.seismic.filter((e) => e.truth === null || resolved.includes(e));
@@ -139,7 +151,7 @@ function scorePick(sim: Sim, event: SeismicEvent): void {
 
 /** Resolve exactly once, using the private schedule as the authority. */
 export function resolveEvent(sim: Sim, event: SeismicEvent, guess: EventKind | null): void {
-  if (event.truth !== null) return;
+  if (event.truth !== null || event.signal) return;
   const scheduled = sim.hidden.schedule.find((e) => e.id === event.id);
   if (!scheduled) return;
   const truth = scheduled.kind;
