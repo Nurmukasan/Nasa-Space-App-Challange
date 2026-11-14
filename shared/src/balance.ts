@@ -325,6 +325,15 @@ export const REPORT_INSIGHTS = {
   /** Stations below this make seismo_net the fix for bad picks. */
   netStations: 3,
 };
+/** Design-time mission forecast (docs/product-logic.md 6.10). */
+export const FORECAST = {
+  points: 32,
+  /** Integration step for the O2 store projection, s. */
+  stepS: 1,
+  /** Typical crew: two astronauts outside 60% of the time, walking. */
+  crew: 2,
+  outsideFrac: 0.6,
+};
 /** Crew awards (docs/product-logic.md 8.4). */
 export const AWARDS = {
   order: ['rock_hound', 'explorer', 'lifeguard', 'mechanic', 'pathfinder', 'iron_lungs'] as const,

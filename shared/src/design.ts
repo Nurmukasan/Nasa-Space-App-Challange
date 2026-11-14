@@ -20,11 +20,13 @@ import type {
   DesignField,
   DesignIssue,
   MissionDesign,
-  MissionForecast,
   MissionParams,
   ModuleId,
   ScenarioId,
 } from './types';
+import { forecastMission } from './forecast';
+
+export { forecastMission };
 
 export function defaultDesign(): MissionDesign {
   return cloneDesign(PRESETS.balanced);
@@ -152,20 +154,6 @@ export function deriveParams(
     kits: sc.deployStations && net ? STATIONS.kitsWithNet : 0,
     scanRange: DISCOVERY.scanRange * (gpr ? DISCOVERY.gprScanMul : 1),
     scienceFull: sc.scienceFull,
-  };
-}
-
-/**
- * Design-time projection of power and oxygen over the mission (docs/product-logic.md 6.10).
- * Phase 0 stub: real curves come in task A10.
- */
-export function forecastMission(d: MissionDesign, _scenario: ScenarioId = 'free'): MissionForecast {
-  return {
-    points: [],
-    powerShortAtS: null,
-    storeEmptyAtS: null,
-    deepReachM: 0,
-    dataReturnPct: Math.round(dataBudget(d).factor * 100),
   };
 }
 
