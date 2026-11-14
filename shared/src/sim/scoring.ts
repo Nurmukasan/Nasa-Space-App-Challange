@@ -1,4 +1,4 @@
-import { O2, OBJECTIVE, SCORE } from '../balance';
+import { LOCATE, O2, OBJECTIVE, SCORE } from '../balance';
 import type {
   DesignCheck,
   Grade,
@@ -67,7 +67,8 @@ export function scoreMission(
       stats.falseAlarms * SCORE.falseAlarmPenalty +
       Math.floor(stats.o2Shared / O2.shareAmount) * SCORE.shareBonus +
       (stats.allAboard ? SCORE.allAboardBonus : 0) +
-      secondaries * OBJECTIVE.secondaryBonus,
+      secondaries * OBJECTIVE.secondaryBonus +
+      stats.locateGood * LOCATE.goodBonus,
     0,
     SCORE.teamworkMax,
   );

@@ -39,6 +39,8 @@ export interface ScheduledEvent {
   y: number;
   fired: boolean;
   fireballShown?: boolean;
+  /** The operator's pick was scored (locate statistics). */
+  pickScored?: boolean;
 }
 
 /** Server-only state: never serialized into snapshots. */
