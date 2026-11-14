@@ -5,6 +5,8 @@ import { snaps } from '../state/snapshots';
 import { store } from '../state/store';
 import { evaText } from '../i18n/en/eva';
 import { FIELD } from './style';
+import { RemoteInterpolator } from './interpolation';
+import type { Point } from './interpolation';
 
 interface CrewVisual {
   body: Phaser.GameObjects.Sprite;
@@ -19,6 +21,13 @@ export class EntityLayer {
   private beacon: Phaser.GameObjects.Sprite;
   private arrow: Phaser.GameObjects.Text;
   private hint: Phaser.GameObjects.Text;
+  private remote = new RemoteInterpolator(
+    FIELD.interpolationMs / 1000,
+    FIELD.interpolationHistory,
+    FIELD.clockSmoothing,
+    FIELD.clockResyncS,
+  );
+  private at: Point = { x: 0, y: 0 };
 
   constructor(private scene: Phaser.Scene) {
     scene.add.image(768, 768, 'lander').setDepth(768);
@@ -54,13 +63,7 @@ export class EntityLayer {
         v.name.destroy();
         this.crew.delete(id);
       }
-    const alpha = Math.max(
-      0,
-      Math.min(
-        1,
-        (now - FIELD.interpolationMs - snaps.prevAt) / Math.max(1, snaps.currAt - snaps.prevAt),
-      ),
-    );
+    this.remote.observe(snap, snaps.currAt);
     for (const a of snap.astronauts) {
       let v = this.crew.get(a.id);
       if (!v) {
@@ -80,9 +83,15 @@ export class EntityLayer {
         };
         this.crew.set(a.id, v);
       }
-      const prev = snaps.prev?.astronauts.find((p) => p.id === a.id);
-      const px = a.id === myId ? x : prev ? prev.x + (a.x - prev.x) * alpha : a.x;
-      const py = a.id === myId ? y : prev ? prev.y + (a.y - prev.y) * alpha : a.y;
+      if (a.id === myId) {
+        this.at.x = x;
+        this.at.y = y;
+      } else if (!this.remote.position(a.id, now, this.at)) {
+        this.at.x = a.x;
+        this.at.y = a.y;
+      }
+      const px = this.at.x,
+        py = this.at.y;
       const frame =
         a.status === 'down' || a.status === 'lost'
           ? 8
@@ -141,6 +150,11 @@ export class EntityLayer {
               ? evaText('eva.airlock')
               : '',
       );
+  }
+
+  /** Where an astronaut is drawn this frame, so lights follow the interpolated sprite. */
+  drawnAt(id: string): Point | undefined {
+    return this.crew.get(id)?.body;
   }
 
   private updateWaypoint(mine: Astronaut | undefined, x: number, y: number, now: number): void {

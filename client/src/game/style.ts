@@ -1,6 +1,12 @@
 /** Visual budgets and palette; gameplay tuning stays in @rs/shared. */
 export const FIELD = {
   interpolationMs: 100,
+  /** Snapshots kept for remote interpolation (~0.4 s at 15 Hz). */
+  interpolationHistory: 6,
+  /** How fast the server-clock estimate follows new snapshot arrivals. */
+  clockSmoothing: 0.1,
+  /** A clock jump larger than this (debug time skips, new mission) resyncs at once. */
+  clockResyncS: 0.5,
   correctionPx: 24,
   terrainBudgetMs: 800,
   terrainTargetMs: 400,
