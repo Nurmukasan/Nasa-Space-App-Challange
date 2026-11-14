@@ -19,6 +19,7 @@ const en: Record<string, string> = {
   'reveal.arcadia': 'Ice in cracks under a fresh crater: impact-exposed ice is creaking.',
   'reveal.partial': 'You pinned the source down but brought no sample. The mystery stays open.',
   'reveal.note': 'In-game hypothesis inspired by real InSight findings.',
+  'story.signal.flare': 'Solar particle event inbound. Get the crew inside the lander now.',
   'story.signal.window': 'Launch window closes in 60 seconds. Get the crew aboard.',
 };
 export default en;

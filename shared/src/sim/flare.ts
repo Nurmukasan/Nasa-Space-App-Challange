@@ -1,8 +1,44 @@
 // Solar particle event and radiation dose (docs/product-logic.md 7.15).
-// Phase 0 stub (owner A, task A8).
+// Earth warns ahead; while it lasts, crew outside the lander accumulate dose.
+import { FLARE } from '../balance';
+import { pushFx } from './sim';
 import type { Sim, System } from './sim';
 
 /** Director/beat hook: warn at warnAt, flare from warnAt + leadS for durS seconds. */
-export function scheduleFlare(_sim: Sim, _warnAt: number, _leadS: number, _durS: number): void {}
+export function scheduleFlare(sim: Sim, warnAt: number, leadS: number, durS: number): void {
+  const tStart = warnAt + leadS;
+  sim.hidden.flare = { warnAt, tStart, tEnd: tStart + durS };
+  sim.hidden.flarePhase = 0;
+}
 
-export const flareSystem: System = () => {};
+/** Safety penalty for the worst dose above the limit (docs/product-logic.md 8.1). */
+export function dosePenalty(doseMax: number): number {
+  return Math.floor(Math.max(0, doseMax - FLARE.doseLimit) / 10) * FLARE.penaltyPer10;
+}
+
+export const flareSystem: System = (sim, dt) => {
+  const plan = sim.hidden.flare;
+  const t = sim.pub.t;
+  if (!plan || t < plan.warnAt) return;
+  const h = sim.hidden;
+  if (h.flarePhase === 0) {
+    sim.pub.flare = { ...plan };
+    h.flarePhase = 1;
+    pushFx(sim, { type: 'flare_warn', n: Math.round(plan.tStart - t) });
+  }
+  if (h.flarePhase === 1 && t >= plan.tStart) {
+    h.flarePhase = 2;
+    pushFx(sim, { type: 'flare_start' });
+  }
+  if (h.flarePhase === 2 && t >= plan.tEnd) {
+    h.flarePhase = 3;
+    pushFx(sim, { type: 'flare_end' });
+  }
+  if (h.flarePhase !== 2) return;
+  // Only the hull protects: everyone not inside the lander soaks up dose.
+  for (const a of sim.pub.astronauts) {
+    if (a.status !== 'active' && a.status !== 'down') continue;
+    a.dose += FLARE.doseRate * dt;
+    h.stats.doseMax = Math.max(h.stats.doseMax, a.dose);
+  }
+};

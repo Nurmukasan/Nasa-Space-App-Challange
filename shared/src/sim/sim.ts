@@ -64,6 +64,8 @@ export interface SimHidden {
   signalSource: Vec2 | null;
   /** Full flare plan; pub.flare shows it from warnAt. */
   flare: FlareState | null;
+  /** 0 planned, 1 warned, 2 active, 3 over. */
+  flarePhase: number;
   director: DirectorState;
   /** Key moments for the report (pushFx records them). */
   timeline: TimelineEntry[];
@@ -268,6 +270,7 @@ export function createSim(params: MissionParams, astronautIds: string[]): Sim {
       hiddenSites: [],
       signalSource: null,
       flare: null,
+      flarePhase: 0,
       director: {
         act: 1,
         nextAt: 0,

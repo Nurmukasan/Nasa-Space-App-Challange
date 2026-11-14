@@ -174,6 +174,7 @@ function crisis(sim: Sim): void {
   } else {
     if (t < d.crisisAt - FLARE.leadS) return;
     scheduleFlare(sim, t, d.crisisAt - t, FLARE.durS);
+    pushLog(sim, 'earth', 'story.signal.flare');
   }
   d.crisisDone = true;
 }
