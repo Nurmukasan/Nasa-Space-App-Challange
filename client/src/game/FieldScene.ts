@@ -5,6 +5,7 @@ import { snaps } from '../state/snapshots';
 import { store } from '../state/store';
 import { FieldJuice } from './FieldJuice';
 import { FieldFx } from './fieldFx';
+import { EventFx } from './EventFx';
 import { terrainTexture } from './terrainTexture';
 import { EntityLayer } from './EntityLayer';
 import { preloadAssets, ensureAssets } from './assets';
@@ -23,6 +24,7 @@ export class FieldScene extends Phaser.Scene {
   private crewLights = new Map<string, Light>();
   private juice!: FieldJuice;
   private effects!: FieldFx;
+  private eventFx!: EventFx;
   private entities!: EntityLayer;
   private keys!: Record<'W' | 'A' | 'S' | 'D' | 'SHIFT' | 'E' | 'SPACE', Phaser.Input.Keyboard.Key>;
   private meX = 0;
@@ -48,6 +50,7 @@ export class FieldScene extends Phaser.Scene {
     terrainTexture(this, salt);
     this.entities = new EntityLayer(this);
     this.effects = new FieldFx(this);
+    this.eventFx = new EventFx(this);
     this.juice = new FieldJuice(this);
 
     this.lighting = new Lighting(this);
@@ -104,6 +107,7 @@ export class FieldScene extends Phaser.Scene {
       }
     }
 
+    this.eventFx.update(snap);
     this.juice.update(snap, myId, this.meX, this.meY, _time);
     if (mine) this.cameras.main.centerOn(this.meX, this.meY);
 
