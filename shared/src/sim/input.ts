@@ -3,9 +3,11 @@ import { MOVE, O2, TICK_DT } from '../balance';
 import type { ClientMsg } from '../protocol';
 import { clampToWorld } from '../terrain';
 import { endMission } from './endcheck';
-import { resolveEvent } from './seismic';
+import { placePick, resolveEvent } from './seismic';
 import { moveSpeed } from './movement';
 import { dist, findAstronaut, pushFx, pushLog } from './sim';
+import { tryStartRepair } from './faults';
+import { tryDeployKit } from './stations';
 import type { Sim } from './sim';
 
 function num(v: unknown): v is number {
@@ -83,7 +85,12 @@ export function handleSimMsg(
         pushFx(sim, { type: 'rescue', playerId: down.id, x: down.x, y: down.y });
         return;
       }
-      if (dist(a.x, a.y, lander.x, lander.y) > O2.airlockRadius) return;
+      // E order (docs/product-logic.md 7.4): rescue -> airlock -> repair -> deploy a kit.
+      if (dist(a.x, a.y, lander.x, lander.y) > O2.airlockRadius) {
+        if (tryStartRepair(sim, a)) return;
+        tryDeployKit(sim, a);
+        return;
+      }
       if (a.carrying.length > 0) {
         for (const s of a.carrying) {
           lander.cache.push(s);
@@ -164,6 +171,11 @@ export function handleSimMsg(
         return;
       const event = sim.pub.seismic.find((e) => e.id === msg.eventId);
       if (event && event.truth === null && t < event.deadline) resolveEvent(sim, event, msg.kind);
+      return;
+    }
+    case 'mc:locate': {
+      if (!canMc || typeof msg.eventId !== 'string' || !num(msg.x) || !num(msg.y)) return;
+      placePick(sim, msg.eventId.slice(0, 32), clampToWorld(msg.x), clampToWorld(msg.y));
       return;
     }
     default:

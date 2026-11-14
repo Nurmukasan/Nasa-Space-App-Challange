@@ -35,15 +35,15 @@ class AudioManager {
   constructor() {
     prefs.subscribe(() => this.applyVolumes());
   }
-  unlock(): void {
+  unlock(): Promise<void> {
     if (!this.context) {
       try {
         this.context = new AudioContext();
       } catch {
-        return;
+        return Promise.resolve();
       }
     }
-    void this.context
+    return this.context
       .resume()
       .then(() => {
         this.ready = true;

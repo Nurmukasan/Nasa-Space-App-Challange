@@ -1,4 +1,4 @@
-import { O2, SCORE } from '../balance';
+import { LOCATE, O2, OBJECTIVE, SCORE } from '../balance';
 import type {
   DesignCheck,
   Grade,
@@ -6,8 +6,10 @@ import type {
   MissionParams,
   MissionReport,
   MissionStats,
+  Objective,
   ScoreBreakdown,
 } from '../types';
+import { primariesDone } from './objectives';
 import { buildInsights } from './insights';
 export { buildInsights } from './insights';
 import type { Sim } from './sim';
@@ -20,7 +22,12 @@ export function scoreMission(
   stats: MissionStats,
   params: MissionParams,
   check: DesignCheck,
+  objectives?: Objective[],
 ): ScoreBreakdown {
+  // Secondary objectives add teamwork; all-aboard is already rewarded by allAboardBonus.
+  const secondaries = (objectives ?? []).filter(
+    (o) => !o.primary && o.kind !== 'all_aboard' && o.state === 'done',
+  ).length;
   const science = clamp(
     Math.round(
       ((stats.scienceRaw +
@@ -29,7 +36,7 @@ export function scoreMission(
           : 0)) *
         params.dataFactor *
         SCORE.scienceMax) /
-        SCORE.scienceFull,
+        params.scienceFull,
     ),
     0,
     SCORE.scienceMax,
@@ -59,15 +66,19 @@ export function scoreMission(
     stats.classifyCorrect * SCORE.classifyBonus -
       stats.falseAlarms * SCORE.falseAlarmPenalty +
       Math.floor(stats.o2Shared / O2.shareAmount) * SCORE.shareBonus +
-      (stats.allAboard ? SCORE.allAboardBonus : 0),
+      (stats.allAboard ? SCORE.allAboardBonus : 0) +
+      secondaries * OBJECTIVE.secondaryBonus +
+      stats.locateGood * LOCATE.goodBonus,
     0,
     SCORE.teamworkMax,
   );
   const total = science + safety + efficiency + teamwork;
+  // With objectives: the scenario's primaries decide; without: the v1 quota rule.
   const success =
     survivors > 0 &&
-    stats.samplesDeposited >= params.quota &&
-    stats.deepDeposited >= params.deepQuota;
+    (objectives && objectives.length > 0
+      ? primariesDone(objectives)
+      : stats.samplesDeposited >= params.quota && stats.deepDeposited >= params.deepQuota);
   let grade: Grade = 'D';
   if (total >= SCORE.grades.S) grade = 'S';
   else if (total >= SCORE.grades.A) grade = 'A';
@@ -79,10 +90,15 @@ export function scoreMission(
 
 export function buildReport(sim: Sim, design: MissionDesign, check: DesignCheck): MissionReport {
   return {
-    score: scoreMission(sim.hidden.stats, sim.params, check),
+    score: scoreMission(sim.hidden.stats, sim.params, check, sim.pub.objectives),
     stats: { ...sim.hidden.stats },
     insights: buildInsights(sim, design),
     design: { ...design, modules: [...design.modules] },
     seed: sim.params.seed,
+    scenario: sim.params.scenario,
+    objectives: sim.pub.objectives.map((o) => ({ ...o })),
+    timeline: sim.hidden.timeline.map((e) => ({ ...e })),
+    awards: [],
+    reveal: null,
   };
 }

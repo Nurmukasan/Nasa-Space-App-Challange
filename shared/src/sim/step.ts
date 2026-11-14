@@ -1,24 +1,39 @@
 // The fixed pipeline. Order matters; change it only in a contract PR.
 import { commsSystem } from './comms';
+import { devilSystem } from './devils';
 import { diggingSystem } from './digging';
+import { directorSystem } from './director';
+import { discoverySystem } from './discovery';
 import { endCheckSystem } from './endcheck';
+import { faultSystem } from './faults';
+import { flareSystem } from './flare';
 import { hazardSystem } from './hazards';
 import { landerSystem } from './lander';
+import { objectivesSystem } from './objectives';
 import { oxygenSystem } from './oxygen';
 import { powerSystem } from './power';
 import { seismicSystem } from './seismic';
+import { signalSystem } from './signal';
 import type { Sim, System } from './sim';
 import { weatherSystem } from './weather';
 
+/** v2 order: docs/architecture.md 6.2. */
 const PIPELINE: System[] = [
+  directorSystem,
   weatherSystem,
+  flareSystem,
   powerSystem,
   commsSystem,
+  devilSystem,
   oxygenSystem,
   diggingSystem,
+  discoverySystem,
+  faultSystem,
   landerSystem,
   seismicSystem,
+  signalSystem,
   hazardSystem,
+  objectivesSystem,
   endCheckSystem,
 ];
 

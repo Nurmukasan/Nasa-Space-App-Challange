@@ -1,0 +1,204 @@
+.helmet-top {
+  display: grid;
+  grid-template-columns: minmax(140px, 220px) 1fr minmax(170px, 280px);
+  top: 48px;
+}
+.helmet-clock {
+  text-align: center;
+}
+.helmet-clock small {
+  display: block;
+  font-size: 10px;
+  line-height: 1.6;
+  letter-spacing: 0;
+  margin-top: 8px;
+}
+.helmet-dose {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 4px;
+  font-size: 9px;
+  color: #a1b4c7;
+}
+.helmet-dose meter {
+  width: 100%;
+  height: 6px;
+  accent-color: #a4ec9c;
+}
+.helmet-objectives {
+  margin-top: 10px;
+  display: grid;
+  gap: 8px;
+  text-align: left;
+  font-size: 9px;
+  line-height: 1.5;
+}
+.helmet-objectives > div {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+  gap: 6px;
+}
+.helmet-objectives b {
+  white-space: nowrap;
+}
+.objective-done {
+  color: #a4ec9c;
+}
+.objective-failed {
+  color: #ffaaa2;
+}
+.helmet-bottom {
+  grid-template-columns: minmax(0, 1fr) minmax(110px, 160px);
+  align-items: end;
+}
+.helmet-inventory {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+.helmet-kits {
+  color: #a1b4c7;
+}
+.helmet-instructions {
+  text-align: center;
+  padding: 6px;
+  line-height: 1.5;
+}
+.helmet-scanner {
+  background: #091724bf;
+  padding: 10px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 5px;
+  color: #a1b4c7;
+}
+.helmet-scanner small {
+  grid-column: 1/-1;
+  font-size: 9px;
+}
+.helmet-scanner span {
+  font-size: 9px;
+}
+.scanner-found {
+  color: #a4ec9c;
+  border-bottom: 2px solid #a4ec9c;
+}
+.scanner-arrow {
+  display: inline-block;
+  font-family: monospace;
+  font-size: 32px;
+  text-align: center;
+}
+.helmet-act-title {
+  position: absolute;
+  inset: 29% 15% auto;
+  display: grid;
+  gap: 10px;
+  text-align: center;
+  color: #ffce72;
+  letter-spacing: 4px;
+  text-shadow: 2px 2px #07111f;
+  pointer-events: none;
+}
+.helmet-act-title strong {
+  font-size: 20px;
+}
+.helmet-banners {
+  top: 42%;
+}
+.helmet-radio {
+  width: min(100%, 740px);
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 5px 10px;
+  min-width: 0;
+  justify-self: center;
+}
+.radio-icon,
+.helmet-radio img {
+  grid-row: 1/3;
+  align-self: center;
+  text-align: center;
+  image-rendering: pixelated;
+  color: #50e6f0;
+}
+.radio-speaker {
+  font-size: 9px;
+  color: #50e6f0;
+}
+.helmet-radio .radio-text {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+  font-size: 11px;
+  max-height: 3em;
+  overflow: hidden;
+}
+@media (max-width: 700px) {
+  .helmet-top {
+    grid-template-columns: minmax(110px, 1fr) auto minmax(115px, 1fr);
+    inset: 48px 18px auto;
+  }
+  .helmet-clock small {
+    font-size: 8px;
+    max-width: 100px;
+  }
+  .helmet-objectives {
+    font-size: 8px;
+    gap: 4px;
+  }
+  .helmet-bottom {
+    inset: auto 18px 22px;
+    gap: 7px;
+    grid-template-columns: minmax(0, 1fr) 100px;
+  }
+  .helmet-instructions {
+    font-size: 9px;
+    gap: 4px;
+  }
+  .helmet-instructions small {
+    display: none;
+  }
+  .helmet-radio .radio-text {
+    font-size: 9px;
+  }
+  .helmet-beacon {
+    font-size: 9px;
+  }
+  .helmet-act-title strong {
+    font-size: 14px;
+  }
+}
+@media (max-height: 600px) {
+  .helmet-top {
+    top: 40px;
+  }
+  .helmet-block {
+    padding: 6px;
+  }
+  .helmet-objectives {
+    font-size: 8px;
+    gap: 3px;
+    margin-top: 5px;
+  }
+  .helmet-instructions span,
+  .helmet-instructions small {
+    display: none;
+  }
+  .helmet-bottom {
+    bottom: 20px;
+    gap: 5px;
+  }
+  .helmet-radio {
+    padding: 4px 8px;
+  }
+  .helmet-scanner {
+    padding: 5px;
+  }
+  .helmet-act-title {
+    top: 33%;
+  }
+}

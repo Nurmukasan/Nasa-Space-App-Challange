@@ -1,38 +1,5 @@
-export const SFX_NAMES = [
-  'step_1',
-  'step_2',
-  'dig_loop',
-  'sample_get',
-  'deposit',
-  'refill_loop',
-  'refill_done',
-  'radio_in',
-  'alarm_seismic',
-  'ui_click',
-  'ui_error',
-  'heartbeat_loop',
-  'tremor_loop',
-  'rockfall',
-  'breach',
-  'down',
-  'classify_ok',
-  'classify_bad',
-  'fireball',
-  'impact',
-  'launch',
-  'stamp',
-  'stamp_win',
-  'stamp_fail',
-  'death',
-] as const;
-export type SfxName = (typeof SFX_NAMES)[number];
-export type MusicName =
-  | 'music_eva_base'
-  | 'music_eva_tension'
-  | 'music_eva_danger'
-  | 'music_design'
-  | 'sting_success'
-  | 'sting_fail';
+export { MUSIC_NAMES, SFX_NAMES } from './soundManifest';
+export type { MusicName, SfxName } from './soundManifest';
 export const soundFiles = import.meta.glob('/public/assets/audio/**/*.{wav,ogg,mp3}', {
   eager: true,
   query: '?url',

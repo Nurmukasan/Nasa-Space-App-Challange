@@ -36,7 +36,7 @@ Add `?debug=1` to the URL to get `window.rs` (send, store, snaps) in the browser
 - `shared/` – game rules: types, protocol, balance, catalog, simulation, room engine. Pure TypeScript.
 - `server/` – thin Socket.IO wrapper around the engine.
 - `client/` – React UI, Phaser field view, canvas Mission Control console.
-- `docs/` – product logic, architecture, work plan.
+- `docs/` – product logic, architecture, work plan (`phases.md`), asset guide (`assets.md`).
 
 ## Deploy
 
@@ -69,6 +69,8 @@ Claude Code assisted with the remote-interpolation correction in PR #1.
 Claude Code drew the 18 pixel-art constructor icons (modules, launch vehicles, relays) in code,
 and they are used in the mission design screen.
 Claude Code also drew the pixel-art Mars backdrop of the menu screens and restyled the menu UI.
+Claude Code also assisted with the v2 game design and work plan
+(`docs/phases.md`, `docs/product-logic.md`, `docs/architecture.md`, `docs/assets.md`) and the asset validator.
 The built-in fallback sprites and sounds are procedural; NASA audio is not bundled.
 Additional asset contributions must be credited by their authors before submission.
 

@@ -11,8 +11,18 @@ import { PowerPanel } from '../console/panels/PowerPanel';
 import { SeismicPanel } from '../console/panels/SeismicPanel';
 import { Commands } from '../console/panels/Commands';
 import { PixelIcon } from '../ui/PixelIcon';
+import { ObjectivesPanel } from '../console/panels/ObjectivesPanel';
 import { fxBus } from '../fx/FxBus';
 import { audio } from '../audio';
+const VOICES = ['earth', 'tulpar', 'mc', 'sys'];
+function voice(from: string): string {
+  return VOICES.includes(from) ? from : 'crew';
+}
+function speaker(from: string, players: { id: string; name: string }[]): string {
+  if (VOICES.includes(from)) return t(`voice.${from}`);
+  return players.find((p) => p.id === from)?.name ?? from;
+}
+
 export function ConsoleScreen() {
   const canvas = useRef<HTMLCanvasElement>(null),
     map = useRef<TacticalMap | null>(null);
@@ -28,12 +38,24 @@ export function ConsoleScreen() {
     };
   }, []);
   const [selected, setSelected] = useState<string | null>(null);
+  const [locating, setLocating] = useState<string | null>(null);
+  const locatingRef = useRef(locating);
+  locatingRef.current = locating;
+  // Leave LOCATE mode once the event's decision window has closed.
+  const locateLive = hud?.seismic.some((e) => e.id === locating && hud.t < e.deadline) ?? false;
+  useEffect(() => {
+    if (locating && !locateLive) setLocating(null);
+  }, [locating, locateLive]);
   const target = selected ?? hud?.astronauts[0]?.id ?? null;
   const targetRef = useRef(target);
   targetRef.current = target;
   useEffect(() => {
     if (!canvas.current) return;
-    map.current = new TacticalMap(canvas.current, () => targetRef.current);
+    map.current = new TacticalMap(
+      canvas.current,
+      () => targetRef.current,
+      () => locatingRef.current,
+    );
     const key = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement).closest('input,select,textarea,button')) return;
       const a = snaps.curr?.astronauts[Number(e.key) - 1];
@@ -48,7 +70,16 @@ export function ConsoleScreen() {
   return (
     <main className="screen console-screen">
       <section>
-        <h1 className="console-title">{t('console.title')}</h1>
+        <h1 className="console-title">
+          {t('console.title')}
+          {hud && (
+            <small className="console-scenario">
+              {' '}
+              {t(`scenario.${hud.scenario}`)}
+              {hud.scenario !== 'free' && ` · ${t('console.act', { n: hud.act })}`}
+            </small>
+          )}
+        </h1>
         <canvas
           aria-label={t('console.title')}
           className="console-map"
@@ -58,16 +89,21 @@ export function ConsoleScreen() {
           onClick={(e) => {
             const p = map.current?.point(e.clientX, e.clientY);
             if (!p) return;
+            if (locating) {
+              send({ t: 'mc:locate', eventId: locating, ...p });
+              return;
+            }
             const hit = map.current?.hitAt(p.x, p.y);
             if (hit) setSelected(hit);
             else if (target) send({ t: 'mc:waypoint', playerId: target, ...p });
           }}
           onContextMenu={(e) => {
             e.preventDefault();
-            if (target) send({ t: 'mc:clearWaypoint', playerId: target });
+            if (locating) setLocating(null);
+            else if (target) send({ t: 'mc:clearWaypoint', playerId: target });
           }}
         />
-        <p>{t('console.help')}</p>
+        <p>{t(locating ? 'console.helpLocate' : 'console.help')}</p>
       </section>
       <aside className="console-side">
         {hud && (
@@ -79,7 +115,8 @@ export function ConsoleScreen() {
               target={target}
               select={setSelected}
             />
-            <SeismicPanel snap={hud} />
+            <ObjectivesPanel snap={hud} />
+            <SeismicPanel snap={hud} locating={locating} setLocating={setLocating} />
             <PowerPanel snap={hud} />
           </>
         )}
@@ -92,8 +129,10 @@ export function ConsoleScreen() {
         </h2>
         <div className="radio-log">
           {hud?.log.map((entry) => (
-            <div key={entry.id}>
-              {Math.floor(entry.t)} · {entry.from} · {t(entry.key, entry.params)}
+            <div key={entry.id} className={`voice-${voice(entry.from)}`}>
+              {Math.floor(entry.t)} · {speaker(entry.from, players ?? [])}
+              {entry.from === 'earth' && ` (${t('console.earthDelay')})`} ·{' '}
+              {t(entry.key, entry.params)}
             </div>
           ))}
         </div>

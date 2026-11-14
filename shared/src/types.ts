@@ -50,6 +50,8 @@ export type ModuleId =
   | 'antenna_hg';
 export type PresetId = 'balanced' | 'budget' | 'science';
 export type DesignField = 'objective' | 'site' | 'vehicle' | 'relay' | 'difficulty';
+/** Mission scenario (docs/product-logic.md 5.1). 'free' is the classic v1 mission. */
+export type ScenarioId = 'training' | 'signal' | 'free';
 
 export interface MissionDesign {
   objective: ObjectiveId;
@@ -106,11 +108,33 @@ export interface Prediction {
   walkSpeedPct: number;
 }
 
+export interface ForecastPoint {
+  t: number;
+  powerW: number;
+  needW: number;
+  /** Projected lander O2 store. */
+  o2Store: number;
+}
+
+/** Design-time projection of the mission over time (docs/product-logic.md 6.10). */
+export interface MissionForecast {
+  /** About 32 points across the scenario duration. */
+  points: ForecastPoint[];
+  /** First mission time when available power < need, or null. */
+  powerShortAtS: number | null;
+  /** Projected time when the O2 store runs out, or null. */
+  storeEmptyAtS: number | null;
+  /** Farthest deep sample reachable on one tank, metres. */
+  deepReachM: number;
+  dataReturnPct: number;
+}
+
 export interface DesignCheck {
   ok: boolean;
   totals: DesignTotals;
   issues: DesignIssue[];
   prediction: Prediction;
+  forecast: MissionForecast;
 }
 
 /** Everything the simulation needs. Derived from MissionDesign by deriveParams(). */
@@ -154,11 +178,24 @@ export interface MissionParams {
   hasGpr: boolean;
   dataFactor: number;
   classifyWindowS: number;
+  scenario: ScenarioId;
+  /** End of dusk: solar output and light reach their night value. */
+  duskEndS: number;
+  /** One player in the 'solo' role. */
+  solo: boolean;
+  /** Crew carries seismometer kits and deploys them; otherwise stations are auto-placed (v1). */
+  deployStations: boolean;
+  /** Seismometer kits handed to the crew at start. */
+  kits: number;
+  /** Helmet scanner range in px. */
+  scanRange: number;
+  /** Raw science that maps to the full Science score in this scenario. */
+  scienceFull: number;
 }
 
 // ----- EVA (the real-time phase) --------------------------------------------
 
-export type SiteKind = 'delta' | 'crater' | 'basalt' | 'impact';
+export type SiteKind = 'delta' | 'crater' | 'basalt' | 'impact' | 'signal';
 export type SampleTier = 'surface' | 'deep' | 'core';
 
 export interface Sample {
@@ -213,6 +250,98 @@ export interface Astronaut {
   wantsRefill: boolean;
   /** In RATION mode: Mission Control approved the request. */
   refillGranted: boolean;
+  /** Seismometer kits carried (deploy with E away from the lander). */
+  kits: number;
+  /** Id of the fault being repaired at a service port, or null. */
+  repairing: string | null;
+  /** Helmet scanner reading, or null when nothing is in range. */
+  scan: ScanReading | null;
+  /** Radiation dose accumulated outside during solar flares (game units). */
+  dose: number;
+}
+
+/** Distance and direction to the nearest undiscovered site in scanner range. */
+export interface ScanReading {
+  dist: number;
+  /** Radians, 0 = +x. */
+  bearing: number;
+}
+
+/** Orbital hint about an undiscovered site, shown on the Mission Control map only. */
+export interface Anomaly {
+  /** Same id as the hidden site. */
+  id: string;
+  /** Fuzzed centre of the search area, never the exact site. */
+  x: number;
+  y: number;
+  r: number;
+  /** Known only with ground-penetrating radar. */
+  kind: SiteKind | null;
+  richness: 1 | 2 | 3 | null;
+}
+
+export type ObjectiveKind =
+  | 'deliver'
+  | 'deliver_deep'
+  | 'deploy_stations'
+  | 'locate_signal'
+  | 'retrieve_signal'
+  | 'discover'
+  | 'repair_all'
+  | 'all_aboard'
+  | 'classify';
+
+export interface Objective {
+  id: string;
+  kind: ObjectiveKind;
+  /** Primary objectives decide mission success; secondary ones add score. */
+  primary: boolean;
+  target: number;
+  progress: number;
+  state: 'active' | 'done' | 'failed';
+}
+
+export type FaultKind = 'moxie_clog' | 'antenna_drift' | 'battery_fault' | 'panel_dust';
+export type ServicePort = 'n' | 'e' | 's' | 'w';
+
+export interface Fault {
+  id: string;
+  kind: FaultKind;
+  /** Exterior hatch where it is repaired with E. */
+  port: ServicePort;
+  since: number;
+  /** 0..1, kept if the repair is interrupted. */
+  progress: number;
+}
+
+export interface DustDevil {
+  id: string;
+  x: number;
+  y: number;
+  r: number;
+  vx: number;
+  vy: number;
+  /** Mission time when it dissipates. */
+  until: number;
+}
+
+/** Solar particle event; public from warnAt. */
+export interface FlareState {
+  warnAt: number;
+  tStart: number;
+  tEnd: number;
+}
+
+export interface SignalState {
+  /** Search zone narrowed by Mission Control picks; null before the first pulse. */
+  zone: { x: number; y: number; r: number } | null;
+  pulses: number;
+  /** Zone small enough: field beacon shown, scanner can detect the source. */
+  located: boolean;
+  /** Source site discovered by a scanner. */
+  found: boolean;
+  /** Signal sample delivered to the lander. */
+  retrieved: boolean;
 }
 
 /** Fractions that must sum to 1. */
@@ -238,6 +367,7 @@ export interface LanderState {
   ration: boolean;
   cache: Sample[];
   power: PowerState;
+  faults: Fault[];
 }
 
 export type EventKind = 'quake' | 'impact' | 'wind';
@@ -253,6 +383,10 @@ export interface StationSignal {
   noise: number;
   /** 0..1, only non-zero for wind when the weather station is installed. */
   pressureDip: number;
+  /** Distance estimate from the S–P time, px (noisy). 0 until filled by the locate system. */
+  distEst: number;
+  /** Back-azimuth estimate from P-wave polarization, radians; station 0 only, else null. */
+  bearingEst: number | null;
 }
 
 export interface SeismicEvent {
@@ -265,6 +399,10 @@ export interface SeismicEvent {
   truth: EventKind | null;
   /** Estimated epicentre with uncertainty radius, null with a single station. */
   estimate: { x: number; y: number; r: number } | null;
+  /** RED SIGNAL pulse: locate only, never classified. */
+  signal: boolean;
+  /** Mission Control's epicentre pick (public), or null. */
+  pick: Vec2 | null;
 }
 
 export interface Hazard {
@@ -310,7 +448,23 @@ export type FxType =
   | 'classify_ok'
   | 'classify_bad'
   | 'ping'
-  | 'alert';
+  | 'alert'
+  | 'discovery'
+  | 'deploy'
+  | 'repair_done'
+  | 'fault'
+  | 'devil'
+  | 'panel_clean'
+  | 'flare_warn'
+  | 'flare_start'
+  | 'flare_end'
+  | 'signal_pulse'
+  | 'signal_located'
+  | 'signal_found'
+  | 'act'
+  | 'objective_done'
+  | 'window_closing'
+  | 'liftoff';
 
 /** One-shot effect. Clients play each id once (dedupe by id). */
 export interface FxEvent {
@@ -350,6 +504,14 @@ export interface EvaState {
   fx: FxEvent[];
   log: LogEntry[];
   ended: boolean;
+  scenario: ScenarioId;
+  /** Dramatic act 1..3 (free mission stays 1). */
+  act: number;
+  objectives: Objective[];
+  anomalies: Anomaly[];
+  devils: DustDevil[];
+  flare: FlareState | null;
+  signal: SignalState;
 }
 
 // ----- Report ----------------------------------------------------------------
@@ -375,6 +537,45 @@ export interface MissionStats {
   endedAtS: number;
   allAboard: boolean;
   o2StoreLeft: number;
+  discoveries: number;
+  stationsDeployed: number;
+  repairs: number;
+  faultSeconds: number;
+  locatePicks: number;
+  locateGood: number;
+  locateErrorSum: number;
+  sandSeconds: number;
+  devilSeconds: number;
+  doseMax: number;
+  signalRetrieved: boolean;
+  crewStats: CrewStats[];
+}
+
+/** Per-astronaut numbers for awards. */
+export interface CrewStats {
+  id: string;
+  distance: number;
+  /** Raw value of samples delivered. */
+  science: number;
+  samples: number;
+  rescues: number;
+  repairs: number;
+  discoveries: number;
+  o2Used: number;
+  secondsOutside: number;
+}
+
+export interface TimelineEntry {
+  t: number;
+  type: FxType;
+  playerId?: string;
+  n?: number;
+}
+
+export interface Award {
+  code: string;
+  playerId: string;
+  n?: number;
 }
 
 export type Grade = 'S' | 'A' | 'B' | 'C' | 'D';
@@ -396,6 +597,8 @@ export interface Insight {
   params?: Record<string, string | number>;
   /** Optional NASA fact card to show next to it. */
   factId?: string;
+  /** Suggested design change, highlighted on the design screen after REDESIGN. */
+  fix?: { module?: ModuleId; field?: DesignField; value?: string };
 }
 
 export interface MissionReport {
@@ -404,6 +607,12 @@ export interface MissionReport {
   insights: Insight[];
   design: MissionDesign;
   seed: number;
+  scenario: ScenarioId;
+  objectives: Objective[];
+  timeline: TimelineEntry[];
+  awards: Award[];
+  /** i18n key of the RED SIGNAL debrief, or null. */
+  reveal: string | null;
 }
 
 // ----- Room state (low frequency) -------------------------------------------
@@ -420,4 +629,5 @@ export interface RoomState {
   check: DesignCheck;
   params: MissionParams | null;
   report: MissionReport | null;
+  scenario: ScenarioId;
 }

@@ -19,6 +19,7 @@ import {
   sweepAngle,
 } from './radarDraw';
 import { drawPending, drawStormBar, mmss, returnBudget, tiersTotal } from './radarPanels';
+import { drawAnomalies, drawLocate } from './locateOverlay';
 export const MAP_SIZE = 640;
 const SCALE = MAP_SIZE / WORLD_PX;
 const RINGS = [50, 100, 150];
@@ -33,6 +34,7 @@ export class TacticalMap {
   constructor(
     private canvas: HTMLCanvasElement,
     private selected: () => string | null,
+    private locating: () => string | null = () => null,
   ) {
     this.terrain.width = this.terrain.height = MAP_SIZE;
     const ctx = this.terrain.getContext('2d')!;
@@ -136,6 +138,7 @@ export class TacticalMap {
         ctx.globalAlpha = 1;
       }
     }
+    drawAnomalies(ctx, s, SCALE);
     for (let i = 0; i < s.stations.length; i++) {
       const p = s.stations[i]!;
       ctx.strokeStyle = ctx.fillStyle = RADAR.station;
@@ -153,6 +156,7 @@ export class TacticalMap {
           now,
           still,
         );
+    drawLocate(ctx, s, SCALE, this.locating());
     for (const h of s.hazards) {
       pulseRing(ctx, px(h.x), px(h.y), h.r * SCALE, RADAR.danger, now, still);
       ctx.fillStyle = RADAR.danger;

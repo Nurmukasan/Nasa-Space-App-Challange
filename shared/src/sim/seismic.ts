@@ -1,8 +1,31 @@
-import { SAMPLE, SEISMIC, SIGNALS } from '../balance';
+import { LOCATE, SAMPLE, SEISMIC, SIGNALS } from '../balance';
 import { createRng, hashString } from '../rng';
-import type { EventKind, SeismicEvent } from '../types';
+import type { EventKind, SeismicEvent, Vec2 } from '../types';
 import { dist, pushFx } from './sim';
 import type { Sim, System } from './sim';
+
+/** v2 rules (pick-centred warnings) apply outside the classic free mission. */
+function v2(sim: Sim): boolean {
+  return sim.params.scenario !== 'free';
+}
+
+/**
+ * Noisy S–P distance per station and, for station 0, a back-azimuth (docs/product-logic.md 7.11).
+ * Error grows when the instruments lack power. Own RNG stream per event and station.
+ */
+function rangeEstimates(sim: Sim, id: string, x: number, y: number, stationIdx: number) {
+  const s = sim.pub.stations[stationIdx]!;
+  const rng = createRng(
+    (sim.params.seed ^ hashString(id) ^ Math.imul(stationIdx + 1, 0x85ebca6b)) >>> 0,
+  );
+  const err = LOCATE.distErr * (1 + (1 - sim.pub.lander.power.eff.scan) * SEISMIC.noisePenalty);
+  const distEst = dist(s.x, s.y, x, y) * (1 + rng.range(-err, err));
+  const bearingEst =
+    stationIdx === 0
+      ? Math.atan2(y - s.y, x - s.x) + rng.range(-LOCATE.bearingErr, LOCATE.bearingErr)
+      : null;
+  return { distEst, bearingEst };
+}
 
 /** Only station measurements cross the network; scheduled truth stays server-side. */
 export const seismicSystem: System = (sim) => {
@@ -24,6 +47,8 @@ export const seismicSystem: System = (sim) => {
       guess: null,
       truth: null,
       estimate: null,
+      signal: false,
+      pick: null,
       signals: distances.map((d, stationIdx) => ({
         ...signature,
         stationIdx,
@@ -37,6 +62,7 @@ export const seismicSystem: System = (sim) => {
           event.kind === 'wind' && stationIdx === nearest && sim.params.hasWeather
             ? signature.pressureDip
             : 0,
+        ...rangeEstimates(sim, event.id, event.x, event.y, stationIdx),
       })),
     });
     if (event.kind === 'quake')
@@ -66,10 +92,50 @@ export const seismicSystem: System = (sim) => {
   }
   for (const event of sim.pub.seismic) {
     if (event.truth === null && t >= event.deadline) resolveEvent(sim, event, null);
+    if (t >= event.deadline) scorePick(sim, event);
   }
   const resolved = sim.pub.seismic.filter((e) => e.truth !== null).slice(-SEISMIC.resolvedKeep);
   sim.pub.seismic = sim.pub.seismic.filter((e) => e.truth === null || resolved.includes(e));
 };
+
+/** Warn linked astronauts inside the public warning zone of `id` until the rockfall passes. */
+function warnZone(sim: Sim, id: string): void {
+  const zone = sim.pub.hazards.find((h) => h.id === id);
+  if (!zone) return;
+  for (const a of sim.pub.astronauts)
+    if (a.linked && dist(a.x, a.y, zone.x, zone.y) <= zone.r)
+      a.dangerUntil = Math.max(a.dangerUntil, zone.tHit + SEISMIC.warningTailS);
+}
+
+/**
+ * mc:locate. Last pick wins until the deadline. In v2 a pick after a correct QUAKE call
+ * moves the warning zone. Returns false when the pick is not accepted.
+ */
+export function placePick(sim: Sim, eventId: string, x: number, y: number): boolean {
+  const event = sim.pub.seismic.find((e) => e.id === eventId);
+  if (!event || sim.pub.t >= event.deadline) return false;
+  event.pick = { x, y };
+  const zone = sim.pub.hazards.find((h) => h.id === eventId);
+  if (zone && v2(sim) && zone.tHit > sim.pub.t) {
+    zone.x = x;
+    zone.y = y;
+    warnZone(sim, eventId);
+  }
+  return true;
+}
+
+/** Score a quake or RED SIGNAL pick once, after the deadline (truth is known server-side). */
+function scorePick(sim: Sim, event: SeismicEvent): void {
+  const scheduled = sim.hidden.schedule.find((e) => e.id === event.id);
+  if (!scheduled || scheduled.pickScored || !event.pick) return;
+  scheduled.pickScored = true;
+  if (scheduled.kind !== 'quake' && !event.signal) return;
+  const err = dist(event.pick.x, event.pick.y, scheduled.x, scheduled.y);
+  const stats = sim.hidden.stats;
+  stats.locatePicks++;
+  stats.locateErrorSum += err;
+  if (err <= LOCATE.goodPx) stats.locateGood++;
+}
 
 /** Resolve exactly once, using the private schedule as the authority. */
 export function resolveEvent(sim: Sim, event: SeismicEvent, guess: EventKind | null): void {
@@ -86,10 +152,11 @@ export function resolveEvent(sim: Sim, event: SeismicEvent, guess: EventKind | n
   else stats.classifyWrong++;
   pushFx(sim, { type: correct ? 'classify_ok' : 'classify_bad', s: event.id });
   if (correct && truth !== 'wind') {
+    // Accuracy follows the stations actually listening (deployed kits count in v2).
     const r =
       truth === 'impact'
         ? 0
-        : sim.params.stations === 3
+        : sim.pub.stations.length >= 3
           ? SEISMIC.uncertainty3
           : SEISMIC.uncertainty1;
     const rng = createRng(sim.params.seed ^ hashString(event.id));
@@ -106,10 +173,12 @@ export function resolveEvent(sim: Sim, event: SeismicEvent, guess: EventKind | n
     if (hazard) {
       hazard.warned = true;
       const { hit: _, ...publicHazard } = hazard;
-      sim.pub.hazards.push(publicHazard);
-      for (const a of sim.pub.astronauts)
-        if (a.linked && dist(a.x, a.y, hazard.x, hazard.y) <= hazard.r)
-          a.dangerUntil = Math.max(a.dangerUntil, hazard.tHit + SEISMIC.warningTailS);
+      if (v2(sim)) {
+        // The warning zone sits where Mission Control (or the computer) thinks the epicentre is.
+        const c: Vec2 = event.pick ?? event.estimate ?? hazard;
+        sim.pub.hazards.push({ ...publicHazard, x: c.x, y: c.y, r: LOCATE.warnRadius });
+      } else sim.pub.hazards.push(publicHazard);
+      warnZone(sim, event.id);
     }
   }
   if (correct && truth === 'impact') {
