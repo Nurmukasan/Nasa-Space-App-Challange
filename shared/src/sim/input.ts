@@ -3,6 +3,7 @@ import { MOVE, O2, TICK_DT } from '../balance';
 import type { ClientMsg } from '../protocol';
 import { clampToWorld } from '../terrain';
 import { endMission } from './endcheck';
+import { resolveEvent } from './seismic';
 import { moveSpeed } from './movement';
 import { dist, findAstronaut, pushFx, pushLog } from './sim';
 import type { Sim } from './sim';
@@ -138,7 +139,17 @@ export function handleSimMsg(
       if (a && a.wantsRefill) a.refillGranted = true;
       return;
     }
-    // TODO (start-phase A3): mc:classify
+    case 'mc:classify': {
+      if (
+        !canMc ||
+        typeof msg.eventId !== 'string' ||
+        !['quake', 'impact', 'wind'].includes(msg.kind)
+      )
+        return;
+      const event = sim.pub.seismic.find((e) => e.id === msg.eventId);
+      if (event && event.truth === null && t < event.deadline) resolveEvent(sim, event, msg.kind);
+      return;
+    }
     default:
       return;
   }

@@ -8,6 +8,7 @@ import type {
   EvaState,
   EventKind,
   FxEvent,
+  Hazard,
   LogEntry,
   MissionParams,
   MissionStats,
@@ -28,6 +29,7 @@ export interface ScheduledEvent {
 export interface SimHidden {
   schedule: ScheduledEvent[];
   stats: MissionStats;
+  pendingRockfalls: Array<Hazard & { hit: boolean }>;
   nextFxId: number;
   nextLogId: number;
   /** Mission time of the last accepted move per astronaut. */
@@ -131,6 +133,7 @@ export function createSim(params: MissionParams, astronautIds: string[]): Sim {
     pub,
     hidden: {
       schedule: buildSchedule(params, SITES[params.site].terrainSalt),
+      pendingRockfalls: [],
       stats: emptyStats(n),
       nextFxId: 1,
       nextLogId: 1,
