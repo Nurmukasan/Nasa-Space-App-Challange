@@ -101,7 +101,7 @@ export const ASSETS: AssetSpec[] = [
   ...Object.keys(VEHICLES).map((id) => ui(`rocket_${id}`, 48, 128, true)),
   ui('stamp_success', 160, 64),
   ui('stamp_failed', 160, 64),
-  ...AWARDS.map((code) => ui(`award_${code}`, 32, 32)),
+  ...AWARDS.map((code) => ui(`award_${code}`, 32, 32, true)),
   ...OBJECTIVES.map((kind) => ui(`obj_${kind}`, 16, 16)),
   ...['earth', 'tulpar', 'mc'].map((who) => ui(`portrait_${who}`, 32, 32)),
 ];

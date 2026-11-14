@@ -1,0 +1,106 @@
+.debrief-objective {
+  display: grid;
+  grid-template-columns: 22px 1fr auto;
+  gap: 9px;
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--s-line);
+  font: 17px/1.4 var(--font-crt);
+}
+.debrief-objective small {
+  display: block;
+  color: var(--s-dim);
+  font-size: 13px;
+}
+.debrief-objective.objective-done > b {
+  color: var(--green);
+}
+.debrief-objective.objective-failed > b {
+  color: var(--red);
+}
+.report-timeline ol {
+  display: flex;
+  overflow-x: auto;
+  gap: 8px;
+  padding: 8px 0 12px;
+  margin: 0;
+  list-style: none;
+}
+.report-timeline li {
+  display: grid;
+  gap: 6px;
+  min-width: 110px;
+  padding: 10px;
+  border: 1px solid var(--s-line);
+  background: var(--s-inset);
+  font: 15px var(--font-crt);
+}
+.report-timeline time {
+  color: var(--s-accent);
+}
+.report-timeline li > b {
+  font-size: 23px;
+  color: var(--cyan);
+}
+.report-awards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+.report-awards article {
+  padding: 12px;
+  background: var(--s-inset);
+  border: 1px solid var(--s-line);
+}
+.report-awards h3 {
+  font-size: 13px;
+  color: var(--s-accent);
+}
+.report-awards p {
+  font: 16px/1.4 var(--font-crt);
+  margin-bottom: 0;
+}
+.report-awards img {
+  image-rendering: pixelated;
+}
+.because-label {
+  display: block;
+  color: var(--s-accent);
+  margin-bottom: 4px;
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+.try-chip {
+  display: block;
+  width: fit-content;
+  margin-top: 8px;
+  padding: 5px 10px;
+  font-size: 11px;
+  border-color: var(--amber);
+}
+.report-reveal p {
+  font: 20px/1.5 var(--font-crt);
+}
+.report-reveal small {
+  display: block;
+  color: var(--s-dim);
+  font-size: 11px;
+}
+.report-details {
+  display: grid;
+  gap: 14px;
+  margin-top: 14px;
+  animation: finding-in 360ms var(--delay) ease-out both;
+}
+.report-v2-twins {
+  margin-top: 12px;
+}
+html[data-reduce-motion='true'] .report-screen * {
+  animation: none !important;
+  transition: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .report-screen * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { buildReport } from '@rs/shared';
 import type { MissionReport } from '@rs/shared';
 import { ReportScreen } from '../../screens/ReportScreen';
 import { baseFixture, installFixture } from '../fixtures/base';
@@ -11,7 +12,8 @@ function Demo() {
     installFixture(fixture);
     const room = store.getState().room;
     if (!room) return;
-    const report = {
+    const report: MissionReport = {
+      ...buildReport(fixture.room.simulation!, room.design, room.check),
       score: {
         science: 312,
         safety: 205,
@@ -21,18 +23,34 @@ function Demo() {
         grade: 'A',
         success: true,
       },
-      stats: {},
       insights: [
         { code: 'xl_tanks_good', tone: 'good', params: { count: 2 } },
         { code: 'net_good', tone: 'good', params: { count: 3 } },
-        { code: 'breach', tone: 'bad', params: { count: 1 } },
+        {
+          code: 'no_drill_deep',
+          tone: 'bad',
+          params: { seconds: 20, oxygen: 32 },
+          fix: { module: 'drill' },
+        },
         { code: 'ran_too_much', tone: 'neutral', params: { pct: 38 } },
         { code: 'all_aboard', tone: 'good', params: { count: 3 } },
         { code: 'twin_insight', tone: 'neutral' },
       ],
       design: room.design,
       seed: 42,
-    } as unknown as MissionReport;
+      scenario: 'signal',
+      objectives: [
+        { id: 'samples', kind: 'deliver', target: 3, progress: 3, primary: true, state: 'done' },
+      ],
+      timeline: [
+        { t: 40, type: 'deploy', playerId: room.players[1]!.id },
+        { t: 90, type: 'discovery', playerId: room.players[1]!.id },
+        { t: 180, type: 'deposit', n: 2 },
+        { t: 430, type: 'liftoff' },
+      ],
+      awards: [{ code: 'explorer', playerId: room.players[1]!.id }],
+      reveal: 'reveal.jezero',
+    };
     store.setState({ room: { ...room, phase: 'report', report } });
   }, []);
   return <ReportScreen />;
