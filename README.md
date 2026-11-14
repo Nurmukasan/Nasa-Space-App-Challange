@@ -68,6 +68,7 @@ scene lifecycle fixes, field effects, causal report UI, integration checks and d
 Claude Code assisted with the remote-interpolation correction in PR #1.
 Claude Code drew the 18 pixel-art constructor icons (modules, launch vehicles, relays) in code,
 and they are used in the mission design screen.
+Claude Code also drew the pixel-art Mars backdrop of the menu screens and restyled the menu UI.
 The built-in fallback sprites and sounds are procedural; NASA audio is not bundled.
 Additional asset contributions must be credited by their authors before submission.
 

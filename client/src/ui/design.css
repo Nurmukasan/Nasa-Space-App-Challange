@@ -1,23 +1,304 @@
 .design-screen {
   max-width: 1100px;
   margin: auto;
-}
-.design-indicators {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 8px;
   width: 100%;
 }
-.design-indicators h2 {
-  font-size: 1rem;
-  margin: 0 0 6px;
+.design-screen h1 {
+  font-size: clamp(24px, 4vw, 36px);
+  text-shadow: 0 3px 0 #6a1414;
 }
-.design-screen button small,
-.design-screen button span {
+
+/* ---- Step bar ---- */
+.stepper {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.stepper button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+}
+.step-num {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  background: var(--s-inset);
+  border: 2px solid var(--s-line);
+  font-size: 11px;
+}
+.stepper button.on .step-num {
+  background: #06111f;
+  border-color: #2a1006;
+  color: var(--s-accent);
+}
+
+/* ---- Resource gauges ---- */
+.design-indicators {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  width: 100%;
+}
+.gauge {
+  padding: 8px 10px;
+}
+.gauge h2 {
+  margin: 0 0 4px;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--s-dim);
+  text-transform: uppercase;
+}
+.gauge output {
   display: block;
+  font-family: var(--font-crt);
+  font-size: 19px;
+  line-height: 1.1;
+  margin-bottom: 6px;
+}
+.gauge-bar {
+  --fill: 0%;
+  --tone: var(--cyan);
+  height: 10px;
+  background:
+    linear-gradient(90deg, var(--tone) var(--fill), transparent var(--fill)), var(--s-inset);
+  -webkit-mask: repeating-linear-gradient(90deg, #000 0 6px, transparent 6px 8px);
+  mask: repeating-linear-gradient(90deg, #000 0 6px, transparent 6px 8px);
+}
+.gauge.warn-state {
+  --tone: var(--amber);
+}
+.gauge.warn-state .gauge-bar {
+  --tone: var(--amber);
+}
+.gauge.err .gauge-bar {
+  --tone: var(--red);
+}
+.gauge.err {
+  border-color: var(--red);
+  animation: gauge-alert 0.9s steps(2, jump-none) infinite;
+}
+.gauge.err output {
+  color: var(--red);
+}
+@keyframes gauge-alert {
+  50% {
+    box-shadow:
+      4px 4px 0 var(--s-shadow),
+      0 0 14px #f0463c88;
+  }
+}
+
+/* ---- Choice fields ---- */
+.fields {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+.field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.field-body {
+  display: grid;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+.field-label {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--s-accent);
+  text-transform: uppercase;
+}
+.field select {
+  width: 100%;
+}
+.field-desc {
+  font-family: var(--font-crt);
+  font-size: 15px;
+  color: var(--s-dim);
+  line-height: 1.3;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.field .px-icon {
+  margin: 0;
+  flex: none;
+}
+
+/* ---- Module cards ---- */
+.module-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+  width: 100%;
+}
+.module-card {
+  --accent: var(--s-line);
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 12px 10px 10px;
+  text-align: center;
+  border-top: 4px solid var(--accent);
+}
+.module-card[data-group='power'] {
+  --accent: var(--amber);
+}
+.module-card[data-group='life'] {
+  --accent: var(--cyan);
+}
+.module-card[data-group='tools'] {
+  --accent: #e28650;
+}
+.module-card[data-group='science'] {
+  --accent: var(--green);
+}
+.module-card[data-group='comms'] {
+  --accent: #b48cff;
+}
+.module-card .px-icon {
+  margin: 0;
+}
+.module-card b {
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+.module-card small {
+  font-family: var(--font-crt);
+  font-size: 14px;
+  line-height: 1.3;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--s-dim);
+  min-height: 4em;
+}
+.module-card.on small {
+  color: #4a1e0a;
+}
+.module-stats {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.chip {
+  padding: 1px 5px;
+  font-family: var(--font-crt);
+  font-size: 14px;
+  line-height: 1.2;
+  background: var(--s-inset);
+  border: 1px solid var(--s-line);
+  color: var(--s-text);
+}
+.chip.plus {
+  color: var(--green);
+}
+.chip.minus {
+  color: var(--amber);
+}
+.module-card.on .chip {
+  background: #2a1006;
+}
+.module-card .badge {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  padding: 1px 4px;
+  background: #2a1006;
+  color: var(--s-accent);
+}
+
+/* ---- Bays ---- */
+.bays {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: 2px;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+.bay-pips {
+  display: flex;
+  gap: 4px;
+}
+.bay-pip {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--s-line);
+  background: var(--s-inset);
+}
+.bay-pip.used {
+  background: var(--s-accent);
+  border-color: #fff0c8;
+}
+.bay-pip.over {
+  background: var(--red);
+  border-color: #ffb0a8;
+}
+
+/* ---- Review: issues and forecast ---- */
+.issues p {
+  margin: 4px 0;
+  padding-left: 10px;
+  border-left: 4px solid currentColor;
+  font-family: var(--font-crt);
+  font-size: 16px;
+  line-height: 1.3;
+}
+.all-clear {
+  color: var(--green);
+  letter-spacing: 2px;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+.forecast {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 6px 16px;
+  width: 100%;
+}
+.forecast-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 0;
+  border-bottom: 1px dashed var(--s-line);
+  font-family: var(--font-crt);
+  font-size: 16px;
+  line-height: 1.3;
+}
+.forecast-item output {
+  color: var(--s-accent);
+}
+
+/* ---- Crew and launch ---- */
+.crew-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 4px 0;
+}
+.crew-row .grow {
+  flex: 1;
+  min-width: 180px;
 }
 .design-screen select {
   display: block;
+}
+.design-screen .panel .row {
+  justify-content: center;
 }
 
 /* Pixel icons: crisp scaling, never smoothed. */
@@ -25,4 +306,13 @@
   image-rendering: pixelated;
   display: block;
   margin: 0 auto 4px;
+}
+
+.design-screen > .panel,
+.design-screen > section {
+  width: 100%;
+}
+.design-screen > .launch-wrap {
+  display: grid;
+  justify-items: center;
 }

@@ -64,4 +64,9 @@ export default {
   'design.notReady': 'Not ready',
   'design.toggleReady': 'Toggle ready',
   'design.launch': 'LAUNCH',
+  'design.installed': 'INSTALLED',
+  'design.review': 'Systems check',
+  'design.forecast': 'Forecast',
+  'design.allClear': 'All systems nominal',
+  'design.crew': 'Crew',
 };
