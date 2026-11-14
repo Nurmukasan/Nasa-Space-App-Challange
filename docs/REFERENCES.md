@@ -24,3 +24,9 @@ External source pages and final scientific wording still need the science lead's
 | React, Zustand, Vite, Vitest, Howler.js | UI, state, build, tests, audio | npm | MIT |
 | VT323, Silkscreen (via Fontsource) | Pixel fonts | https://fontsource.org | OFL-1.1 |
 | Share Tech Mono (font file in client/src/ui/fonts/, from Fontsource) | Menu screen font | https://fontsource.org/fonts/share-tech-mono | OFL-1.1 |
+
+## Art
+
+| What | Used for | Source | Notes |
+| --- | --- | --- | --- |
+| `crew_engineer.png`, `crew_scout.png`, `crew_geologist.png`, `crew_biologist.png` (client/public/assets/sprites/) | Crew class sprites in the field view and the lobby picker | AI-generated character sheets supplied by the team; cut into 64×64 frames (background and shadow removed, box-downscaled) with Claude Code | **AI-generated.** Shown with the "AI-GENERATED ART" label. No logos, flags or mission patches. Image generator: _to be filled in by the team_ |

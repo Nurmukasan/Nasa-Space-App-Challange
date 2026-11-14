@@ -5,7 +5,7 @@
 // not match this list, so a wrong file never reaches the game.
 // Data only: no Phaser, no DOM, no import.meta (the validator runs in Node).
 // =============================================================================
-import { MODULE_ORDER, RELAYS, VEHICLES } from '@rs/shared';
+import { CREW_CLASS_IDS, MODULE_ORDER, RELAYS, VEHICLES } from '@rs/shared';
 
 /** field = Phaser field view (loaded as a spritesheet); ui = React screens (design, report, lobby). */
 export type AssetUse = 'field' | 'ui';
@@ -66,6 +66,8 @@ export const ASSETS: AssetSpec[] = [
   // --- Wired: the field view already draws these (procedural fallback until the file exists).
   sheet('astronaut', 16, 16, 9, true),
   sheet('astronaut_stripe', 16, 16, 9, true),
+  // Crew classes: same 9-frame layout at 64x64, drawn at half size in the field. AI-generated.
+  ...CREW_CLASS_IDS.map((id) => sheet(`crew_${id}`, 64, 64, 9, true)),
   sheet('lander', 128, 96, 1, true),
   ...['delta', 'crater', 'basalt', 'impact'].map((kind) => sheet(`site_${kind}`, 16, 16, 2, true)),
   sheet('samples', 8, 8, 3, true),

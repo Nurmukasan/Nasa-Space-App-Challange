@@ -15,7 +15,6 @@ import { SampleFx } from './SampleFx';
 import { terrainTexture } from './terrainTexture';
 import { EntityLayer } from './EntityLayer';
 import { preloadAssets, ensureAssets } from './assets';
-import { ensureSkins } from './skins';
 import { FIELD } from './style';
 import { Lighting } from './Lighting';
 import type { Light } from './Lighting';
@@ -57,7 +56,6 @@ export class FieldScene extends Phaser.Scene {
 
   create(): void {
     ensureAssets(this);
-    ensureSkins(this.textures);
     const room = store.getState().room;
     const salt = SITES[room?.params?.site ?? 'jezero'].terrainSalt;
     terrainTexture(this, salt, room?.params?.scenario !== 'free', snaps.curr?.sites ?? []);
@@ -119,7 +117,7 @@ export class FieldScene extends Phaser.Scene {
           const len = Math.hypot(dx, dy);
           dx /= len;
           dy /= len;
-          const speed = fieldSpeed(params, snap, this.meX, this.meY, running);
+          const speed = fieldSpeed(params, snap, this.meX, this.meY, running, mine.crewClass);
           this.meX = Phaser.Math.Clamp(this.meX + dx * speed * dt, 8, WORLD_PX - 8);
           this.meY = Phaser.Math.Clamp(this.meY + dy * speed * dt, 8, WORLD_PX - 8);
           this.facing = Math.atan2(dy, dx);
