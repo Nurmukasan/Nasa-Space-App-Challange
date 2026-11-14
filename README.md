@@ -66,6 +66,8 @@ repository; screens that show AI-made art carry a visible "AI-GENERATED ART" lab
 OpenAI Codex assisted with client foundation recovery, mission control, mission design, networking,
 scene lifecycle fixes, field effects, causal report UI, integration checks and deployment setup.
 Claude Code assisted with the remote-interpolation correction in PR #1.
+Claude Code drew the 18 pixel-art constructor icons (modules, launch vehicles, relays) in code,
+and they are used in the mission design screen.
 The built-in fallback sprites and sounds are procedural; NASA audio is not bundled.
 Additional asset contributions must be credited by their authors before submission.
 
