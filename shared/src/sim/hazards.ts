@@ -9,7 +9,13 @@ export const hazardSystem: System = (sim) => {
   for (const hazard of sim.hidden.pendingRockfalls) {
     if (hazard.hit || t < hazard.tHit) continue;
     hazard.hit = true;
-    if (!sim.pub.hazards.some((h) => h.id === hazard.id)) {
+    const zone = sim.pub.hazards.find((h) => h.id === hazard.id);
+    if (zone) {
+      // The warning zone "jumps" to the real epicentre: everyone sees how good the pick was.
+      zone.x = hazard.x;
+      zone.y = hazard.y;
+      zone.r = hazard.r;
+    } else {
       const { hit: _, ...publicHazard } = hazard;
       sim.pub.hazards.push(publicHazard);
     }

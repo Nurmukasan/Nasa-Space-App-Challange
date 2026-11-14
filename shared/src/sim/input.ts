@@ -3,7 +3,7 @@ import { MOVE, O2, TICK_DT } from '../balance';
 import type { ClientMsg } from '../protocol';
 import { clampToWorld } from '../terrain';
 import { endMission } from './endcheck';
-import { resolveEvent } from './seismic';
+import { placePick, resolveEvent } from './seismic';
 import { moveSpeed } from './movement';
 import { dist, findAstronaut, pushFx, pushLog } from './sim';
 import { tryStartRepair } from './faults';
@@ -173,9 +173,11 @@ export function handleSimMsg(
       if (event && event.truth === null && t < event.deadline) resolveEvent(sim, event, msg.kind);
       return;
     }
-    case 'mc:locate':
-      // Epicentre picks arrive in task A3; the message is accepted and ignored until then.
+    case 'mc:locate': {
+      if (!canMc || typeof msg.eventId !== 'string' || !num(msg.x) || !num(msg.y)) return;
+      placePick(sim, msg.eventId.slice(0, 32), clampToWorld(msg.x), clampToWorld(msg.y));
       return;
+    }
     default:
       return;
   }
