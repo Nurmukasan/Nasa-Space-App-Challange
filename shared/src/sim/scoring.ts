@@ -1,0 +1,84 @@
+import { SCORE } from '../balance';
+import type {
+  DesignCheck,
+  Grade,
+  Insight,
+  MissionDesign,
+  MissionParams,
+  MissionReport,
+  MissionStats,
+  ScoreBreakdown,
+} from '../types';
+import type { Sim } from './sim';
+
+function clamp(v: number, lo: number, hi: number): number {
+  return v < lo ? lo : v > hi ? hi : v;
+}
+
+export function scoreMission(
+  stats: MissionStats,
+  params: MissionParams,
+  check: DesignCheck,
+): ScoreBreakdown {
+  const science = clamp(
+    Math.round((stats.scienceRaw * params.dataFactor * SCORE.scienceMax) / SCORE.scienceFull),
+    0,
+    SCORE.scienceMax,
+  );
+  const survivors = stats.crew - stats.lost;
+  const safety = clamp(
+    Math.round((SCORE.safetyMax * survivors) / Math.max(1, stats.crew)) -
+      stats.breaches * SCORE.breachPenalty -
+      Math.max(0, stats.downs - stats.lost) * SCORE.downPenalty,
+    0,
+    SCORE.safetyMax,
+  );
+  const t = check.totals;
+  const budgetLeft = clamp((t.budget - t.cost) / t.budget, 0, 1);
+  const massLeft = clamp((t.massCapKg - t.massKg) / t.massCapKg, 0, 1);
+  const storeLeft = clamp(stats.o2StoreLeft / Math.max(1, params.o2StoreInit), 0, 1);
+  const timeLeft = clamp((params.durationS - stats.endedAtS) / params.durationS, 0, 1);
+  const efficiency =
+    survivors === 0
+      ? 0
+      : clamp(
+          Math.round(80 * budgetLeft * 2 + 40 * massLeft + 40 * storeLeft + 40 * timeLeft * 2),
+          0,
+          SCORE.efficiencyMax,
+        );
+  const teamwork = clamp(
+    stats.classifyCorrect * SCORE.classifyBonus -
+      stats.falseAlarms * SCORE.falseAlarmPenalty +
+      (stats.o2Shared > 0 ? SCORE.shareBonus : 0) +
+      (stats.allAboard ? SCORE.allAboardBonus : 0),
+    0,
+    SCORE.teamworkMax,
+  );
+  const total = science + safety + efficiency + teamwork;
+  const success =
+    survivors > 0 &&
+    stats.samplesDeposited >= params.quota &&
+    stats.deepDeposited >= params.deepQuota;
+  let grade: Grade = 'D';
+  if (total >= SCORE.grades.S) grade = 'S';
+  else if (total >= SCORE.grades.A) grade = 'A';
+  else if (total >= SCORE.grades.B) grade = 'B';
+  else if (total >= SCORE.grades.C) grade = 'C';
+  if (!success && (grade === 'S' || grade === 'A' || grade === 'B')) grade = 'C';
+  return { science, safety, efficiency, teamwork, total, grade, success };
+}
+
+/** TODO (start-phase A7): rule-based "why it happened" insights. */
+export function buildInsights(_sim: Sim, _design: MissionDesign): Insight[] {
+  return [];
+}
+
+export function buildReport(sim: Sim, design: MissionDesign, check: DesignCheck): MissionReport {
+  return {
+    score: scoreMission(sim.hidden.stats, sim.params, check),
+    stats: { ...sim.hidden.stats },
+    insights: buildInsights(sim, design),
+    design: { ...design, modules: [...design.modules] },
+    seed: sim.params.seed,
+  };
+}
