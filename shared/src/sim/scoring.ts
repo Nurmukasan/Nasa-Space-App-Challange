@@ -29,7 +29,7 @@ export function scoreMission(
           : 0)) *
         params.dataFactor *
         SCORE.scienceMax) /
-        SCORE.scienceFull,
+        params.scienceFull,
     ),
     0,
     SCORE.scienceMax,
@@ -84,5 +84,10 @@ export function buildReport(sim: Sim, design: MissionDesign, check: DesignCheck)
     insights: buildInsights(sim, design),
     design: { ...design, modules: [...design.modules] },
     seed: sim.params.seed,
+    scenario: sim.params.scenario,
+    objectives: sim.pub.objectives.map((o) => ({ ...o })),
+    timeline: sim.hidden.timeline.map((e) => ({ ...e })),
+    awards: [],
+    reveal: null,
   };
 }

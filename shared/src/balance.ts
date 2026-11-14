@@ -183,3 +183,115 @@ export const INSIGHTS = {
   netCorrect: 2,
   leanBudgetFrac: 0.25,
 };
+
+// =============================================================================
+// v2 numbers (docs/phases.md, phase 0). Edit only the blocks of your owner tag.
+// =============================================================================
+
+// ----- owner: B --------------------------------------------------------------
+
+export const DISCOVERY = {
+  /** Helmet scanner range, px. */
+  scanRange: 110,
+  gprScanMul: 1.6,
+  /** Closer than this, a hidden site is discovered. */
+  revealDist: 22,
+  anomalyR: 70,
+  /** Max offset of an anomaly centre from the real site. */
+  anomalyFuzz: 40,
+  /** Raw science per discovery. */
+  science: 6,
+};
+
+export const STATIONS = {
+  /** Kits with seismo_net; with the lander-mounted station that makes three. */
+  kitsWithNet: 2,
+  landerOffset: { x: 0, y: 26 },
+  minFromLander: 110,
+  minBetween: 120,
+};
+
+export const SAND = { threshold: 0.35, speedMul: 0.6, o2Mul: 1.3 };
+
+export const DEVIL = {
+  rMin: 18,
+  rMax: 28,
+  speedMin: 14,
+  speedMax: 22,
+  lifeMin: 35,
+  lifeMax: 55,
+  /** Spawn distance from the targeted astronaut, px. */
+  spawnMin: 120,
+  spawnMax: 250,
+  speedMul: 0.7,
+  o2Extra: 0.8,
+  /** A devil this close to the lander clears panel dust. */
+  cleanDist: 40,
+  minLight: 0.4,
+  turnRate: 0.6,
+};
+
+/** Point of no return: walk cost home × margin + reserve. */
+export const RETURN = { margin: 1.15, reserve: 5 };
+
+// ----- owner: A --------------------------------------------------------------
+
+export const LOCATE = {
+  /** Relative error of the S–P distance at full instrument power. */
+  distErr: 0.12,
+  /** Single-station back-azimuth error, radians. */
+  bearingErr: 0.5,
+  /** Warning zone radius around the pick or estimate, px. */
+  warnRadius: 170,
+  goodPx: 80,
+  goodBonus: 20,
+};
+
+export const SIGNAL = {
+  firstS: 95,
+  gapMinS: 50,
+  gapMaxS: 70,
+  lastS: 360,
+  windowMul: 1.5,
+  sourceMinDist: 500,
+  sourceMaxDist: 680,
+  amp: 0.55,
+  signature: { riseS: 0.6, decayS: 6, freqHz: 2.8, noise: 0.06, pressureDip: 0 },
+  zoneErrMul: 1.2,
+  zoneSlack: 50,
+  /** Zone radius from the automatic estimate, by station count (3+ / fewer). */
+  autoR3: 170,
+  autoR1: 320,
+  locatedR: 140,
+  /** Value of the deep signal sample; core is worth tierMul.core / tierMul.deep more. */
+  sampleValue: 60,
+  feelNear: 200,
+  feelFar: 450,
+};
+
+export const FAULTS = {
+  repairS: 6,
+  /** Service port distance from the lander centre, px. */
+  portDist: 30,
+  portRadius: 14,
+  maxActive: 2,
+  antennaMul: 0.6,
+  panelMul: 0.5,
+  repairBonus: 10,
+  ports: { moxie_clog: 'e', antenna_drift: 'n', panel_dust: 's', battery_fault: 'w' } as const,
+};
+
+export const FLARE = { leadS: 40, durS: 40, doseRate: 2, doseLimit: 50, penaltyPer10: 10 };
+
+export const DIRECTOR = {
+  /** Postpone events while someone is below this O2 fraction or down. */
+  tensionO2Frac: 0.25,
+  postponeS: 8,
+  windowWarnS: 60,
+  nearCrewMin: 120,
+  nearCrewMax: 260,
+};
+
+export const SOLO = { classifyMul: 1.5 };
+export const OBJECTIVE = { secondaryBonus: 20 };
+export const REPORT = { timelineMax: 80 };

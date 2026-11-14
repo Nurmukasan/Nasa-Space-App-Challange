@@ -4,6 +4,7 @@ export * from './balance';
 export * from './catalog';
 export * from './rng';
 export * from './design';
+export * from './scenarios';
 export * from './terrain';
 export * from './sim';
 export * from './engine/GameRoom';

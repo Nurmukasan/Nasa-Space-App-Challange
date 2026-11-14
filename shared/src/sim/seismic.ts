@@ -24,6 +24,8 @@ export const seismicSystem: System = (sim) => {
       guess: null,
       truth: null,
       estimate: null,
+      signal: false,
+      pick: null,
       signals: distances.map((d, stationIdx) => ({
         ...signature,
         stationIdx,
@@ -37,6 +39,9 @@ export const seismicSystem: System = (sim) => {
           event.kind === 'wind' && stationIdx === nearest && sim.params.hasWeather
             ? signature.pressureDip
             : 0,
+        // Filled by the locate system (task A3).
+        distEst: 0,
+        bearingEst: null,
       })),
     });
     if (event.kind === 'quake')

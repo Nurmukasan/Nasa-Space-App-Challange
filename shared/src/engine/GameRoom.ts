@@ -3,6 +3,8 @@
 // (LocalTransport for solo/offline play) both drive this same class.
 import { MAX_EVA, MAX_PLAYERS, SEISMIC, WEATHER } from '../balance';
 import { PRESETS } from '../catalog';
+import { SCENARIOS, isScenarioId } from '../scenarios';
+import { debugSim } from '../sim/debug';
 import {
   checkDesign,
   cloneDesign,
@@ -69,6 +71,7 @@ export class GameRoom {
       check: checkDesign(design),
       params: null,
       report: null,
+      scenario: 'free',
     };
   }
 
@@ -178,6 +181,12 @@ export class GameRoom {
           this.emit(me.id, { t: 'error', code: 'not_allowed' });
         }
         return;
+      case 'lobby:scenario':
+        if ((phase !== 'lobby' && phase !== 'design') || !isHost || !isScenarioId(msg.id)) return;
+        this.state.scenario = msg.id;
+        this.state.check = checkDesign(this.state.design, msg.id);
+        this.dirty = true;
+        return;
       case 'lobby:ready':
         me.ready = msg.ready === true;
         this.dirty = true;
@@ -189,7 +198,7 @@ export class GameRoom {
           return;
         }
         if (msg.quick === true) {
-          this.setDesign(cloneDesign(PRESETS.balanced));
+          this.setDesign(cloneDesign(PRESETS[SCENARIOS[this.state.scenario].quickPreset]));
           this.launch();
         } else {
           this.state.phase = 'design';
@@ -269,6 +278,8 @@ export class GameRoom {
           this.sim.hidden.stormEnded = false;
         } else if (msg.cmd === 'drain_o2') {
           for (const a of this.sim.pub.astronauts) a.o2 = Math.min(a.o2, a.o2Max * 0.15);
+        } else {
+          debugSim(this.sim, msg.cmd, typeof msg.n === 'number' ? msg.n : undefined);
         }
         return;
       default:
@@ -300,14 +311,18 @@ export class GameRoom {
 
   private setDesign(design: RoomState['design']): void {
     this.state.design = design;
-    this.state.check = checkDesign(design);
+    this.state.check = checkDesign(design, this.state.scenario);
     this.dirty = true;
   }
 
   private launch(): void {
     this.state.attempt++;
-    const params = deriveParams(this.state.design, (this.state.seed + this.state.attempt) >>> 0);
+    const sc = SCENARIOS[this.state.scenario];
+    const design = sc.site ? { ...this.state.design, site: sc.site } : this.state.design;
+    const seed = sc.seed ?? (this.state.seed + this.state.attempt) >>> 0;
+    const params = deriveParams(design, seed, sc.id);
     const crew = this.slots.map((s) => s.info).filter((p) => p.role === 'eva' || p.role === 'solo');
+    params.solo = crew.length === 1 && crew[0]!.role === 'solo';
     this.sim = createSim(
       params,
       crew.map((p) => p.id),

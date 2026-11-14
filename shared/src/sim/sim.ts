@@ -1,18 +1,33 @@
 // Simulation container + helpers shared by all systems.
-import { LANDER_POS, LAUNCH_COUNTDOWN_S, POWER, SEISMIC, WEATHER } from '../balance';
+import {
+  LANDER_POS,
+  LAUNCH_COUNTDOWN_S,
+  POWER,
+  REPORT,
+  SEISMIC,
+  STATIONS,
+  WEATHER,
+} from '../balance';
 import { createRng } from '../rng';
 import { SITES } from '../catalog';
 import { buildSchedule } from './schedule';
 import { generateSites } from '../terrain';
+import { initDiscovery } from './discovery';
+import { buildObjectives } from './objectives';
 import type {
   Astronaut,
   EvaState,
   EventKind,
+  FlareState,
   FxEvent,
+  FxType,
   Hazard,
   LogEntry,
   MissionParams,
   MissionStats,
+  SampleSite,
+  TimelineEntry,
+  Vec2,
 } from '../types';
 
 /** Truth about a scheduled event. Never sent to clients. */
@@ -38,7 +53,54 @@ export interface SimHidden {
   nextLogId: number;
   /** Mission time of the last accepted move per astronaut. */
   lastMoveT: Record<string, number>;
+  /** Undiscovered sites with exact positions (v2 discovery). */
+  hiddenSites: SampleSite[];
+  /** RED SIGNAL source, or null outside the signal scenario. */
+  signalSource: Vec2 | null;
+  /** Full flare plan; pub.flare shows it from warnAt. */
+  flare: FlareState | null;
+  director: DirectorState;
+  /** Key moments for the report (pushFx records them). */
+  timeline: TimelineEntry[];
 }
+
+export interface DirectorState {
+  act: number;
+  /** Next director event time, next RED SIGNAL pulse time. */
+  nextAt: number;
+  nextPulseAt: number;
+  /** Third-act crisis decided at launch. */
+  crisis: 'storm' | 'flare' | null;
+  /** Beats already run (indices into the scenario beat list). */
+  beatsDone: number;
+  /** Events spawned per kind in the current act. */
+  spawned: Record<string, number>;
+  windowWarned: boolean;
+}
+
+/** Effect types worth a place on the report timeline (docs/product-logic.md 8.3). */
+const TIMELINE_TYPES: ReadonlySet<FxType> = new Set<FxType>([
+  'act',
+  'deposit',
+  'discovery',
+  'deploy',
+  'tremor',
+  'impact',
+  'rockfall',
+  'breach',
+  'down',
+  'rescue',
+  'lost',
+  'fault',
+  'repair_done',
+  'storm_start',
+  'flare_start',
+  'signal_located',
+  'signal_found',
+  'objective_done',
+  'window_closing',
+  'liftoff',
+]);
 
 export interface Sim {
   pub: EvaState;
@@ -51,7 +113,7 @@ export interface Sim {
 /** A system mutates the sim for one fixed step. Keep each system in its own file. */
 export type System = (sim: Sim, dt: number) => void;
 
-export function emptyStats(crew: number): MissionStats {
+export function emptyStats(crew: number, ids: string[] = []): MissionStats {
   return {
     samplesDeposited: 0,
     deepDeposited: 0,
@@ -73,6 +135,28 @@ export function emptyStats(crew: number): MissionStats {
     endedAtS: 0,
     allAboard: false,
     o2StoreLeft: 0,
+    discoveries: 0,
+    stationsDeployed: 0,
+    repairs: 0,
+    faultSeconds: 0,
+    locatePicks: 0,
+    locateGood: 0,
+    locateErrorSum: 0,
+    sandSeconds: 0,
+    devilSeconds: 0,
+    doseMax: 0,
+    signalRetrieved: false,
+    crewStats: ids.map((id) => ({
+      id,
+      distance: 0,
+      science: 0,
+      samples: 0,
+      rescues: 0,
+      repairs: 0,
+      discoveries: 0,
+      o2Used: 0,
+      secondsOutside: 0,
+    })),
   };
 }
 
@@ -99,16 +183,28 @@ export function createSim(params: MissionParams, astronautIds: string[]): Sim {
       downUntil: 0,
       wantsRefill: false,
       refillGranted: false,
+      // Kits are dealt round-robin: crew member i gets every n-th kit.
+      kits: Math.floor(params.kits / Math.max(1, n)) + (i < params.kits % Math.max(1, n) ? 1 : 0),
+      repairing: null,
+      scan: null,
+      dose: 0,
     };
   });
-  const stations = [];
-  for (let i = 0; i < params.stations; i++) {
-    const ang = -Math.PI / 2 + (i * Math.PI * 2) / 3;
+  const stations: Vec2[] = [];
+  // v2: one lander-mounted station; the crew deploys the rest (docs/product-logic.md 7.7).
+  if (params.deployStations)
     stations.push({
-      x: Math.round(LANDER_POS.x + Math.cos(ang) * SEISMIC.stationDist),
-      y: Math.round(LANDER_POS.y + Math.sin(ang) * SEISMIC.stationDist),
+      x: LANDER_POS.x + STATIONS.landerOffset.x,
+      y: LANDER_POS.y + STATIONS.landerOffset.y,
     });
-  }
+  else
+    for (let i = 0; i < params.stations; i++) {
+      const ang = -Math.PI / 2 + (i * Math.PI * 2) / 3;
+      stations.push({
+        x: Math.round(LANDER_POS.x + Math.cos(ang) * SEISMIC.stationDist),
+        y: Math.round(LANDER_POS.y + Math.sin(ang) * SEISMIC.stationDist),
+      });
+    }
   const pub: EvaState = {
     t: -LAUNCH_COUNTDOWN_S,
     durationS: params.durationS,
@@ -122,6 +218,7 @@ export function createSim(params: MissionParams, astronautIds: string[]): Sim {
       ration: false,
       cache: [],
       power: { availW: 0, alloc: { ...POWER.defaultAlloc }, eff: { moxie: 1, comms: 1, scan: 1 } },
+      faults: [],
     },
     sites: generateSites(params),
     stations,
@@ -132,13 +229,20 @@ export function createSim(params: MissionParams, astronautIds: string[]): Sim {
     fx: [],
     log: [],
     ended: false,
+    scenario: params.scenario,
+    act: 1,
+    objectives: buildObjectives(params),
+    anomalies: [],
+    devils: [],
+    flare: null,
+    signal: { zone: null, pulses: 0, located: false, found: false, retrieved: false },
   };
   const rng = createRng(params.seed ^ 0x570a);
   const tStart =
     rng.next() < SITES[params.site].stormChance
       ? rng.range(WEATHER.stormEarliestS, WEATHER.stormLatestS)
       : null;
-  return {
+  const sim: Sim = {
     pub,
     hidden: {
       schedule: buildSchedule(params, SITES[params.site].terrainSalt),
@@ -146,18 +250,36 @@ export function createSim(params: MissionParams, astronautIds: string[]): Sim {
       storm: tStart === null ? null : { tStart, tEnd: tStart + WEATHER.stormDurS },
       stormStarted: false,
       stormEnded: false,
-      stats: emptyStats(n),
+      stats: emptyStats(n, astronautIds),
       nextFxId: 1,
       nextLogId: 1,
       lastMoveT: {},
+      hiddenSites: [],
+      signalSource: null,
+      flare: null,
+      director: {
+        act: 1,
+        nextAt: 0,
+        nextPulseAt: 0,
+        crisis: null,
+        beatsDone: 0,
+        spawned: {},
+        windowWarned: false,
+      },
+      timeline: [],
     },
     params,
     salt: SITES[params.site].terrainSalt,
   };
+  initDiscovery(sim);
+  return sim;
 }
 
 export function pushFx(sim: Sim, fx: Omit<FxEvent, 'id' | 't'>): void {
   sim.pub.fx.push({ id: sim.hidden.nextFxId++, t: sim.pub.t, ...fx });
+  const timeline = sim.hidden.timeline;
+  if (TIMELINE_TYPES.has(fx.type) && timeline.length < REPORT.timelineMax)
+    timeline.push({ t: sim.pub.t, type: fx.type, playerId: fx.playerId, n: fx.n });
 }
 
 export function pushLog(sim: Sim, from: string, key: string, params?: LogEntry['params']): void {

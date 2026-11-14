@@ -1,5 +1,5 @@
-import { DIG, SAMPLE } from '../balance';
-import type { SampleTier } from '../types';
+import { DIG, SAMPLE, SIGNAL } from '../balance';
+import type { MissionParams, SampleSite, SampleTier } from '../types';
 import { dist, pushFx, pushLog } from './sim';
 import type { System } from './sim';
 
@@ -8,6 +8,25 @@ const THRESHOLDS: Array<[SampleTier, number]> = [
   ['deep', DIG.deepDepth],
   ['core', DIG.coreDepth],
 ];
+
+/** Value of a sample of `tier` from `site` (docs/product-logic.md 7.5). */
+export function sampleValue(site: SampleSite, tier: SampleTier, params: MissionParams): number {
+  if (site.kind === 'impact') return Math.round(SAMPLE.base[3]! * SAMPLE.impactMul);
+  if (site.kind === 'signal')
+    return Math.round((SIGNAL.sampleValue * SAMPLE.tierMul[tier]) / SAMPLE.tierMul.deep);
+  return Math.round(
+    SAMPLE.base[site.richness]! *
+      SAMPLE.tierMul[tier] *
+      (site.kind === params.favoredKind ? SAMPLE.favoredMul : 1),
+  );
+}
+
+/** Tiers a site can yield: impact ice only at the surface, the signal source only deep. */
+function yields(site: SampleSite, tier: SampleTier): boolean {
+  if (site.kind === 'impact') return tier === 'surface';
+  if (site.kind === 'signal') return tier !== 'surface';
+  return true;
+}
 
 /** Excavation is shared; samples count as science only after airlock deposit. */
 export const diggingSystem: System = (sim, dt) => {
@@ -32,20 +51,14 @@ export const diggingSystem: System = (sim, dt) => {
     const depth = Math.min(sim.params.maxDepth, site.depth + sim.params.digRate * dt);
     site.depth = depth;
     for (const [tier, threshold] of THRESHOLDS) {
-      if (site.kind === 'impact' && tier !== 'surface') continue;
+      if (!yields(site, tier)) continue;
       if (depth + Number.EPSILON < threshold || site.taken.includes(tier)) continue;
       if (a.carrying.length >= sim.params.carryCap) {
         site.depth = threshold - DIG.thresholdEpsilon;
         a.digging = false;
         break;
       }
-      const value = Math.round(
-        site.kind === 'impact'
-          ? SAMPLE.base[3]! * SAMPLE.impactMul
-          : SAMPLE.base[site.richness]! *
-              SAMPLE.tierMul[tier] *
-              (site.kind === sim.params.favoredKind ? SAMPLE.favoredMul : 1),
-      );
+      const value = sampleValue(site, tier, sim.params);
       a.carrying.push({ siteId: site.id, kind: site.kind, tier, value, by: a.id });
       site.taken.push(tier);
       pushFx(sim, { type: 'sample', playerId: a.id, x: site.x, y: site.y, n: value });

@@ -1,4 +1,4 @@
-import { POWER, WEATHER } from '../balance';
+import { WEATHER } from '../balance';
 import type { WeatherState } from '../types';
 import { pushFx } from './sim';
 import type { System } from './sim';
@@ -11,7 +11,7 @@ export function stormActive(weather: WeatherState): boolean {
 
 export const weatherSystem: System = (sim) => {
   const t = Math.max(0, sim.pub.t);
-  const k = Math.min(1, t / POWER.duskEndS);
+  const k = Math.min(1, t / sim.params.duskEndS);
   const w: LiveWeather = sim.pub.weather;
   const storm = sim.hidden.storm;
   const lead = sim.params.hasWeather ? WEATHER.forecastWithStationS : WEATHER.forecastWithoutS;
