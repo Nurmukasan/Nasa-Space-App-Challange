@@ -59,3 +59,35 @@ it('debug injects each event one second ahead and impact has a prior fireball', 
     expect(sim.pub.fx.some((e) => e.type === (kind === 'impact' ? 'impact' : 'tremor'))).toBe(true);
   }
 });
+
+it('shows the fireball two seconds before impact without creating the crater early', () => {
+  const sim = createSim(deriveParams(PRESETS.balanced, 1), ['a']);
+  sim.hidden.schedule = [{ id: 'meteor', kind: 'impact', t0: 10, x: 700, y: 500, fired: false }];
+  sim.pub.t = 7.9;
+  seismicSystem(sim, 0);
+  expect(sim.pub.fx).toHaveLength(0);
+  sim.pub.t = 8;
+  seismicSystem(sim, 0);
+  expect(sim.pub.fx.map((e) => e.type)).toEqual(['fireball']);
+  expect(sim.pub.seismic).toHaveLength(0);
+  expect(sim.pub.sites.every((s) => s.kind !== 'impact')).toBe(true);
+  seismicSystem(sim, 0);
+  expect(sim.pub.fx).toHaveLength(1);
+});
+
+it('retains all unresolved events and only the last three resolved events', () => {
+  const { h, mc } = launched(1);
+  h.seconds(5.1);
+  const sim = h.room.simulation!;
+  for (let i = 0; i < 6; i++) {
+    h.send(mc, { t: 'debug', cmd: 'event_wind' });
+    h.seconds(1.1);
+    h.send(mc, { t: 'mc:classify', eventId: sim.pub.seismic.at(-1)!.id, kind: 'wind' });
+    h.ticks(1);
+  }
+  expect(sim.pub.seismic).toHaveLength(3);
+  h.send(mc, { t: 'debug', cmd: 'event_quake' });
+  h.seconds(1.1);
+  expect(sim.pub.seismic).toHaveLength(4);
+  expect(sim.pub.seismic.at(-1)!.truth).toBeNull();
+});
