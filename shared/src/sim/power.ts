@@ -1,4 +1,5 @@
-import { POWER } from '../balance';
+import { POWER, WEATHER } from '../balance';
+import { stormActive } from './weather';
 import type { System } from './sim';
 
 function eff(powerW: number, needW: number): number {
@@ -12,7 +13,11 @@ export const powerSystem: System = (sim) => {
   const p = sim.params;
   const power = sim.pub.lander.power;
   let solar = sim.pub.weather.solarFactor;
-  if (p.hasBattery) solar = Math.max(solar, POWER.batteryFloor);
+  if (p.hasBattery)
+    solar = Math.max(
+      solar,
+      POWER.batteryFloor * (stormActive(sim.pub.weather) ? WEATHER.stormSolar : 1),
+    );
   const net = Math.max(0, p.rtgW + p.solarPeakW * solar - p.baseLoadW);
   power.availW = Math.round(net);
   power.eff.moxie = eff(net * power.alloc.moxie, p.moxieNeedW);

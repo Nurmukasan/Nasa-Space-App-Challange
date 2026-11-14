@@ -1,5 +1,6 @@
 // Simulation container + helpers shared by all systems.
-import { LANDER_POS, LAUNCH_COUNTDOWN_S, POWER, SEISMIC } from '../balance';
+import { LANDER_POS, LAUNCH_COUNTDOWN_S, POWER, SEISMIC, WEATHER } from '../balance';
+import { createRng } from '../rng';
 import { SITES } from '../catalog';
 import { buildSchedule } from './schedule';
 import { generateSites } from '../terrain';
@@ -29,6 +30,9 @@ export interface ScheduledEvent {
 export interface SimHidden {
   schedule: ScheduledEvent[];
   stats: MissionStats;
+  storm: { tStart: number; tEnd: number } | null;
+  stormStarted: boolean;
+  stormEnded: boolean;
   pendingRockfalls: Array<Hazard & { hit: boolean }>;
   nextFxId: number;
   nextLogId: number;
@@ -129,11 +133,19 @@ export function createSim(params: MissionParams, astronautIds: string[]): Sim {
     log: [],
     ended: false,
   };
+  const rng = createRng(params.seed ^ 0x570a);
+  const tStart =
+    rng.next() < SITES[params.site].stormChance
+      ? rng.range(WEATHER.stormEarliestS, WEATHER.stormLatestS)
+      : null;
   return {
     pub,
     hidden: {
       schedule: buildSchedule(params, SITES[params.site].terrainSalt),
       pendingRockfalls: [],
+      storm: tStart === null ? null : { tStart, tEnd: tStart + WEATHER.stormDurS },
+      stormStarted: false,
+      stormEnded: false,
       stats: emptyStats(n),
       nextFxId: 1,
       nextLogId: 1,
