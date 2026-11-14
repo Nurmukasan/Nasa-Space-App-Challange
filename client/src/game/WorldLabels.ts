@@ -1,8 +1,10 @@
 import type Phaser from 'phaser';
-import { VIEW_W } from '@rs/shared';
+import { VIEW_H, VIEW_W } from '@rs/shared';
 import { FIELD } from './style';
 
 const RECT_REFRESH_MS = 400;
+const NOTE_MARGIN_X = 70;
+const NOTE_MARGIN_Y = 50;
 
 /**
  * Text drawn as real DOM above the canvas. The game canvas is 480x270 scaled up,
@@ -14,6 +16,7 @@ export class WorldLabels {
   private used = new Set<string>();
   private rects: { canvas: DOMRect; origin: DOMRect } | null = null;
   private rectAt = 0;
+  private notes: { el: HTMLDivElement; x: number; y: number; until: number }[] = [];
   private floats: { el: HTMLDivElement; x: number; y: number; until: number }[] = [];
 
   constructor(private scene: Phaser.Scene) {
@@ -50,6 +53,21 @@ export class WorldLabels {
     this.floats.push({ el, x, y, until: performance.now() + FIELD.fxDurationMs });
   }
 
+  /** A titled callout pinned to a world position; sticks to the view edge when off screen. */
+  note(x: number, y: number, title: string, detail: string, color: string, ms: number): void {
+    const el = document.createElement('div');
+    el.className = 'wl-note';
+    el.style.setProperty('--c', color);
+    el.style.setProperty('--ms', `${ms}ms`);
+    const head = document.createElement('b');
+    head.textContent = title;
+    const body = document.createElement('span');
+    body.textContent = detail;
+    el.append(head, body);
+    this.root.appendChild(el);
+    this.notes.push({ el, x, y, until: performance.now() + ms });
+  }
+
   /** Call once per frame after all set() calls. */
   flush(): void {
     const cam = this.scene.cameras.main;
@@ -80,6 +98,19 @@ export class WorldLabels {
     }
     this.used.clear();
     const now = performance.now();
+    this.notes = this.notes.filter((n) => {
+      if (stamp >= n.until) {
+        n.el.remove();
+        return false;
+      }
+      const sx = n.x - cam.scrollX,
+        sy = n.y - cam.scrollY;
+      const cx = Math.min(VIEW_W - NOTE_MARGIN_X, Math.max(NOTE_MARGIN_X, sx)),
+        cy = Math.min(VIEW_H - NOTE_MARGIN_Y, Math.max(NOTE_MARGIN_Y, sy));
+      n.el.classList.toggle('off-screen', cx !== sx || cy !== sy);
+      place(n.el, cx, cy, true);
+      return true;
+    });
     this.floats = this.floats.filter((f) => {
       if (now >= f.until) {
         f.el.remove();

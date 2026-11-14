@@ -49,7 +49,7 @@ export class FieldScene extends Phaser.Scene {
     ensureAssets(this);
     const room = store.getState().room;
     const salt = SITES[room?.params?.site ?? 'jezero'].terrainSalt;
-    terrainTexture(this, salt);
+    terrainTexture(this, salt, snaps.curr?.sites ?? []);
     this.entities = new EntityLayer(this);
     this.effects = new FieldFx(this);
     this.eventFx = new EventFx(this);

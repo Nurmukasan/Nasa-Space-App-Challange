@@ -17,9 +17,9 @@ const EVENT_FX = {
   impact: {
     ringStartPx: 6,
     ringEndScale: 9,
-    ringMs: 650,
+    ringMs: 1500,
     flashPx: 26,
-    flashMs: 260,
+    flashMs: 520,
     debris: 26,
     scorchPx: 22,
     scorchAlpha: 0.55,
@@ -27,20 +27,20 @@ const EVENT_FX = {
     shockPx: 70,
     pillarW: 7,
     pillarH: 150,
-    pillarMs: 240,
+    pillarMs: 650,
     secondRingDelayMs: 130,
     craterPx: 20,
-    craterMs: 9000,
+    craterMs: 14000,
     craterPulses: 10,
     column: 22,
     columnDelayMs: 140,
   },
-  fireball: { fromX: -200, fromY: -130, ms: 750, trailEveryMs: 24, trailCount: 3, headPx: 6 },
+  fireball: { fromX: -260, fromY: -170, ms: 1900, trailEveryMs: 24, trailCount: 3, headPx: 6 },
   rockfall: {
     rocks: 11,
     spreadPx: 26,
     heightPx: 90,
-    fallMs: 360,
+    fallMs: 750,
     dust: 14,
     ringPx: 8,
     ringScale: 7,
@@ -52,7 +52,7 @@ const EVENT_FX = {
     cracks: 6,
     crackSegs: 5,
     crackStepPx: 22,
-    crackMs: 1600,
+    crackMs: 4200,
   },
   colors: { hot: 0xfff0c8, orange: 0xff8a30, rock: 0x5b3a34, rockLight: 0x9a6a56, dust: 0xe8b890 },
 };
@@ -86,7 +86,7 @@ export class EventFx {
     this.debris = scene.add
       .particles(0, 0, 'fx_spark', {
         emitting: false,
-        lifespan: { min: 350, max: 800 },
+        lifespan: { min: 700, max: 1700 },
         speed: { min: 40, max: 170 },
         gravityY: 120,
         scale: { start: 0.9, end: 0 },
@@ -98,7 +98,7 @@ export class EventFx {
     this.puffs = scene.add
       .particles(0, 0, 'fx_dust', {
         emitting: false,
-        lifespan: { min: 500, max: 1100 },
+        lifespan: { min: 1100, max: 2800 },
         speed: { min: 4, max: 26 },
         angle: { min: 200, max: 340 },
         scale: { start: 1.1, end: 0 },
@@ -289,7 +289,7 @@ export class EventFx {
         targets: ring,
         scale: cfg.ringScale,
         alpha: 0,
-        duration: 520,
+        duration: 1200,
         ease: 'Cubic.easeOut',
         onComplete: () => ring.destroy(),
       });

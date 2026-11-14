@@ -9,6 +9,8 @@ import { evaText as t } from '../i18n/en/eva';
 import { FIELD } from './style';
 import { worldLabels } from './WorldLabels';
 
+const EVENT_NOTE_MS = 5500;
+
 const SOUNDS: Partial<Record<FxType, SfxName>> = {
   tremor: 'tremor_loop',
   sample: 'sample_get',
@@ -64,7 +66,10 @@ export class FieldFx {
       (event.type === 'tremor' || event.type === 'impact' || event.type === 'rockfall') &&
       !reduce
     )
-      this.scene.cameras.main.shake(350, Math.max(0.001, 0.006 * (1 - distance / 1400)));
+      this.scene.cameras.main.shake(
+        event.type === 'tremor' ? 2600 : 900,
+        Math.max(0.001, 0.006 * (1 - distance / 1400)),
+      );
     const a = this.snap?.astronauts.find((a) => a.id === event.playerId);
     const x = event.x ?? a?.x ?? mine?.x ?? 0,
       y = event.y ?? a?.y ?? mine?.y ?? 0;
@@ -77,19 +82,38 @@ export class FieldFx {
     else if (event.type === 'ping' && (!a || a.linked))
       this.float(x, y, t(`eva.ping.${event.s ?? 'ok'}`), '#e2ecff', reduce);
     else if (event.type === 'breach') this.float(x, y, t('eva.breach'), '#ffb030', reduce);
+    this.callout(event, x, y);
     if (event.type === 'fireball' && !reduce) {
       const meteor = this.scene.add
-        .rectangle(x - 200, y - 130, 45, 2, FIELD.gold)
+        .rectangle(x - 260, y - 170, 45, 2, FIELD.gold)
         .setRotation(0.5)
         .setDepth(1400);
       this.scene.tweens.add({
         targets: meteor,
         x,
         y,
-        duration: 750,
+        duration: 1900,
         onComplete: () => meteor.destroy(),
       });
     }
+  }
+  /** Say what is happening, where, so nobody has to guess what the bang was. */
+  private callout(event: FxEvent, x: number, y: number): void {
+    const kinds: Partial<Record<FxType, string>> = {
+      fireball: '#ffb030',
+      impact: '#ff8a30',
+      rockfall: '#ff6a58',
+    };
+    const color = kinds[event.type];
+    if (!color || event.x === undefined) return;
+    worldLabels(this.scene).note(
+      x,
+      y - 28,
+      t(`eva.fx.${event.type}`),
+      t(`eva.fx.${event.type}_note`),
+      color,
+      event.type === 'fireball' ? 2600 : EVENT_NOTE_MS,
+    );
   }
   private float(x: number, y: number, text: string, color: string, reduce: boolean): void {
     worldLabels(this.scene).float(x, y - 20, text, color);

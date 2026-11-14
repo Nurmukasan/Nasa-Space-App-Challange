@@ -1,9 +1,15 @@
 import type Phaser from 'phaser';
 import { WORLD_PX, levelAt } from '@rs/shared';
+import type { SampleSite } from '@rs/shared';
+import { decorateTerrain } from './terrainDecor';
 import { terrainPaint } from '../render/terrainPaint';
 import { FIELD } from './style';
 
-export function terrainTexture(scene: Phaser.Scene, salt: number): number {
+export function terrainTexture(
+  scene: Phaser.Scene,
+  salt: number,
+  sites: SampleSite[] = [],
+): number {
   const start = performance.now();
   const draw = (scale: number) => {
     const size = WORLD_PX / scale,
@@ -17,6 +23,7 @@ export function terrainTexture(scene: Phaser.Scene, salt: number): number {
     canvas
       .getContext('2d')!
       .putImageData(new ImageData(new Uint8ClampedArray(pixels), size, size), 0, 0);
+    decorateTerrain(canvas.getContext('2d')!, scale, salt, sites);
     return canvas;
   };
   let canvas = draw(1),

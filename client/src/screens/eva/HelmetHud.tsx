@@ -31,7 +31,7 @@ export function HelmetHud({
   first.returned ||= snap.lander.cache.length > 0;
   const frac = a.o2 / a.o2Max,
     low = frac < O2.lowFrac;
-  const tremor = snap.fx.some((f) => f.type === 'tremor' && snap.t - f.t < 2);
+  const tremor = snap.fx.some((f) => f.type === 'tremor' && snap.t - f.t < 5);
   const danger = a.linked && snap.t < a.dangerUntil;
   const storm = snap.weather.storm;
   const active = storm && snap.t >= storm.tStart && snap.t < storm.tEnd;

@@ -491,3 +491,44 @@
     opacity: 0.35;
   }
 }
+
+.wl-note {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: grid;
+  gap: 2px;
+  padding: 5px 12px;
+  white-space: nowrap;
+  text-align: center;
+  text-transform: uppercase;
+  background: #1c0d0cea;
+  border: 1px solid var(--c);
+  border-top: 3px solid var(--c);
+  animation: wl-note var(--ms) ease-out both;
+}
+.wl-note b {
+  color: var(--c);
+  font-size: 16px;
+  letter-spacing: 0.12em;
+}
+.wl-note span {
+  color: #ffeedd;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+.wl-note.off-screen {
+  border-style: dashed;
+}
+@keyframes wl-note {
+  0% {
+    opacity: 0;
+  }
+  6%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
