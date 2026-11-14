@@ -13,7 +13,6 @@ import { SITES } from '../catalog';
 import { buildSchedule } from './schedule';
 import { generateSites } from '../terrain';
 import { initDiscovery } from './discovery';
-import { initSignal } from './signal';
 import { buildObjectives } from './objectives';
 import type {
   Astronaut,
@@ -42,8 +41,6 @@ export interface ScheduledEvent {
   fireballShown?: boolean;
   /** The operator's pick was scored (locate statistics). */
   pickScored?: boolean;
-  /** RED SIGNAL pulse: own signature, no rockfall, locate only. */
-  signal?: boolean;
 }
 
 /** Server-only state: never serialized into snapshots. */
@@ -286,8 +283,6 @@ export function createSim(params: MissionParams, astronautIds: string[]): Sim {
     salt: SITES[params.site].terrainSalt,
   };
   initDiscovery(sim);
-  // After discovery: the source is appended to the hidden sites.
-  initSignal(sim);
   return sim;
 }
 

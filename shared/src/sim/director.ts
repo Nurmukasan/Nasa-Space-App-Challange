@@ -13,7 +13,6 @@ import type { EventKind, FaultKind, Vec2 } from '../types';
 import { spawnDevil } from './devils';
 import { faultActive, spawnFault } from './faults';
 import { scheduleFlare } from './flare';
-import { signalTrack } from './signal';
 import { dist, pushFx, pushLog } from './sim';
 import type { Sim, System } from './sim';
 
@@ -226,5 +225,4 @@ export const directorSystem: System = (sim) => {
     runAction(sim, sc.beats[index]!.action, index);
   }
   if (sc.acts.length > 0) direct(sim, sc.acts);
-  if (sc.signal) signalTrack(sim);
 };

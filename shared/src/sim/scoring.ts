@@ -10,7 +10,6 @@ import type {
   ScoreBreakdown,
 } from '../types';
 import { primariesDone } from './objectives';
-import { revealKey } from './signal';
 import { buildInsights } from './insights';
 export { buildInsights } from './insights';
 import type { Sim } from './sim';
@@ -100,6 +99,6 @@ export function buildReport(sim: Sim, design: MissionDesign, check: DesignCheck)
     objectives: sim.pub.objectives.map((o) => ({ ...o })),
     timeline: sim.hidden.timeline.map((e) => ({ ...e })),
     awards: [],
-    reveal: revealKey(sim),
+    reveal: null,
   };
 }
