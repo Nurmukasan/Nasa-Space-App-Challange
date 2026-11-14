@@ -149,7 +149,7 @@ export function HelmetHud({
           <span className="home-arrow" style={{ transform: `rotate(${homeAngle}rad)` }}>
             ➤
           </span>
-          <span>LANDER · {Math.round(homeDist * HUD.metresPerPx)} m</span>
+          <span>{t('eva.lander_bearing', { n: Math.round(homeDist * HUD.metresPerPx) })}</span>
         </div>
       )}
       <ActTitle snap={snap} />
@@ -206,7 +206,7 @@ export function HelmetHud({
         )}
         <div className="helmet-instructions">
           <b>{t(hint.key, hintParams)}</b>
-          {lesson && <span>{t(lesson)}</span>}
+          {lesson && t(lesson) !== t(hint.key, hint.params) && <span>{t(lesson)}</span>}
           {snap.t < CONTROLS_SHOWN_S && (
             <small className="controls-hint">{t('eva.controls')}</small>
           )}

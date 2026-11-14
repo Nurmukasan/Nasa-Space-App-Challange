@@ -305,3 +305,39 @@
 .name-field input {
   width: 100%;
 }
+
+/* ---- suit picker ---- */
+.skin-picker {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+}
+.skin-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+.skin-row button {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 8px 10px;
+  min-width: 78px;
+  font-size: 11px;
+}
+.skin-row img {
+  image-rendering: pixelated;
+}
+.skin-row button.on {
+  border-color: #ffb030;
+  color: #ffb030;
+  box-shadow: 0 0 0 2px #ffb03055;
+}
+.settings .danger {
+  border-color: #ff6a58;
+  color: #ffb4a8;
+}
+.skin-row button.on span {
+  color: #2a1204;
+}
