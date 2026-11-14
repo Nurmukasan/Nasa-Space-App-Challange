@@ -1,7 +1,11 @@
 .solo-tools {
   position: absolute;
-  top: 230px;
-  bottom: 250px;
+  top: 175px;
+  /*
+   * Grow with the seismic card so its three answers stay visible, but end above the HUD footer
+   * (the helmet scanner sits at the bottom right); scroll only on short screens.
+   */
+  max-height: calc(100% - 175px - 245px);
   right: 36px;
   width: 220px;
   overflow-y: auto;
@@ -75,7 +79,7 @@
     width: 160px;
     right: 18px;
     top: 210px;
-    bottom: 210px;
+    max-height: calc(100% - 210px - 90px);
   }
   .solo-tools button {
     font-size: 9px;
@@ -84,7 +88,7 @@
 @media (max-height: 600px) {
   .solo-tools {
     top: 180px;
-    bottom: 120px;
+    max-height: calc(100% - 180px - 70px);
     width: 180px;
   }
   .wrist-map {
@@ -92,5 +96,21 @@
   }
   .wrist-map h2 {
     grid-column: 1/-1;
+  }
+}
+/*
+ * Short screens (1280×720 laptops): the decision card goes above the wrist map and gets
+ * compact, so Z / X / C stay visible without scrolling; the map is the part that scrolls.
+ */
+@media (max-height: 820px) {
+  .solo-seismic {
+    order: -1;
+    gap: 6px;
+  }
+  .solo-event canvas {
+    height: 40px;
+  }
+  .solo-tools button {
+    padding: 4px 8px;
   }
 }

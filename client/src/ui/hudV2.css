@@ -66,6 +66,27 @@
   padding: 6px;
   line-height: 1.5;
 }
+/*
+ * Footer rows: inventory and scanner, then the action hint centred across the whole width
+ * (it used to sit in the 160px scanner column and wrap into eight lines), then the radio.
+ */
+.helmet-bottom > .helmet-instructions {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  justify-self: center;
+  width: auto;
+  max-width: min(760px, 92%);
+  min-width: 0;
+}
+.helmet-bottom > .helmet-radio {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  justify-self: end;
+}
+.helmet-instructions b,
+.helmet-instructions .controls-hint {
+  text-wrap: balance;
+}
 .helmet-scanner {
   background: #091724bf;
   padding: 10px;
