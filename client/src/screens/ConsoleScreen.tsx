@@ -13,6 +13,7 @@ import { Commands } from '../console/panels/Commands';
 import { PixelIcon } from '../ui/PixelIcon';
 import { ObjectivesPanel } from '../console/panels/ObjectivesPanel';
 import { SystemsPanel } from '../console/panels/SystemsPanel';
+import { AheadPanel } from '../console/panels/AheadPanel';
 import { fxBus } from '../fx/FxBus';
 import { audio } from '../audio';
 const VOICES = ['earth', 'tulpar', 'mc', 'sys'];
@@ -34,8 +35,10 @@ export function ConsoleScreen() {
     const off = fxBus.on('tremor', () => audio.sfx('alarm_seismic'));
     const impact = fxBus.on('impact', () => audio.sfx('alarm_seismic'));
     const fault = fxBus.on('fault', () => audio.sfx('fault_alarm'));
+    const closing = fxBus.on('window_closing', () => audio.sfx('window_alarm'));
     return () => {
       off();
+      closing();
       fault();
       impact();
     };
@@ -119,6 +122,7 @@ export function ConsoleScreen() {
               select={setSelected}
             />
             <ObjectivesPanel snap={hud} />
+            <AheadPanel snap={hud} params={params} />
             <SeismicPanel snap={hud} locating={locating} setLocating={setLocating} />
             {hud.scenario !== 'free' && <SystemsPanel snap={hud} target={target} />}
             <PowerPanel snap={hud} />
@@ -126,7 +130,13 @@ export function ConsoleScreen() {
         )}
       </aside>
       <footer className="console-footer panel">
-        <Commands target={target} crew={hud?.astronauts.map((a) => a.id) ?? []} />
+        <Commands
+          target={target}
+          crew={hud?.astronauts.map((a) => a.id) ?? []}
+          outside={(hud?.astronauts ?? [])
+            .filter((a) => a.status !== 'inside' && a.status !== 'lost')
+            .map((a) => players?.find((p) => p.id === a.id)?.name ?? a.id)}
+        />
         <h2 className="panel-title">
           <PixelIcon name="icon_antenna_hg" scale={1} />
           {t('console.radio')}

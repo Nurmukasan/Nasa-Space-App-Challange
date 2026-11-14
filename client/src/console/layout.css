@@ -215,6 +215,26 @@
 .console-screen progress::-webkit-progress-value {
   background: #ff6a58;
 }
+/* A11: the decision timer melts and blinks in its last seconds. */
+.console-screen progress.urgent {
+  animation: urgent-blink 0.5s steps(2) infinite;
+}
+@keyframes urgent-blink {
+  50% {
+    opacity: 0.35;
+  }
+}
+html[data-reduce-motion='true'] .console-screen progress.urgent {
+  animation: none;
+}
+.liftoff-list {
+  font-size: 12px;
+  align-self: center;
+}
+.ahead b {
+  display: inline-block;
+  min-width: 3.5em;
+}
 @media (max-width: 760px) {
   .screen.console-screen {
     grid-template-columns: 1fr;

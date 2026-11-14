@@ -1,4 +1,4 @@
-import { WORLD_PX, levelAt } from '@rs/shared';
+import { WORLD_PX, levelAt, sandAt } from '@rs/shared';
 import { decorateTerrain } from '../game/terrainDecor';
 import { terrainPaint } from '../render/terrainPaint';
 
@@ -10,13 +10,16 @@ const BASE = {
   /** Keeps the map a backdrop: markers must always win against it. */
   strength: 0.62,
   vignette: 0.55,
+  /** Dunes seen from orbit (PL 7.1): one dot per this many world px. */
+  sandStep: 12,
+  sandDot: 'rgba(240, 206, 150, 0.45)',
 };
 
 /**
  * The same terrain the astronauts walk on (same generator and rocks as the field view), graded to
  * the console's amber so craters and ridges give the operator real landmarks.
  */
-export function buildBasemap(size: number, salt: number): HTMLCanvasElement {
+export function buildBasemap(size: number, salt: number, sand = false): HTMLCanvasElement {
   const n = WORLD_PX / BASE.scale;
   const levels = new Uint8Array(n * n);
   for (let y = 0; y < n; y++)
@@ -49,5 +52,12 @@ export function buildBasemap(size: number, salt: number): HTMLCanvasElement {
     d[i + 3] = 255;
   }
   ctx.putImageData(img, 0, 0);
+  if (sand) {
+    ctx.fillStyle = BASE.sandDot;
+    const k = size / WORLD_PX;
+    for (let y = BASE.sandStep / 2; y < WORLD_PX; y += BASE.sandStep)
+      for (let x = BASE.sandStep / 2; x < WORLD_PX; x += BASE.sandStep)
+        if (sandAt(x, y, salt)) ctx.fillRect(Math.round(x * k), Math.round(y * k), 1, 1);
+  }
   return out;
 }

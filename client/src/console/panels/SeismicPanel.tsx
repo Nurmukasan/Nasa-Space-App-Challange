@@ -4,6 +4,23 @@ import { Seismograph } from '../Seismograph';
 import { command as send } from '../actions';
 import { t } from '../../i18n';
 import { PixelIcon } from '../../ui/PixelIcon';
+import { audio } from '../../audio';
+import { AHEAD } from '../ahead';
+
+/** One warning tone per undecided event as its decision window runs out. */
+function useUrgentTone(snap: EvaState) {
+  const warned = useRef(new Set<string>());
+  useEffect(() => {
+    for (const e of snap.seismic) {
+      const left = e.deadline - snap.t;
+      const open = e.signal ? e.pick === null : e.guess === null;
+      if (open && left > 0 && left <= AHEAD.urgentS && !warned.current.has(e.id)) {
+        warned.current.add(e.id);
+        audio.sfx('ui_error');
+      }
+    }
+  }, [snap]);
+}
 
 function Chart({ eventId }: { eventId?: string }) {
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -31,6 +48,7 @@ export function SeismicPanel({
   locating: string | null;
   setLocating: (id: string | null) => void;
 }) {
+  useUrgentTone(snap);
   return (
     <section className="panel">
       <h2 className="panel-title">
@@ -41,7 +59,11 @@ export function SeismicPanel({
       {snap.seismic.map((e) => (
         <div key={e.id} className="seismic-event">
           <Chart eventId={e.id} />
-          <progress max={e.deadline - e.t0} value={Math.max(0, e.deadline - snap.t)} />
+          <progress
+            className={e.deadline - snap.t <= AHEAD.urgentS ? 'urgent' : ''}
+            max={e.deadline - e.t0}
+            value={Math.max(0, e.deadline - snap.t)}
+          />
           <span>{Math.max(0, Math.ceil(e.deadline - snap.t))}s</span>
           {e.signal && <b className="signal-label">{t('console.redSignal')}</b>}
           <button

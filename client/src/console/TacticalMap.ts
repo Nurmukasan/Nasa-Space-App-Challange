@@ -20,6 +20,7 @@ import { drawGhostZone, drawReturnRing, drawScaleBar, drawTether } from './radar
 import { drawSite } from './radarSites';
 import { drawPending, drawStormBar, mmss, returnBudget, tiersTotal } from './radarPanels';
 import { drawAnomalies, drawLocate } from './locateOverlay';
+import { drawDevils } from './radarHazards';
 export const MAP_SIZE = 640;
 const SCALE = MAP_SIZE / WORLD_PX;
 const RINGS = [50, 100, 150];
@@ -36,8 +37,9 @@ export class TacticalMap {
     private selected: () => string | null,
     private locating: () => string | null = () => null,
   ) {
-    const salt = SITES[store.getState().room?.params?.site ?? 'jezero'].terrainSalt;
-    this.terrain = buildBasemap(MAP_SIZE, salt);
+    const params = store.getState().room?.params;
+    const salt = SITES[params?.site ?? 'jezero'].terrainSalt;
+    this.terrain = buildBasemap(MAP_SIZE, salt, !!params && params.scenario !== 'free');
     this.draw();
   }
   destroy(): void {
@@ -150,6 +152,7 @@ export class TacticalMap {
         px(h.y) - 4,
       );
     }
+    drawDevils(ctx, s, SCALE, !!params?.hasWeather);
     const walkSpeed = params?.walkSpeed ?? 40,
       speedMul = active ? WEATHER.stormSpeed : 1;
     const rows = this.roster.flatMap((player, slot) => {
