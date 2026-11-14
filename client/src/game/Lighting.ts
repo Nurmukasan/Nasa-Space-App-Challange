@@ -110,7 +110,10 @@ export class Lighting {
     const ambient = snap.weather.light,
       storm = snap.weather.storm;
     const active = !!storm && snap.t >= storm.tStart && snap.t < storm.tEnd;
-    const dark = Math.min(0.94, 1 - ambient + (active ? 0.12 : 0));
+    const dark = Math.min(
+      0.94,
+      FIELD.darkFloor + (1 - ambient) * FIELD.darkRange + (active ? 0.12 : 0),
+    );
     this.rt.clear();
     this.tint.setFillStyle(ambient > 0.5 ? 0xffb36a : 0x283b88, ambient > 0.5 ? 0.035 : 0.07);
     this.glow.setAlpha(dark * 0.12);
