@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { PRESETS, deriveParams } from '@rs/shared';
+import { PRESETS, SITES, deriveParams, sandAt } from '@rs/shared';
 import { createSim } from '../../../../shared/src/sim/sim';
 import { actionHint, hudBanner } from './hudView';
 
@@ -43,5 +43,11 @@ it('airlock interaction takes priority over deployment and explains nearby stati
   snap.stations.push({ x: 1005, y: 1005 });
   expect(actionHint(snap, a).key).toBe('eva.deploy_station');
   snap.stations.pop();
+  for (let x = 1000; x < 1400; x += 8) {
+    if (!sandAt(x, 1000, SITES.jezero.terrainSalt)) {
+      a.x = x;
+      break;
+    }
+  }
   expect(actionHint(snap, a).key).toBe('eva.deploy');
 });

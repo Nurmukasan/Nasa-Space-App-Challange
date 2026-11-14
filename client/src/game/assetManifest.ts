@@ -81,7 +81,7 @@ export const ASSETS: AssetSpec[] = [
   // --- v2 field sprites (docs/phases.md): draw now, wired during phases 1–3.
   sheet('site_signal', 16, 16, 2, false),
   sheet('port', 8, 8, 2, false),
-  sheet('station_kit', 16, 16, 1, false),
+  sheet('station_kit', 16, 16, 1, true),
   sheet('devil', 32, 32, 6, false),
   sheet('boulder_1', 32, 32, 1, true),
   sheet('boulder_2', 32, 32, 1, true),
