@@ -237,15 +237,17 @@ export function createSim(params: MissionParams, astronautIds: string[]): Sim {
     flare: null,
     signal: { zone: null, pulses: 0, located: false, found: false, retrieved: false },
   };
+  // Classic schedule and random storm belong to the free mission; v2 scenarios use beats/director.
+  const classic = params.scenario === 'free';
   const rng = createRng(params.seed ^ 0x570a);
   const tStart =
-    rng.next() < SITES[params.site].stormChance
+    classic && rng.next() < SITES[params.site].stormChance
       ? rng.range(WEATHER.stormEarliestS, WEATHER.stormLatestS)
       : null;
   const sim: Sim = {
     pub,
     hidden: {
-      schedule: buildSchedule(params, SITES[params.site].terrainSalt),
+      schedule: classic ? buildSchedule(params, SITES[params.site].terrainSalt) : [],
       pendingRockfalls: [],
       storm: tStart === null ? null : { tStart, tEnd: tStart + WEATHER.stormDurS },
       stormStarted: false,

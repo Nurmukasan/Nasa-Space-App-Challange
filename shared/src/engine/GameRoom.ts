@@ -1,7 +1,7 @@
 // One game room: players, phases, design, and the running simulation.
 // Pure logic, no network and no timers: the server (Socket.IO) and the client
 // (LocalTransport for solo/offline play) both drive this same class.
-import { MAX_EVA, MAX_PLAYERS, SEISMIC, WEATHER } from '../balance';
+import { MAX_EVA, MAX_PLAYERS, SEISMIC, SOLO, WEATHER } from '../balance';
 import { PRESETS } from '../catalog';
 import { SCENARIOS, isScenarioId } from '../scenarios';
 import { debugSim } from '../sim/debug';
@@ -323,6 +323,8 @@ export class GameRoom {
     const params = deriveParams(design, seed, sc.id);
     const crew = this.slots.map((s) => s.info).filter((p) => p.role === 'eva' || p.role === 'solo');
     params.solo = crew.length === 1 && crew[0]!.role === 'solo';
+    // Solo plays both roles: a longer decision window (v2 scenarios only; free keeps v1).
+    if (params.solo && sc.id !== 'free') params.classifyWindowS *= SOLO.classifyMul;
     this.sim = createSim(
       params,
       crew.map((p) => p.id),
