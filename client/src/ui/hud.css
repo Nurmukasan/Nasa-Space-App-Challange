@@ -1,0 +1,229 @@
+.helmet-hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  color: #d9eff6;
+  font-family: 'Silkscreen', monospace;
+  font-size: 12px;
+  text-shadow: 1px 2px #101525;
+  overflow: hidden;
+}
+.visor-frame {
+  position: absolute;
+  inset: 8px;
+  border: 1px solid #8ed6e657;
+  border-radius: 40px;
+  box-shadow:
+    inset 0 0 0 7px #07111f66,
+    inset 0 0 70px #07111f55;
+}
+.helmet-top {
+  position: absolute;
+  inset: 28px 36px auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+}
+.helmet-block {
+  padding: 10px 12px;
+  background: #0a1525bf;
+  border-top: 2px solid #50e6f0;
+  min-width: 170px;
+}
+.helmet-block strong {
+  float: right;
+  color: #50e6f0;
+}
+.oxygen-segments {
+  display: flex;
+  gap: 3px;
+  height: 10px;
+  margin-top: 8px;
+}
+.oxygen-segments i {
+  width: 8px;
+  background: #263746;
+}
+.oxygen-segments .filled {
+  background: #50e6f0;
+}
+.helmet-clock {
+  font-size: 30px;
+  color: #ffdfaa;
+  letter-spacing: 3px;
+}
+.link-block {
+  text-align: right;
+}
+.helmet-block small {
+  display: block;
+  margin-top: 10px;
+  font-size: 10px;
+  color: #a1b4c7;
+}
+.helmet-warning {
+  color: #ffb030;
+}
+.helmet-banners {
+  position: absolute;
+  left: 20%;
+  right: 20%;
+  top: 25%;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 8px;
+}
+.helmet-banner {
+  padding: 12px 18px;
+  color: #ffdb9c;
+  background: #1a1425c9;
+  border: 1px solid #ffb030;
+  font-size: 14px;
+  text-align: center;
+}
+.helmet-banner.critical {
+  border-color: #f0463c;
+  color: #ffaaa2;
+}
+.helmet-bottom {
+  position: absolute;
+  inset: auto 36px 30px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+}
+.helmet-samples {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.helmet-samples > span {
+  font-size: 10px;
+  color: #a1b4c7;
+}
+.sample-slot {
+  border: 1px solid #6c91a56e;
+  padding: 10px;
+  color: #7b8f9c;
+  background: #101828a8;
+  font-size: 10px;
+}
+.sample-slot.occupied {
+  border-color: #ffce72;
+  color: #ffce72;
+}
+.helmet-instructions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  grid-column: 1/-1;
+}
+.helmet-instructions b {
+  color: #ffce72;
+}
+.helmet-instructions small {
+  color: #a1b4c7;
+  font-size: 9px;
+}
+.helmet-beacon {
+  color: #50e6f0;
+  align-self: center;
+}
+.helmet-radio {
+  grid-column: 1/-1;
+  padding: 8px 10px;
+  background: #091724b8;
+  border-left: 2px solid #50e6f0;
+  max-width: 680px;
+  overflow: hidden;
+}
+.helmet-radio span {
+  display: block;
+  white-space: nowrap;
+  animation: radio-type 1s steps(36, end) both;
+}
+.low-oxygen .visor-frame {
+  box-shadow:
+    inset 0 0 100px #e33a334f,
+    inset 0 0 15px #f0463c80;
+  animation: visor-pulse 1.1s ease-in-out infinite;
+}
+.low-oxygen .oxygen-segments .filled {
+  background: #f0463c;
+  animation: oxygen-blink 0.8s steps(2, end) infinite;
+}
+.suit-breach .visor-frame {
+  border-color: #ffb030;
+}
+.reduce-motion * {
+  animation: none !important;
+  transition: none !important;
+}
+@keyframes visor-pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+@keyframes oxygen-blink {
+  50% {
+    opacity: 0.35;
+  }
+}
+@keyframes radio-type {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .helmet-hud * {
+    animation: none !important;
+  }
+}
+@media (max-width: 700px) {
+  .helmet-top {
+    inset: 18px 18px auto;
+    gap: 8px;
+  }
+  .helmet-block {
+    min-width: 100px;
+    padding: 6px;
+    font-size: 9px;
+  }
+  .oxygen-segments {
+    gap: 1px;
+  }
+  .oxygen-segments i {
+    width: 5px;
+  }
+  .helmet-clock {
+    font-size: 19px;
+  }
+  .helmet-bottom {
+    inset: auto 18px 20px;
+  }
+  .helmet-samples {
+    gap: 4px;
+  }
+  .helmet-samples > span {
+    display: none;
+  }
+  .sample-slot {
+    padding: 6px;
+    font-size: 9px;
+  }
+  .helmet-banners {
+    left: 10%;
+    right: 10%;
+  }
+  .helmet-banner {
+    font-size: 11px;
+  }
+  .helmet-radio {
+    font-size: 10px;
+  }
+}

@@ -1,3 +1,4 @@
+import { fxBus } from '../fx/FxBus';
 import type { ClientMsg } from '@rs/shared';
 import { clearSnaps, pushSnap } from '../state/snapshots';
 import { store } from '../state/store';
@@ -28,6 +29,7 @@ export async function startSession(
       }
     } else if (m.t === 'snap') {
       pushSnap(m.snap);
+      fxBus.consume(m.snap);
       if (snapCount++ % HUD_EVERY === 0) store.setState({ hud: m.snap });
     } else {
       store.setState({ error: m.code });
@@ -52,5 +54,6 @@ export function endSession(): void {
   transport?.close();
   transport = null;
   clearSnaps();
+  fxBus.reset();
   store.setState({ conn: 'idle', mode: null, playerId: null, room: null, hud: null });
 }

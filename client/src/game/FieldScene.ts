@@ -45,6 +45,10 @@ export class FieldScene extends Phaser.Scene {
     this.cameras.main.centerOn(LANDER_POS.x, LANDER_POS.y);
     const kb = this.input.keyboard!;
     this.keys = kb.addKeys('W,A,S,D,SHIFT,E,SPACE') as typeof this.keys;
+    for (const [i, kind] of ['ok', 'help', 'low_o2', 'returning', 'found'].entries())
+      kb.on(`keydown-${i + 1}`, () =>
+        send({ t: 'eva:ping', kind: kind as 'ok' | 'help' | 'low_o2' | 'returning' | 'found' }),
+      );
     this.keys.E.on('down', () => send({ t: 'eva:interact' }));
     this.keys.SPACE.on('down', () => send({ t: 'eva:dig', on: true }));
     this.keys.SPACE.on('up', () => send({ t: 'eva:dig', on: false }));
