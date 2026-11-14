@@ -23,3 +23,4 @@ External source pages and final scientific wording still need the science lead's
 | Socket.IO | Networking | https://github.com/socketio/socket.io | MIT |
 | React, Zustand, Vite, Vitest, Howler.js | UI, state, build, tests, audio | npm | MIT |
 | VT323, Silkscreen (via Fontsource) | Pixel fonts | https://fontsource.org | OFL-1.1 |
+| Share Tech Mono (font file in client/src/ui/fonts/, from Fontsource) | Menu screen font | https://fontsource.org/fonts/share-tech-mono | OFL-1.1 |

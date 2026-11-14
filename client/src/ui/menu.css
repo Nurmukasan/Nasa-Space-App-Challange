@@ -1,3 +1,11 @@
+@font-face {
+  font-family: 'Share Tech Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/share-tech-mono-latin-400-normal.woff2') format('woff2');
+}
+
 /* Look of the menu screens (start, lobby, design, report). Scoped to .screen so the
    helmet HUD and the wrist console keep their own styles. */
 
@@ -10,6 +18,9 @@
   --s-text: #ffeedd;
   --s-dim: #dcae92;
   --s-shadow: #0a0406;
+  --font-ui: 'Share Tech Mono', monospace;
+  --font-crt: 'Share Tech Mono', monospace;
+  font-family: var(--font-ui);
   position: relative;
   isolation: isolate;
   background: #05060f;
@@ -281,8 +292,8 @@
 /* ---- Readable text: pixel terminal font in sentence case for anything longer than a label ---- */
 .readable {
   font-family: var(--font-crt);
-  font-size: 19px;
-  line-height: 1.15;
+  font-size: 16px;
+  line-height: 1.3;
   letter-spacing: 0;
   text-transform: none;
 }
