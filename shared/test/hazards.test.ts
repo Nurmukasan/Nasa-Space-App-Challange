@@ -92,3 +92,35 @@ it('impact ice disappears 150 seconds after impact', () => {
   hazardSystem(sim, 0);
   expect(sim.pub.sites.some((s) => s.kind === 'impact')).toBe(false);
 });
+
+it('rejects malformed replies and counts valid duplicate replies only once', () => {
+  const sim = setup();
+  for (const msg of [
+    { t: 'mc:classify' },
+    { t: 'mc:classify', eventId: {}, kind: 'quake' },
+    { t: 'mc:classify', eventId: 'event', kind: '__proto__' },
+  ]) {
+    handleSimMsg(sim, 'mc', false, true, msg as never);
+    expect(sim.pub.seismic[0]!.truth).toBeNull();
+  }
+  for (let i = 0; i < 3; i++)
+    handleSimMsg(sim, 'mc', false, true, { t: 'mc:classify', eventId: 'event', kind: 'quake' });
+  expect(sim.hidden.stats.classifyCorrect).toBe(1);
+  expect(sim.pub.hazards).toHaveLength(1);
+});
+it('false alarms warn only connected crew, even away from the wind station', () => {
+  const sim = setup('wind');
+  sim.pub.astronauts[0]!.linked = true;
+  sim.pub.astronauts[1]!.linked = false;
+  handleSimMsg(sim, 'mc', false, true, { t: 'mc:classify', eventId: 'event', kind: 'quake' });
+  expect(sim.pub.astronauts[0]!.dangerUntil).toBe(18);
+  expect(sim.pub.astronauts[1]!.dangerUntil).toBe(0);
+});
+it('astronauts outside the radius or inside the lander are never breached', () => {
+  const sim = setup();
+  Object.assign(sim.pub.astronauts[0]!, { x: 1200, y: 1200 });
+  Object.assign(sim.pub.astronauts[1]!, { x: 700, y: 500, status: 'inside' });
+  sim.pub.t = 19;
+  hazardSystem(sim, 0);
+  expect(sim.hidden.stats.breaches).toBe(0);
+});

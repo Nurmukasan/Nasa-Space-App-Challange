@@ -157,3 +157,22 @@ it('success needs survivors, total quota and deep quota; failure grade cannot ex
     expect(['C', 'D']).toContain(score.grade);
   }
 });
+
+it('runs the full ten-minute pipeline, resolves every event, and produces a bounded report', async () => {
+  const { launched } = await import('./helpers');
+  const { h } = launched(3, 99);
+  const sim = h.room.simulation!;
+  sim.pub.astronauts.forEach((a) => {
+    a.status = 'inside';
+  });
+  let maxBytes = 0;
+  while (h.room.state.phase === 'eva') {
+    h.ticks(1);
+    maxBytes = Math.max(maxBytes, JSON.stringify(sim.pub).length);
+  }
+  expect(sim.pub.t).toBeGreaterThanOrEqual(600);
+  expect(h.room.state.report!.stats.classifyMissed).toBe(sim.hidden.schedule.length);
+  expect(h.room.state.report!.stats.lost).toBe(0);
+  expect(h.room.state.report!.insights.at(-1)!.code).toBe('twin_insight');
+  expect(maxBytes).toBeLessThan(16000);
+});
