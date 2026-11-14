@@ -76,6 +76,10 @@ export function createGameServer(opts: { allowDebug?: boolean } = {}): GameServe
   }
 
   io.on('connection', (socket) => {
+    socket.on('latency', (ack: unknown) => {
+      if (typeof ack === 'function') ack();
+    });
+    const messageTimes: number[] = [];
     let bound: { code: string; playerId: string } | null = null;
 
     socket.on(EV_JOIN, (req: unknown, ack: unknown) => {
@@ -113,7 +117,10 @@ export function createGameServer(opts: { allowDebug?: boolean } = {}): GameServe
     });
 
     socket.on(EV_MSG, (msg: unknown) => {
-      if (!bound) return;
+      const now = performance.now();
+      while (messageTimes.length && messageTimes[0]! <= now - 1000) messageTimes.shift();
+      if (!bound || messageTimes.length >= 60) return;
+      messageTimes.push(now);
       rooms.get(bound.code)?.room.handle(bound.playerId, msg);
     });
 
