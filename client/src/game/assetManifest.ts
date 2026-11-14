@@ -88,7 +88,7 @@ export const ASSETS: AssetSpec[] = [
   sheet('boulder_2', 32, 32, 1, true),
   sheet('debris_chute', 32, 32, 1, true),
   sheet('crater_decal', 32, 32, 1, true),
-  sheet('lander_flame', 32, 32, 4, false),
+  sheet('lander_flame', 32, 32, 4, true),
   sheet('fx_ice', 8, 8, 4, false),
   sheet('fx_debris', 8, 8, 4, true),
   sheet('drone', 16, 16, 4, false),
@@ -96,7 +96,7 @@ export const ASSETS: AssetSpec[] = [
   sheet('icon_scout_drone', 32, 32, 1, false),
 
   // --- v2 interface images (React screens): one frame each.
-  ui('title_bg', 480, 270),
+  ui('title_bg', 480, 270, true),
   ui('lander_cutaway', 240, 160, true),
   ...Object.keys(VEHICLES).map((id) => ui(`rocket_${id}`, 48, 128, true)),
   ui('stamp_success', 160, 64),

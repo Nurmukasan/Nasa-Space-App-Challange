@@ -1,0 +1,136 @@
+.helmet-window {
+  position: absolute;
+  left: 50%;
+  top: 158px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid #ffce72;
+  color: #ffce72;
+  background: #160c16cf;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.helmet-window b {
+  font-size: 17px;
+}
+.takeoff-scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 70%, #63393a, #0c1024 70%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 15vh;
+  color: #ffce72;
+  text-align: center;
+}
+.takeoff-scene h1 {
+  z-index: 1;
+  letter-spacing: 7px;
+  text-shadow: 2px 3px #090b12;
+}
+.takeoff-scene p {
+  z-index: 1;
+  font: 24px var(--font-crt);
+}
+.takeoff-horizon {
+  position: absolute;
+  inset: 70% -20% -20%;
+  transform: rotate(-4deg);
+  background: repeating-linear-gradient(0deg, #492529 0 20px, #673335 20px 40px);
+  border-top: 7px solid #9c5a48;
+}
+.takeoff-ship {
+  position: absolute;
+  left: calc(50% - 96px);
+  bottom: 23%;
+  width: 192px;
+  height: 144px;
+  animation: takeoff-rise 3s ease-in both;
+}
+.takeoff-ship img {
+  image-rendering: pixelated;
+}
+.takeoff-fallback {
+  display: block;
+  width: 192px;
+  height: 144px;
+  background: #bcc9cf;
+  clip-path: polygon(
+    20% 0,
+    80% 0,
+    85% 75%,
+    100% 90%,
+    100% 100%,
+    70% 100%,
+    65% 75%,
+    35% 75%,
+    30% 100%,
+    0 100%,
+    0 90%,
+    15% 75%
+  );
+}
+.takeoff-flame {
+  position: absolute;
+  top: 115px;
+  left: 64px;
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(#fff7c2, #ffb030, #e74620);
+  clip-path: polygon(15% 0, 85% 0, 65% 70%, 50% 100%, 35% 70%);
+  animation: flame-pulse 140ms steps(2) infinite;
+}
+.takeoff-flame.has-sheet {
+  clip-path: none;
+  background-size: 256px 64px;
+  background-repeat: repeat-x;
+  animation: flame-sheet 400ms steps(4) infinite;
+}
+@keyframes takeoff-rise {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-120vh);
+  }
+}
+@keyframes flame-pulse {
+  50% {
+    opacity: 0.7;
+    transform: scaleY(0.8);
+  }
+}
+@keyframes flame-sheet {
+  to {
+    background-position-x: -256px;
+  }
+}
+.takeoff-scene.reduce-motion * {
+  animation: none !important;
+}
+html[data-reduce-motion='true'] .takeoff-scene *,
+html[data-reduce-motion='true'] .screen::before {
+  animation: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .takeoff-scene *,
+  .screen::before {
+    animation: none !important;
+  }
+}
+@media (max-width: 700px), (max-height: 600px) {
+  .helmet-window {
+    top: 135px;
+    font-size: 8px;
+    padding: 5px 8px;
+  }
+  .helmet-window b {
+    font-size: 13px;
+  }
+}

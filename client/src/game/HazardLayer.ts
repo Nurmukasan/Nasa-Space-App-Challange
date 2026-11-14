@@ -1,5 +1,5 @@
 import type Phaser from 'phaser';
-import { VIEW_H, VIEW_W, hashString } from '@rs/shared';
+import { LANDER_POS, VIEW_H, VIEW_W, hashString } from '@rs/shared';
 import type { EvaState } from '@rs/shared';
 import { prefs } from '../state/prefs';
 import { FIELD } from './style';
@@ -88,6 +88,8 @@ export class HazardLayer {
       this.nextDustAt = now + FIELD.hazardEmitMs;
       for (const d of snap.devils)
         this.dust.emitParticleAt(d.x + Math.cos(snap.t * 5) * d.r, d.y - d.r, 1);
+      if (snap.t < 0)
+        this.dust.emitParticleAt(LANDER_POS.x + Math.sin(now / 100) * 25, LANDER_POS.y + 25, 3);
       const storm = snap.weather.storm;
       if (storm && snap.t >= storm.tStart && snap.t < storm.tEnd) {
         const cam = this.scene.cameras.main;

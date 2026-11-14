@@ -39,6 +39,7 @@ export class FieldFx {
   private snap: EvaState | null = null;
   private myId = '';
   private wasLaunched = false;
+  private sawCountdown = false;
   private logId = 0;
   private musicStarted = false;
   constructor(private scene: Phaser.Scene) {
@@ -183,8 +184,12 @@ export class FieldFx {
     this.myId = myId;
     const mine = snap.astronauts.find((a) => a.id === myId);
     if (!mine) return;
+    if (snap.t < 0) this.sawCountdown = true;
     if (!this.wasLaunched && snap.t >= 0) {
-      audio.sfx('launch');
+      if (this.sawCountdown) {
+        audio.sfx('landing');
+        if (!prefs.getState().reduceMotion) this.scene.cameras.main.shake(220, 0.003);
+      }
       this.wasLaunched = true;
     }
     if (!this.musicStarted) {

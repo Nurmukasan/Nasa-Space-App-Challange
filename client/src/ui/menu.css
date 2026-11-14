@@ -32,7 +32,7 @@
   inset: 0;
   z-index: -2;
   background:
-    url('./menu_backdrop.png') center bottom / cover no-repeat,
+    var(--title-bg, url('./menu_backdrop.png')) center bottom / cover no-repeat,
     linear-gradient(90deg, transparent, #f0a06a30 45%, transparent) 0 62% / 600px 3px repeat-x,
     linear-gradient(90deg, transparent, #f0a06a26 50%, transparent) 0 71% / 900px 2px repeat-x,
     linear-gradient(90deg, transparent, #f0a06a30 40%, transparent) 0 83% / 1800px 3px repeat-x;

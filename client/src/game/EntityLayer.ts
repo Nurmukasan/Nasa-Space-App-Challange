@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { prefs } from '../state/prefs';
-import { O2, PLAYER_COLORS } from '@rs/shared';
+import { LANDER_POS, LAUNCH_COUNTDOWN_S, O2, PLAYER_COLORS } from '@rs/shared';
 import type { Astronaut, EvaState } from '@rs/shared';
 import { snaps } from '../state/snapshots';
 import { store } from '../state/store';
@@ -23,6 +23,9 @@ const BEACON_ORIGIN_Y = 21 / 24;
 const BASE_HALF_H = 48;
 
 export class EntityLayer {
+  private lander: Phaser.GameObjects.Image;
+  private landingFlame: Phaser.GameObjects.Sprite;
+  private baseIndicators: Array<Phaser.GameObjects.Arc | Phaser.GameObjects.Rectangle> = [];
   private observed: EvaState | null = null;
   private liveIds = new Set<string>();
   private crew = new Map<string, CrewVisual>();
@@ -39,7 +42,12 @@ export class EntityLayer {
   private at: Point = { x: 0, y: 0 };
 
   constructor(private scene: Phaser.Scene) {
-    scene.add.image(768, 768, 'lander').setDepth(768);
+    this.lander = scene.add.image(LANDER_POS.x, LANDER_POS.y, 'lander').setDepth(LANDER_POS.y);
+    this.landingFlame = scene.add
+      .sprite(LANDER_POS.x, LANDER_POS.y, 'lander_flame')
+      .setOrigin(0.5, 0)
+      .setDepth(LANDER_POS.y - 1)
+      .setVisible(false);
     this.baseLights(scene);
     this.beacon = scene.add
       .sprite(0, 0, 'beacon')
@@ -62,9 +70,19 @@ export class EntityLayer {
       .setDepth(769)
       .setBlendMode(Phaser.BlendModes.ADD);
     scene.tweens.add({ targets: door, alpha: 0.08, yoyo: true, repeat: -1, duration: 1300 });
+    this.baseIndicators.push(mast, door);
   }
 
   update(snap: EvaState, myId: string, x: number, y: number, now: number): void {
+    const reduce = prefs.getState().reduceMotion;
+    const descent = reduce ? 0 : Math.max(0, Math.min(1, -snap.t / LAUNCH_COUNTDOWN_S));
+    const shipY = LANDER_POS.y - descent * FIELD.landingHeight;
+    this.lander.setY(shipY);
+    this.landingFlame
+      .setVisible(snap.t < 0 && !reduce)
+      .setPosition(LANDER_POS.x, shipY + 36)
+      .setFrame(Math.floor(now / 100) % 4);
+    for (const indicator of this.baseIndicators) indicator.setVisible(snap.t >= 0);
     const roster = store.getState().room?.players ?? [];
     if (this.observed !== snap) {
       this.observed = snap;
@@ -114,14 +132,14 @@ export class EntityLayer {
         .setPosition(px, py)
         .setFrame(frame)
         .setDepth(py)
-        .setVisible(a.status !== 'inside')
+        .setVisible(snap.t >= 0 && a.status !== 'inside')
         .setAlpha(a.status === 'lost' ? 0.4 : 1);
       v.stripe
         .setPosition(px, py)
         .setFrame(frame)
         .setDepth(py + 0.1)
-        .setVisible(a.status !== 'inside');
-      if (a.status !== 'inside')
+        .setVisible(snap.t >= 0 && a.status !== 'inside');
+      if (snap.t >= 0 && a.status !== 'inside')
         this.labels.set(
           `name:${a.id}`,
           roster.find((p) => p.id === a.id)?.name ?? a.id,
