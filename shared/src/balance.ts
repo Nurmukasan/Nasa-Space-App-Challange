@@ -244,6 +244,8 @@ export const PROPS = {
 };
 /** Point of no return: walk cost home × margin + reserve. */
 export const RETURN = { margin: 1.15, reserve: 5, warningUnits: 10 };
+/** v2 airlock: with nothing left in the store, E lets a part-full suit inside (no trap at the door). */
+export const AIRLOCK = { emptyStore: 1 };
 
 // ----- owner: A --------------------------------------------------------------
 
@@ -259,7 +261,7 @@ export const LOCATE = {
 };
 
 export const SIGNAL = {
-  firstS: 95,
+  firstS: 80,
   gapMinS: 50,
   gapMaxS: 70,
   lastS: 360,
@@ -273,7 +275,7 @@ export const SIGNAL = {
   /** Zone radius from the automatic estimate, by station count (3+ / fewer). */
   autoR3: 170,
   autoR1: 320,
-  locatedR: 140,
+  locatedR: 170,
   /** Value of the deep signal sample; core is worth tierMul.core / tierMul.deep more. */
   sampleValue: 60,
   feelNear: 200,
@@ -323,6 +325,11 @@ export const CREW = {
   sampleMul: { engineer: 1, scout: 1, geologist: 1, biologist: 1.2 },
 } as const;
 export const OBJECTIVE = { secondaryBonus: 20 };
+/**
+ * Teamwork in training and RED SIGNAL: more ways to earn it than in v1, so each pays less.
+ * Bot soak (A12): near-perfect play lands near the 150 cap instead of ~235.
+ */
+export const TEAMWORK_V2 = { classifyBonus: 15, goodPickBonus: 12, secondaryBonus: 12 };
 export const REPORT = { timelineMax: 80 };
 /** v2 causal findings thresholds (docs/product-logic.md 8.2). */
 export const REPORT_INSIGHTS = {
