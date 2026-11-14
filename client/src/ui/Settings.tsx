@@ -1,0 +1,69 @@
+import { useEffect, useState } from 'react';
+import { prefs, usePrefs } from '../state/prefs';
+import { t } from '../i18n';
+export function Settings() {
+  const [open, setOpen] = useState(false);
+  const music = usePrefs((s) => s.musicVolume),
+    effects = usePrefs((s) => s.sfxVolume),
+    muted = usePrefs((s) => s.muted),
+    reduce = usePrefs((s) => s.reduceMotion);
+  useEffect(() => {
+    document.documentElement.dataset.reduceMotion = String(reduce);
+  }, [reduce]);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    window.addEventListener('keydown', close);
+    return () => window.removeEventListener('keydown', close);
+  }, [open]);
+  return (
+    <div className="settings">
+      <button onClick={() => setOpen(!open)}>{t('settings.title')}</button>
+      {open && (
+        <section className="panel" role="dialog" aria-label={t('settings.title')}>
+          <label>
+            {t('settings.music')}
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.05}
+              value={music}
+              onChange={(e) => prefs.setState({ musicVolume: Number(e.target.value) })}
+            />
+          </label>
+          <label>
+            {t('settings.effects')}
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.05}
+              value={effects}
+              onChange={(e) => prefs.setState({ sfxVolume: Number(e.target.value) })}
+            />
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={muted}
+              onChange={(e) => prefs.setState({ muted: e.target.checked })}
+            />
+            {t('settings.muted')}
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={reduce}
+              onChange={(e) => prefs.setState({ reduceMotion: e.target.checked })}
+            />
+            {t('settings.reduceMotion')}
+          </label>
+          <button onClick={() => setOpen(false)}>{t('settings.close')}</button>
+        </section>
+      )}
+    </div>
+  );
+}
