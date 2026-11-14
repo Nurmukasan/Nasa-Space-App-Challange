@@ -1,15 +1,28 @@
 /* Wrist console: same Mars look as the menus (colours come from .screen in menu.css). */
 .screen.console-screen {
   display: grid;
-  grid-template-columns: minmax(320px, 640px) minmax(300px, 440px);
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 480px);
+  gap: 18px;
   padding: 18px;
   margin: 0 auto;
-  max-width: 1160px;
+  max-width: 1500px;
   height: 100%;
-  align-items: start;
-  align-content: start;
+  box-sizing: border-box;
+  overflow: hidden;
   justify-content: center;
+}
+/* Left half: the radar takes the whole column, as big as the screen allows. */
+.console-radar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+.console-radar > *,
+.console-radar > .console-map {
+  width: min(100%, calc(100vh - 150px));
+  max-width: 100%;
 }
 .console-title {
   margin: 0 0 8px;
@@ -24,12 +37,14 @@
   display: block;
   width: 100%;
   cursor: crosshair;
-  background: #100808;
-  border: 2px solid var(--s-line);
+  aspect-ratio: 1;
+  background: #06111f;
+  border: 2px solid #3f86bd;
+  border-radius: 16px;
   box-shadow:
     4px 4px 0 var(--s-shadow),
-    0 0 0 4px #1c0d0c,
-    0 0 0 6px #a84a2e55,
+    0 0 0 4px #0b1a2c,
+    0 0 0 6px #3f86bd55,
     inset 0 0 40px #000;
 }
 .console-screen section > p {
@@ -43,9 +58,12 @@
   display: grid;
   gap: 14px;
   align-content: start;
-}
-.console-footer {
-  grid-column: 1 / -1;
+  min-height: 0;
+  max-height: 100%;
+  overflow-y: auto;
+  padding-right: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--s-line) transparent;
 }
 .console-screen .panel {
   margin: 0;
@@ -235,9 +253,13 @@ html[data-reduce-motion='true'] .console-screen progress.urgent {
   display: inline-block;
   min-width: 3.5em;
 }
-@media (max-width: 760px) {
+@media (max-width: 900px) {
   .screen.console-screen {
     grid-template-columns: 1fr;
+    overflow-y: auto;
+  }
+  .console-side {
+    overflow: visible;
   }
 }
 

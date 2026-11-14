@@ -75,7 +75,7 @@ export function ConsoleScreen() {
   }, []);
   return (
     <main className="screen console-screen">
-      <section>
+      <section className="console-radar">
         <h1 className="console-title">
           {t('console.title')}
           {hud && (
@@ -128,29 +128,29 @@ export function ConsoleScreen() {
             <PowerPanel snap={hud} />
           </>
         )}
+        <footer className="console-footer panel">
+          <Commands
+            target={target}
+            crew={hud?.astronauts.map((a) => a.id) ?? []}
+            outside={(hud?.astronauts ?? [])
+              .filter((a) => a.status !== 'inside' && a.status !== 'lost')
+              .map((a) => players?.find((p) => p.id === a.id)?.name ?? a.id)}
+          />
+          <h2 className="panel-title">
+            <PixelIcon name="icon_antenna_hg" scale={1} />
+            {t('console.radio')}
+          </h2>
+          <div className="radio-log">
+            {hud?.log.map((entry) => (
+              <div key={entry.id} className={`voice-${voice(entry.from)}`}>
+                {Math.floor(entry.t)} · {speaker(entry.from, players ?? [])}
+                {entry.from === 'earth' && ` (${t('console.earthDelay')})`} ·{' '}
+                {t(entry.key, entry.params)}
+              </div>
+            ))}
+          </div>
+        </footer>
       </aside>
-      <footer className="console-footer panel">
-        <Commands
-          target={target}
-          crew={hud?.astronauts.map((a) => a.id) ?? []}
-          outside={(hud?.astronauts ?? [])
-            .filter((a) => a.status !== 'inside' && a.status !== 'lost')
-            .map((a) => players?.find((p) => p.id === a.id)?.name ?? a.id)}
-        />
-        <h2 className="panel-title">
-          <PixelIcon name="icon_antenna_hg" scale={1} />
-          {t('console.radio')}
-        </h2>
-        <div className="radio-log">
-          {hud?.log.map((entry) => (
-            <div key={entry.id} className={`voice-${voice(entry.from)}`}>
-              {Math.floor(entry.t)} · {speaker(entry.from, players ?? [])}
-              {entry.from === 'earth' && ` (${t('console.earthDelay')})`} ·{' '}
-              {t(entry.key, entry.params)}
-            </div>
-          ))}
-        </div>
-      </footer>
     </main>
   );
 }

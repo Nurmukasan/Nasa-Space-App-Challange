@@ -57,6 +57,10 @@ export function playSynth(ctx: Ctx, out: AudioNode, name: SfxName, v: number): b
       }
       n({ dur: 1, vol: 0.2, type: 'lowpass', f0: 140, q: 0.5, attack: 0.3 });
       break;
+    case 'radar_ping':
+      s({ dur: 0.28, vol: 0.13, f0: 1900, f1: 1500 });
+      s({ at: 0.09, dur: 0.22, vol: 0.05, f0: 1900, f1: 1500 });
+      break;
     case 'ui_click':
       s({ dur: 0.05, vol: 0.18, f0: 1200, f1: 900 });
       break;

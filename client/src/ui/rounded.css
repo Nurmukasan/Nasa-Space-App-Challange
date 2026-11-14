@@ -1,0 +1,70 @@
+/* Softer corners everywhere: pixel-art look stays, the sharp 90 degree edges go. */
+.panel,
+.screen .panel,
+.screen button,
+.screen input,
+.screen select,
+button,
+input,
+select {
+  border-radius: 10px;
+}
+.screen .panel {
+  border-radius: 14px;
+}
+.screen .panel::before {
+  border-top-left-radius: 14px;
+}
+.screen .panel::after {
+  border-bottom-right-radius: 14px;
+}
+.crew-row,
+.radio-log,
+.seismo-canvas,
+.systems-hull,
+.systems-port,
+.asset-card,
+.module-card,
+.forecast-item,
+.chip,
+.tag,
+.roster-row,
+.site-card canvas,
+.wrist-map canvas,
+.solo-tools,
+.solo-fault,
+.debrief-objective,
+.report-timeline li,
+.report-awards article,
+.scenario-cards button,
+.deposit-counter,
+.spacecraft-layout,
+.issues p,
+.settings .panel,
+.settings > button {
+  border-radius: 10px;
+}
+.helmet-block,
+.helmet-radio,
+.helmet-clock,
+.helmet-banner,
+.helmet-home,
+.sample-slot,
+.scanner-found,
+.wl.hint,
+.wl.arrow,
+.wl-note,
+.controls-hint {
+  border-radius: 10px;
+}
+.console-screen meter,
+.console-screen progress,
+.console-screen input[type='range'] {
+  border-radius: 6px;
+}
+.console-screen input[type='range']::-webkit-slider-thumb {
+  border-radius: 5px;
+}
+.console-screen meter::-webkit-meter-bar {
+  border-radius: 6px;
+}
