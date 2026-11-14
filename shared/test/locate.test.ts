@@ -1,6 +1,6 @@
 // A3: epicentre rings and picks (docs/phases.md, task A3; docs/product-logic.md 7.11).
 import { expect, it } from 'vitest';
-import { LOCATE, PRESETS, SEISMIC, checkDesign, deriveParams } from '../src';
+import { LOCATE, PRESETS, SEISMIC, TEAMWORK_V2, checkDesign, deriveParams } from '../src';
 import type { ScenarioId } from '../src';
 import { createSim } from '../src/sim/sim';
 import { seismicSystem } from '../src/sim/seismic';
@@ -114,5 +114,6 @@ it('scores each pick once after the deadline; a good pick adds teamwork', () => 
   const check = checkDesign(PRESETS.balanced, 'signal');
   const withPick = scoreMission(s, sim.params, check).teamwork;
   const without = scoreMission({ ...s, locateGood: 0 }, sim.params, check).teamwork;
-  expect(withPick - without).toBe(LOCATE.goodBonus);
+  // RED SIGNAL uses the v2 teamwork bonus (balance soak, A12).
+  expect(withPick - without).toBe(TEAMWORK_V2.goodPickBonus);
 });

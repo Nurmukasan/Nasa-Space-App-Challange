@@ -10,7 +10,8 @@ export const TRAINING: ScenarioDef = {
   deployStations: true,
   knownRings: [1, 2, 3],
   signal: false,
-  scienceFull: 120,
+  // Bot soak (A12): near-perfect bots score ~270 raw science; full marks at ~80% of that.
+  scienceFull: 220,
   quickPreset: 'balanced',
   // Sorted by time. Radio keys live in client/src/i18n/en/story.ts.
   beats: [

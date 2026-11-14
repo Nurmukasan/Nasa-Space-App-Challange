@@ -11,8 +11,10 @@ export const SIGNAL_MISSION: ScenarioDef = {
   deployStations: true,
   knownRings: [1],
   signal: true,
-  scienceFull: 200,
-  quickPreset: 'balanced',
+  // Bot soak (A12): near-perfect bots average ~690 raw science; full marks at ~80% of that.
+  scienceFull: 560,
+  // Science (RTG, drill, seismometer net) succeeds 8/10 vs 4/10 for Balanced in the soak.
+  quickPreset: 'science',
   beats: [
     { at: 0, action: { kind: 'radio', from: 'tulpar', key: 'story.signal.touchdown' } },
     { at: 3, action: { kind: 'radio', from: 'earth', key: 'story.signal.brief' } },

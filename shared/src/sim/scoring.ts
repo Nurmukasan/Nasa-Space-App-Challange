@@ -1,4 +1,4 @@
-import { FAULTS, LOCATE, O2, OBJECTIVE, REPORT, SCORE } from '../balance';
+import { FAULTS, LOCATE, O2, OBJECTIVE, REPORT, SCORE, TEAMWORK_V2 } from '../balance';
 import type {
   DesignCheck,
   Grade,
@@ -66,13 +66,15 @@ export function scoreMission(
           0,
           SCORE.efficiencyMax,
         );
+  // Free mission keeps the v1 bonuses.
+  const v1 = params.scenario === 'free';
   const teamwork = clamp(
-    stats.classifyCorrect * SCORE.classifyBonus -
+    stats.classifyCorrect * (v1 ? SCORE.classifyBonus : TEAMWORK_V2.classifyBonus) -
       stats.falseAlarms * SCORE.falseAlarmPenalty +
       Math.floor(stats.o2Shared / O2.shareAmount) * SCORE.shareBonus +
       (stats.allAboard ? SCORE.allAboardBonus : 0) +
-      secondaries * OBJECTIVE.secondaryBonus +
-      stats.locateGood * LOCATE.goodBonus +
+      secondaries * (v1 ? OBJECTIVE.secondaryBonus : TEAMWORK_V2.secondaryBonus) +
+      stats.locateGood * (v1 ? LOCATE.goodBonus : TEAMWORK_V2.goodPickBonus) +
       stats.repairs * FAULTS.repairBonus,
     0,
     SCORE.teamworkMax,
