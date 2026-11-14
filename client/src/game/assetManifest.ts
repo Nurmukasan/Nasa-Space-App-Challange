@@ -30,13 +30,13 @@ const sheet = (
   frames: number,
   wired: boolean,
 ): AssetSpec => ({ key, width, height, frames, use: 'field', wired });
-const ui = (key: string, width: number, height: number): AssetSpec => ({
+const ui = (key: string, width: number, height: number, wired = false): AssetSpec => ({
   key,
   width,
   height,
   frames: 1,
   use: 'ui',
-  wired: false,
+  wired,
 });
 
 /** Award and objective codes are listed in docs/product-logic.md (sections 7.18 and 8.4). */
@@ -97,8 +97,8 @@ export const ASSETS: AssetSpec[] = [
 
   // --- v2 interface images (React screens): one frame each.
   ui('title_bg', 480, 270),
-  ui('lander_cutaway', 240, 160),
-  ...Object.keys(VEHICLES).map((id) => ui(`rocket_${id}`, 48, 128)),
+  ui('lander_cutaway', 240, 160, true),
+  ...Object.keys(VEHICLES).map((id) => ui(`rocket_${id}`, 48, 128, true)),
   ui('stamp_success', 160, 64),
   ui('stamp_failed', 160, 64),
   ...AWARDS.map((code) => ui(`award_${code}`, 32, 32)),
