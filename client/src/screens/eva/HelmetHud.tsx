@@ -25,6 +25,7 @@ export function HelmetHud({
   params: MissionParams;
 }) {
   const reduce = usePrefs((p) => p.reduceMotion);
+  const glass = usePrefs((p) => p.visorGlass);
   const tutorial = useRef({ moved: false, dug: false, returned: false, x: NaN, y: NaN });
   const a = snap.astronauts.find((a) => a.id === playerId);
   if (!a) return null;
@@ -57,7 +58,7 @@ export function HelmetHud({
       : '';
   return (
     <div
-      className={`helmet-hud ${low ? 'low-oxygen' : ''} ${a.leak ? 'suit-breach' : ''} ${active ? 'storm-on' : ''} ${tremor ? 'quake' : ''} ${reduce ? 'reduce-motion' : ''}`}
+      className={`helmet-hud ${low ? 'low-oxygen' : ''} ${a.leak ? 'suit-breach' : ''} ${active ? 'storm-on' : ''} ${tremor ? 'quake' : ''} ${reduce ? 'reduce-motion' : ''} ${glass ? 'visor-glass' : ''}`}
       data-status={a.status}
     >
       <div className="visor-frame" aria-hidden="true" />

@@ -4,6 +4,7 @@ export default {
   'settings.effects': 'Effects volume',
   'settings.muted': 'Mute',
   'settings.reduceMotion': 'Reduce motion',
+  'settings.visorGlass': 'Helmet glass effects',
   'settings.close': 'Close',
   'lobby.offline': 'Server offline — solo mode only',
   'lobby.checking': 'Checking server…',

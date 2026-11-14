@@ -370,7 +370,7 @@
   pointer-events: none;
 }
 /* dust and scratches on the glass */
-.visor-frame::before {
+.visor-glass .visor-frame::before {
   background:
     radial-gradient(circle at 12% 78%, #ffd8a826 0 2px, transparent 3px),
     radial-gradient(circle at 83% 22%, #ffd8a81f 0 3px, transparent 4px),
@@ -380,7 +380,7 @@
     linear-gradient(115deg, transparent 38%, #ffffff0a 40%, transparent 44%);
 }
 /* a slow reflection that drifts across the visor */
-.visor-frame::after {
+.visor-glass .visor-frame::after {
   background: linear-gradient(105deg, transparent 42%, #ffffff12 50%, transparent 58%);
 }
 .storm-on .visor-frame {
@@ -388,7 +388,7 @@
     inset 0 0 0 7px #1c0d0c55,
     inset 0 0 140px #c8683eaa;
 }
-.storm-on .visor-frame::before {
+.visor-glass.storm-on .visor-frame::before {
   background:
     radial-gradient(circle at 12% 78%, #ffd8a85c 0 2px, transparent 3px),
     radial-gradient(circle at 83% 22%, #ffd8a850 0 3px, transparent 4px),
@@ -747,7 +747,5 @@
     inset 0 0 110px #e33a3488;
 }
 .visor-frame {
-  background:
-    radial-gradient(ellipse at center, transparent 62%, #1a0a0a66 100%),
-    linear-gradient(#ff8a4a08, #ff8a4a08);
+  background: radial-gradient(ellipse at center, transparent 70%, #1a0a0a55 100%);
 }

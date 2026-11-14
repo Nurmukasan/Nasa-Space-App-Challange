@@ -65,6 +65,7 @@ export class Lighting {
       .renderTexture(0, 0, VIEW_W, VIEW_H)
       .setOrigin(0)
       .setScrollFactor(0)
+      .setBlendMode(Phaser.BlendModes.MULTIPLY)
       .setDepth(900);
     this.brush = scene.make.image({ key: 'light-ship', add: false });
     this.tint = scene.add

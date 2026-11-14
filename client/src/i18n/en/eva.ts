@@ -26,7 +26,7 @@ const en: Record<string, string> = {
   'eva.move': 'WASD · MOVE',
   'eva.dig': 'HOLD SPACE NEAR A SAMPLE SITE',
   'eva.return': 'PRESS E AT THE LANDER',
-  'eva.controls': 'SHIFT · RUN   1–5 · RADIO   TAB · SOLO CONSOLE',
+  'eva.controls': 'SHIFT · RUN   1–5 · RADIO   TAB · SOLO CONSOLE   ESC · SETTINGS',
   'eva.empty': 'EMPTY',
   'eva.refill': 'REFILLING',
   'eva.ration': 'WAITING FOR DISPENSE',

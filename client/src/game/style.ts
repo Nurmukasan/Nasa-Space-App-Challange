@@ -11,10 +11,10 @@ export const FIELD = {
   terrainBudgetMs: 800,
   terrainTargetMs: 400,
   terrainColors: [0x6c2a2e, 0x8a362a, 0xa84a2e, 0xc6643a, 0xe28650],
-  night: 0x0a081e,
+  night: 0x140a1a,
   /** Even at noon the surface stays dim, so flashlights matter all mission. */
-  darkFloor: 0.62,
-  darkRange: 0.34,
+  darkFloor: 0.55,
+  darkRange: 0.4,
   cyan: 0x50e6f0,
   white: 0xe2ecff,
   danger: 0xf0463c,
