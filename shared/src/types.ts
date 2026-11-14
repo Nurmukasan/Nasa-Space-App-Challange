@@ -27,6 +27,8 @@ export interface PlayerInfo {
   role: Role | null;
   /** Chosen in the lobby; used when this player goes outside (roles eva and solo). */
   crewClass: CrewClassId;
+  /** True once the player picked a class themselves; crew cannot launch before that. */
+  classChosen: boolean;
   ready: boolean;
   connected: boolean;
   isHost: boolean;

@@ -47,6 +47,7 @@ describe('crew classes (contract)', () => {
     const players = h.room.state.players;
     expect(players.find((p) => p.id === a)!.crewClass).toBe('engineer');
     expect(players.find((p) => p.id === b)!.crewClass).toBe('scout');
+    expect(players.every((p) => p.classChosen === false)).toBe(true);
   });
 });
 
