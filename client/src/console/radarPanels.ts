@@ -32,7 +32,7 @@ export function drawPending(
   const open = events.filter((e) => e.truth === null).slice(0, WARN.listMax);
   if (!open.length) return;
   const x = size - WARN.panelW - 10;
-  ctx.fillStyle = '#03100bcc';
+  ctx.fillStyle = '#100808cc';
   ctx.fillRect(x - 6, 8, WARN.panelW + 6, 22 + open.length * WARN.rowH);
   ctx.fillStyle = RADAR.text;
   ctx.fillText('SEISMIC · CLASSIFY', x, 24);
@@ -58,7 +58,7 @@ export function drawStormBar(
   const frac = active
     ? (storm.tEnd - now) / (storm.tEnd - storm.tStart)
     : Math.max(0, 1 - (storm.tStart - now) / 90);
-  ctx.fillStyle = '#03100bcc';
+  ctx.fillStyle = '#100808cc';
   ctx.fillRect(x - 6, y - 16, w + 12, 30);
   ctx.fillStyle = active ? RADAR.danger : RADAR.amber;
   ctx.fillText(

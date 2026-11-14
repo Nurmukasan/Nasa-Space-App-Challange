@@ -1,15 +1,18 @@
 /** Drawing helpers for the tactical radar. All coordinates are canvas pixels. */
 export const RADAR = {
-  bg: '#03100b',
-  grid: '#1b4a35',
-  gridBright: '#2f7a56',
-  text: '#8dffb8',
-  sweep: '125, 255, 178',
-  amber: '#ffc66a',
-  danger: '#ff7766',
+  bg: '#100808',
+  grid: '#5a3524',
+  gridBright: '#a2623a',
+  text: '#ffd9b0',
+  sweep: '255, 176, 96',
+  amber: '#ffb030',
+  danger: '#ff6a58',
+  ok: '#8dffb8',
   station: '#7bd9e5',
-  site: '#aadd66',
+  site: '#ffc66a',
+  font: '13px "Share Tech Mono", monospace',
   sweepPeriodMs: 5200,
+  pingMs: 6000,
   trailRad: Math.PI * 0.55,
   tickCount: 36,
   tickLongEvery: 3,
@@ -57,7 +60,7 @@ export function drawCompass(ctx: CanvasRenderingContext2D, cx: number, cy: numbe
   ctx.lineTo(cx, cy + r);
   ctx.stroke();
   ctx.fillStyle = RADAR.text;
-  ctx.font = '13px monospace';
+  ctx.font = RADAR.font;
   ctx.textAlign = 'center';
   ctx.fillText('N', cx, cy - r - RADAR.tickLongPx - 4);
   ctx.fillText('S', cx, cy + r + RADAR.tickLongPx + 14);
@@ -176,4 +179,21 @@ export function drawNoise(ctx: CanvasRenderingContext2D, size: number, amount: n
   ctx.fillStyle = `rgba(${RADAR.sweep}, 0.5)`;
   const dots = Math.round(RADAR.noiseDotsPerFrame * amount);
   for (let i = 0; i < dots; i++) ctx.fillRect(Math.random() * size, Math.random() * size, 1, 1);
+}
+
+/** One slow ping ring leaving the lander every few seconds. Purely a heartbeat, so it stays faint. */
+export function drawPing(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  maxR: number,
+  now: number,
+) {
+  const k = (now % RADAR.pingMs) / RADAR.pingMs;
+  ctx.globalAlpha = (1 - k) * 0.22;
+  ctx.strokeStyle = RADAR.gridBright;
+  ctx.beginPath();
+  ctx.arc(cx, cy, maxR * k, 0, TAU);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
 }
