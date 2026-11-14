@@ -7,7 +7,8 @@ import { FieldFx } from './fieldFx';
 import { terrainTexture } from './terrainTexture';
 import { EntityLayer } from './EntityLayer';
 import { preloadAssets, ensureAssets } from './assets';
-import { Lighting, makeLightTexture } from './Lighting';
+import { FIELD } from './style';
+import { Lighting } from './Lighting';
 
 const SNAP_BACK_PX = 24;
 
@@ -40,8 +41,6 @@ export class FieldScene extends Phaser.Scene {
     this.entities = new EntityLayer(this);
     this.effects = new FieldFx(this);
 
-    makeLightTexture(this, 'light56', 56);
-    makeLightTexture(this, 'light28', 28);
     this.lighting = new Lighting(this);
 
     this.cameras.main.setBounds(0, 0, WORLD_PX, WORLD_PX);
@@ -100,17 +99,19 @@ export class FieldScene extends Phaser.Scene {
 
     this.entities.update(snap, myId, this.meX, this.meY, performance.now());
 
-    const lights = [{ x: LANDER_POS.x, y: LANDER_POS.y, key: 'light56', r: 56 }];
+    const lights = [{ x: LANDER_POS.x, y: LANDER_POS.y, key: 'light-ship', r: FIELD.landerRadius }];
     for (const a of snap.astronauts) {
       if (a.status === 'inside' || a.status === 'lost') continue;
       const own = a.id === myId;
       lights.push({
         x: own ? this.meX : a.x,
         y: own ? this.meY : a.y,
-        key: own ? 'light56' : 'light28',
-        r: own ? 56 : 28,
+        key: own
+          ? `light-cone-${Math.round(((((this.facing % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2)) / (Math.PI * 2)) * FIELD.coneDirections) % FIELD.coneDirections}`
+          : 'light-friend',
+        r: own ? FIELD.helmetRadius : FIELD.companionRadius,
       });
     }
-    this.lighting.render(snap.weather.light, lights, this.cameras.main);
+    this.lighting.render(snap, lights, this.cameras.main);
   }
 }
