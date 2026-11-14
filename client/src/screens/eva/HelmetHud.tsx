@@ -3,6 +3,11 @@ import { O2 } from '@rs/shared';
 import type { EvaState, MissionParams } from '@rs/shared';
 import { evaText as t } from '../../i18n/en/eva';
 import { usePrefs } from '../../state/prefs';
+import { PixelIcon } from '../../ui/PixelIcon';
+
+const GEM_FRAME: Record<string, number> = { surface: 0, deep: 1, core: 2 };
+const GEM_PX = 24;
+const METERS_PER_WORLD_PX = 0.25;
 
 export function clock(t: number): string {
   const s = Math.max(0, Math.ceil(t));
@@ -36,6 +41,8 @@ export function HelmetHud({
   const storm = snap.weather.storm;
   const active = storm && snap.t >= storm.tStart && snap.t < storm.tEnd;
   const log = snap.log.at(-1);
+  const homeDist = Math.hypot(snap.lander.x - a.x, snap.lander.y - a.y);
+  const homeAngle = Math.atan2(snap.lander.y - a.y, snap.lander.x - a.x);
   const lesson =
     snap.t >= 0 && snap.t < 60
       ? !first.moved
@@ -54,7 +61,8 @@ export function HelmetHud({
       <div className="visor-frame" aria-hidden="true" />
       <header className="helmet-top">
         <div className="helmet-block oxygen-block">
-          <span>
+          <span className="block-head">
+            <PixelIcon name="icon_tanks_xl" scale={1} />
             {t('eva.oxygen')} <strong>{Math.round(frac * 100)}%</strong>
           </span>
           <div
@@ -75,12 +83,28 @@ export function HelmetHud({
           {snap.t < 0 ? `T−${Math.ceil(-snap.t)}` : clock(snap.durationS - snap.t)}
         </div>
         <div className={`helmet-block link-block ${a.linked ? '' : 'helmet-warning'}`}>
-          {t(a.linked ? 'eva.link' : 'eva.no_signal')}
+          <span className="block-head">
+            {t(a.linked ? 'eva.link' : 'eva.no_signal')}
+            <PixelIcon name="icon_antenna_hg" scale={1} />
+          </span>
+          <div className="quota-pips" aria-hidden="true">
+            {Array.from({ length: Math.min(params.quota, 12) }, (_, i) => (
+              <i key={i} className={i < snap.lander.cache.length ? 'filled' : ''} />
+            ))}
+          </div>
           <small>
             {t('eva.deposited')} {snap.lander.cache.length}/{params.quota}
           </small>
         </div>
       </header>
+      {a.status === 'active' && homeDist > O2.airlockRadius * 2 && (
+        <div className="helmet-home" aria-label="lander bearing">
+          <span className="home-arrow" style={{ transform: `rotate(${homeAngle}rad)` }}>
+            ➤
+          </span>
+          <span>LANDER · {Math.round(homeDist * METERS_PER_WORLD_PX)} m</span>
+        </div>
+      )}
       <div className="helmet-banners" role="status">
         {snap.t < 0 && (
           <div className="helmet-banner">{t('eva.countdown', { n: Math.ceil(-snap.t) })}</div>
@@ -117,9 +141,25 @@ export function HelmetHud({
           <span>{t('eva.samples')}</span>
           {[0, 1].map((i) => (
             <div className={`sample-slot ${a.carrying[i] ? 'occupied' : ''}`} key={i}>
-              {a.carrying[i]
-                ? `${t(`eva.${a.carrying[i]!.tier}`)} +${a.carrying[i]!.value}`
-                : t('eva.empty')}
+              {a.carrying[i] ? (
+                <>
+                  <span
+                    className="gem"
+                    style={{
+                      backgroundImage: `url(${import.meta.env.BASE_URL}assets/sprites/samples.png)`,
+                      backgroundPositionX: -GEM_FRAME[a.carrying[i]!.tier]! * GEM_PX,
+                    }}
+                  />
+                  <span>
+                    {t(`eva.${a.carrying[i]!.tier}`)} <b>+{a.carrying[i]!.value}</b>
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="gem empty" />
+                  <span>{t('eva.empty')}</span>
+                </>
+              )}
             </div>
           ))}
         </div>

@@ -532,3 +532,115 @@
     opacity: 0;
   }
 }
+
+/* ---- richer panels, matching the menu ---- */
+.stage {
+  background:
+    linear-gradient(#0a0507d9, #0a0507d9),
+    url('./menu_backdrop.png') center bottom / cover no-repeat;
+}
+.helmet-hud .px-icon {
+  vertical-align: middle;
+  filter: drop-shadow(0 0 4px #ffb03066);
+}
+.helmet-block,
+.sample-slot,
+.helmet-home,
+.helmet-clock {
+  background:
+    repeating-linear-gradient(0deg, #ffffff06 0 1px, transparent 1px 3px),
+    linear-gradient(#2e1412ee, #1a0b0cee);
+  border: 2px solid #a84a2e;
+  box-shadow:
+    3px 3px 0 #0a0406,
+    inset 0 0 0 1px #ffffff10,
+    inset 0 0 18px #ffb03014;
+}
+.helmet-clock {
+  border-bottom: 2px solid var(--h-hi);
+  text-shadow: 0 0 12px #ffb03099;
+}
+.block-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.block-head strong {
+  margin-left: auto;
+}
+.link-block .block-head {
+  justify-content: flex-end;
+}
+.oxygen-segments i.filled {
+  box-shadow: 0 0 6px #ffb030aa;
+}
+.low-oxygen .oxygen-segments i.filled {
+  box-shadow: 0 0 6px #ff6a58cc;
+}
+.quota-pips {
+  display: flex;
+  justify-content: flex-end;
+  gap: 3px;
+  margin-top: 8px;
+}
+.quota-pips i {
+  width: 12px;
+  height: 8px;
+  background: #3a2018;
+  clip-path: polygon(15% 0, 100% 0, 85% 100%, 0 100%);
+}
+.quota-pips i.filled {
+  background: var(--h-ok);
+  box-shadow: 0 0 6px #8dffb8aa;
+}
+.helmet-home {
+  position: absolute;
+  top: 92px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 14px;
+  font-size: 14px;
+  color: var(--h-dim);
+  text-transform: uppercase;
+}
+.home-arrow {
+  display: inline-block;
+  color: var(--h-hi);
+  font-size: 18px;
+  text-shadow: 0 0 8px #ffb030aa;
+}
+.sample-slot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 150px;
+}
+.sample-slot .gem {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  background-size: 72px 24px;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 6px #ffb030);
+}
+.sample-slot .gem.empty {
+  border: 2px dashed #6b3a2a;
+  filter: none;
+  background: none;
+}
+.sample-slot b {
+  color: #ffdfaa;
+}
+.sample-slot.occupied {
+  animation: slot-pop 0.5s ease-out;
+}
+@keyframes slot-pop {
+  from {
+    transform: scale(1.18);
+    box-shadow: 0 0 22px #ffb030;
+  }
+}
