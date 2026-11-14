@@ -29,9 +29,10 @@ export function EvaScreen({ active = true }: { active?: boolean }) {
     }
   }, [active]);
 
+  const down = useApp((s) => s.hud?.astronauts.find((a) => a.id === s.playerId)?.status === 'down');
   const params = useApp((s) => s.room?.params);
   return (
-    <div className="stage">
+    <div className={`stage ${down ? 'is-down' : ''}`}>
       <div ref={host} style={{ width: '100%', height: '100%' }} />
       {hud && myId && params && <HelmetHud snap={hud} playerId={myId} params={params} />}
     </div>
