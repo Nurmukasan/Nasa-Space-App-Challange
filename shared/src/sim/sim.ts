@@ -9,7 +9,7 @@ import {
   WEATHER,
 } from '../balance';
 import { createRng } from '../rng';
-import { SITES } from '../catalog';
+import { SITES, defaultCrewClass } from '../catalog';
 import { buildSchedule } from './schedule';
 import { generateSites } from '../terrain';
 import { initDiscovery } from './discovery';
@@ -178,6 +178,7 @@ export function createSim(params: MissionParams, astronautIds: string[]): Sim {
     const ang = (i / Math.max(1, n)) * Math.PI * 2 + Math.PI / 2;
     return {
       id,
+      crewClass: defaultCrewClass(i),
       x: LANDER_POS.x + Math.cos(ang) * 22,
       y: LANDER_POS.y + Math.sin(ang) * 22,
       facing: ang,

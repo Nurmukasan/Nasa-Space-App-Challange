@@ -3,6 +3,7 @@
 // Socket.IO carries them as event 'msg'; LocalTransport passes them directly.
 // =============================================================================
 import type {
+  CrewClassId,
   DesignField,
   EvaState,
   EventKind,
@@ -33,6 +34,7 @@ export type DebugCmd =
 
 export type ClientMsg =
   | { t: 'lobby:role'; role: Role | null }
+  | { t: 'lobby:class'; crewClass: CrewClassId }
   | { t: 'lobby:ready'; ready: boolean }
   | { t: 'lobby:start'; quick: boolean }
   | { t: 'lobby:scenario'; id: ScenarioId }
