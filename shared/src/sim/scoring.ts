@@ -1,4 +1,4 @@
-import { FAULTS, LOCATE, O2, OBJECTIVE, SCORE } from '../balance';
+import { FAULTS, LOCATE, O2, OBJECTIVE, REPORT, SCORE } from '../balance';
 import type {
   DesignCheck,
   Grade,
@@ -13,6 +13,7 @@ import { primariesDone } from './objectives';
 import { revealKey } from './signal';
 import { dosePenalty } from './flare';
 import { buildInsights } from './insights';
+import { buildAwards } from './awards';
 export { buildInsights } from './insights';
 import type { Sim } from './sim';
 
@@ -92,7 +93,13 @@ export function scoreMission(
   return { science, safety, efficiency, teamwork, total, grade, success };
 }
 
-export function buildReport(sim: Sim, design: MissionDesign, check: DesignCheck): MissionReport {
+/** `operatorId`: the Mission Control player, or the solo player; null when nobody plays MC. */
+export function buildReport(
+  sim: Sim,
+  design: MissionDesign,
+  check: DesignCheck,
+  operatorId: string | null = null,
+): MissionReport {
   return {
     score: scoreMission(sim.hidden.stats, sim.params, check, sim.pub.objectives),
     stats: { ...sim.hidden.stats },
@@ -101,8 +108,11 @@ export function buildReport(sim: Sim, design: MissionDesign, check: DesignCheck)
     seed: sim.params.seed,
     scenario: sim.params.scenario,
     objectives: sim.pub.objectives.map((o) => ({ ...o })),
-    timeline: sim.hidden.timeline.map((e) => ({ ...e })),
-    awards: [],
+    timeline: sim.hidden.timeline
+      .slice(0, REPORT.timelineMax)
+      .map((e) => ({ ...e }))
+      .sort((a, b) => a.t - b.t),
+    awards: buildAwards(sim, operatorId),
     reveal: revealKey(sim),
   };
 }

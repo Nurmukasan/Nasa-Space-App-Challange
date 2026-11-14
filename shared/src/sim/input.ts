@@ -5,7 +5,7 @@ import { clampToWorld } from '../terrain';
 import { endMission } from './endcheck';
 import { placePick, resolveEvent } from './seismic';
 import { fieldSpeed } from './movement';
-import { dist, findAstronaut, pushFx, pushLog } from './sim';
+import { crewStatsOf, dist, findAstronaut, pushFx, pushLog } from './sim';
 import { tryStartRepair } from './faults';
 import { tryDeployKit } from './stations';
 import type { Sim } from './sim';
@@ -44,6 +44,8 @@ export function handleSimMsg(
       const moved = dist(a.x, a.y, nx, ny);
       if (running) sim.hidden.stats.distanceRun += moved;
       else sim.hidden.stats.distanceWalked += moved;
+      const mine = crewStatsOf(sim, a.id);
+      if (mine) mine.distance += moved;
       a.x = nx;
       a.y = ny;
       a.facing = msg.facing;
@@ -82,6 +84,8 @@ export function handleSimMsg(
         down.status = 'active';
         down.downUntil = 0;
         sim.hidden.stats.o2Shared += O2.shareAmount;
+        const rescuer = crewStatsOf(sim, a.id);
+        if (rescuer) rescuer.rescues++;
         pushFx(sim, { type: 'rescue', playerId: down.id, x: down.x, y: down.y });
         return;
       }
@@ -92,7 +96,12 @@ export function handleSimMsg(
         return;
       }
       if (a.carrying.length > 0) {
+        const mine = crewStatsOf(sim, a.id);
         for (const s of a.carrying) {
+          if (mine) {
+            mine.samples++;
+            mine.science += s.value;
+          }
           lander.cache.push(s);
           sim.hidden.stats.samplesDeposited++;
           if (s.tier !== 'surface') sim.hidden.stats.deepDeposited++;

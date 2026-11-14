@@ -338,7 +338,15 @@ export class GameRoom {
 
   private finishMission(): void {
     if (!this.sim) return;
-    this.state.report = buildReport(this.sim, this.state.design, this.state.check);
+    const operator =
+      this.slots.find((s) => s.info.role === 'mc') ??
+      this.slots.find((s) => s.info.role === 'solo');
+    this.state.report = buildReport(
+      this.sim,
+      this.state.design,
+      this.state.check,
+      operator?.info.id ?? null,
+    );
     this.state.phase = 'report';
     this.sim = null;
     this.dirty = true;

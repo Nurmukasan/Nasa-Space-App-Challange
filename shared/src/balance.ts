@@ -312,3 +312,22 @@ export const DIRECTOR = {
 export const SOLO = { classifyMul: 1.5 };
 export const OBJECTIVE = { secondaryBonus: 20 };
 export const REPORT = { timelineMax: 80 };
+/** v2 causal findings thresholds (docs/product-logic.md 8.2). */
+export const REPORT_INSIGHTS = {
+  minPicks: 2,
+  /** Mean pick error above this, px, is a bad pick record. */
+  badPickPx: 160,
+  goodPicks: 2,
+  faultDowntimeS: 60,
+  sandS: 40,
+  blindDiscoveries: 2,
+  blindAnomalies: 3,
+  /** Stations below this make seismo_net the fix for bad picks. */
+  netStations: 3,
+};
+/** Crew awards (docs/product-logic.md 8.4). */
+export const AWARDS = {
+  order: ['rock_hound', 'explorer', 'lifeguard', 'mechanic', 'pathfinder', 'iron_lungs'] as const,
+  ironLungsMinS: 60,
+  seismologistPicks: 2,
+};
