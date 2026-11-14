@@ -11,7 +11,11 @@ export type FieldState =
   | 'countdown'
   | 'no_signal'
   | 'breach'
-  | 'return';
+  | 'return'
+  | 'objectives'
+  | 'scanner'
+  | 'flare'
+  | 'act';
 export const FIELD_STATES: FieldState[] = [
   'active',
   'low',
@@ -24,6 +28,10 @@ export const FIELD_STATES: FieldState[] = [
   'no_signal',
   'breach',
   'return',
+  'objectives',
+  'scanner',
+  'flare',
+  'act',
 ];
 export function fieldFixture(state: FieldState = 'active'): {
   snap: EvaState;
@@ -41,6 +49,8 @@ export function fieldFixture(state: FieldState = 'active'): {
   const player = room.join({ name: 'TULPAR' });
   if (!player.ok) throw Error('fixture join');
   room.handle(player.playerId, { t: 'lobby:role', role: 'solo' });
+  if (['objectives', 'scanner', 'flare', 'act'].includes(state))
+    room.handle(player.playerId, { t: 'lobby:scenario', id: 'training' });
   room.handle(player.playerId, { t: 'lobby:start', quick: true });
   for (let i = 0; i < 15 * 35; i++) room.tick(TICK_DT);
   const snap = structuredClone(room.simulation!.pub),
@@ -64,6 +74,12 @@ export function fieldFixture(state: FieldState = 'active'): {
     a.y = 1400;
     a.o2 = 25;
   }
+  if (state === 'scanner') a.scan = { dist: 75, bearing: Math.PI / 4 };
+  if (state === 'flare') {
+    snap.flare = { warnAt: snap.t, tStart: snap.t + 15, tEnd: snap.t + 40 };
+    a.dose = 20;
+  }
+  if (state === 'act') snap.act = 2;
   if (state === 'breach') a.leak = true;
   return { snap, params, playerId: player.playerId, room: structuredClone(room.state) };
 }
