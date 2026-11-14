@@ -1,4 +1,4 @@
-import { SCORE } from '../balance';
+import { O2, SCORE } from '../balance';
 import type {
   DesignCheck,
   Grade,
@@ -58,7 +58,7 @@ export function scoreMission(
   const teamwork = clamp(
     stats.classifyCorrect * SCORE.classifyBonus -
       stats.falseAlarms * SCORE.falseAlarmPenalty +
-      (stats.o2Shared > 0 ? SCORE.shareBonus : 0) +
+      Math.floor(stats.o2Shared / O2.shareAmount) * SCORE.shareBonus +
       (stats.allAboard ? SCORE.allAboardBonus : 0),
     0,
     SCORE.teamworkMax,

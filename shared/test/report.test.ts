@@ -176,3 +176,9 @@ it('runs the full ten-minute pipeline, resolves every event, and produces a boun
   expect(h.room.state.report!.insights.at(-1)!.code).toBe('twin_insight');
   expect(maxBytes).toBeLessThan(16000);
 });
+
+it('awards teamwork for each oxygen rescue, rather than only the first', () => {
+  const v = setup();
+  v.sim.hidden.stats.o2Shared = 30;
+  expect(scoreMission(v.sim.hidden.stats, v.sim.params, checkDesign(v.design)).teamwork).toBe(30);
+});
