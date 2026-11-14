@@ -31,10 +31,11 @@ function preview(id: CrewClassId): CSSProperties | undefined {
 }
 
 /** Field specialty for this mission. Everyone sees it: the choice is part of the room state. */
-export function CrewClassPicker({ current }: { current: CrewClassId }) {
+/** `current` is null until the player picks a class themselves. */
+export function CrewClassPicker({ current }: { current: CrewClassId | null }) {
   return (
     <div className="panel skin-picker crew-picker" role="radiogroup" aria-label={t('crew.title')}>
-      <span className="field-label">{t('crew.title')}</span>
+      <span className="field-label">{t(current ? 'crew.title' : 'crew.prompt')}</span>
       <div className="skin-row">
         {CREW_CLASS_IDS.map((id) => (
           <button

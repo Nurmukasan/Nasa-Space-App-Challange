@@ -83,6 +83,7 @@ it('solo training launches with the fixed seed, forced site and solo flag', () =
   const a = h.room.join({ name: 'A' });
   if (!a.ok) throw new Error('join');
   h.send(a.playerId, { t: 'lobby:role', role: 'solo' });
+  h.send(a.playerId, { t: 'lobby:class', crewClass: 'geologist' });
   h.send(a.playerId, { t: 'lobby:scenario', id: 'training' });
   h.send(a.playerId, { t: 'lobby:start', quick: true });
   const p = h.room.state.params!;

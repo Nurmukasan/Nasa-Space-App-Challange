@@ -10,6 +10,7 @@ function solo(scenario: ScenarioId, seed = 1234, shelter = true) {
   const a = h.room.join({ name: 'A' });
   if (!a.ok) throw new Error('join');
   h.send(a.playerId, { t: 'lobby:role', role: 'solo' });
+  h.send(a.playerId, { t: 'lobby:class', crewClass: 'geologist' });
   h.send(a.playerId, { t: 'lobby:scenario', id: scenario });
   h.send(a.playerId, { t: 'lobby:start', quick: true });
   // A lone idle astronaut would run out of oxygen; keep them inside for long timelines.

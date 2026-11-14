@@ -4,7 +4,7 @@
 //   npm run bots -- --n 3 --scenario signal             (scenario for a created room: free by default)
 // Decisions live in tools/botBrain.ts; tools/mission-soak.ts runs the same bots without a server.
 import { io } from 'socket.io-client';
-import { EV_JOIN, EV_MSG, SCENARIOS, TICK_HZ } from '@rs/shared';
+import { CREW_CLASS_IDS, EV_JOIN, EV_MSG, SCENARIOS, TICK_HZ } from '@rs/shared';
 import type { ClientMsg, EvaState, JoinResult, RoomState, ScenarioId, ServerMsg } from '@rs/shared';
 import { EvaBrain, McBrain } from './botBrain';
 
@@ -42,6 +42,8 @@ async function spawn(index: number): Promise<void> {
   const isMc = createdRoom && index === 0;
   console.log(`bot ${index} joined room ${code} as ${isMc ? 'mc' : 'eva'}`);
   send({ t: 'lobby:role', role: isMc ? (n === 1 ? 'solo' : 'mc') : 'eva' });
+  // Every astronaut must pick a specialty before launch; bots spread over the classes.
+  send({ t: 'lobby:class', crewClass: CREW_CLASS_IDS[index % CREW_CLASS_IDS.length]! });
 
   socket.on('connect', () =>
     socket.emit(
@@ -68,7 +70,9 @@ async function spawn(index: number): Promise<void> {
 
   const timer = setInterval(() => {
     if (state.phase === 'lobby' && isMc && state.hostId === me) {
-      const ready = state.players.length === n && state.players.every((p) => p.role !== null);
+      const ready =
+        state.players.length === n &&
+        state.players.every((p) => p.role !== null && (p.role === 'mc' || p.classChosen));
       if (ready) {
         if (state.scenario !== scenario) send({ t: 'lobby:scenario', id: scenario });
         else send({ t: 'lobby:start', quick: true });

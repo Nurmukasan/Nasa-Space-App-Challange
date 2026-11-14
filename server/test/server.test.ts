@@ -64,7 +64,12 @@ describe('socket server', () => {
 
     a.send({ t: 'lobby:role', role: 'mc' });
     b.send({ t: 'lobby:role', role: 'eva' });
-    await until(() => b.state?.players.every((p) => p.role !== null) === true);
+    b.send({ t: 'lobby:class', crewClass: 'scout' });
+    await until(
+      () =>
+        b.state?.players.every((p) => p.role !== null && (p.role === 'mc' || p.classChosen)) ===
+        true,
+    );
     a.send({ t: 'lobby:start', quick: true });
     await until(() => a.state?.phase === 'eva' && a.snap !== null && b.snap !== null);
     await until(() => (b.snap?.t ?? -1) >= 0, 8000);
@@ -92,6 +97,7 @@ describe('connection resilience', () => {
       const joined = await first.join('Pilot');
       if (!joined.ok) throw new Error('join');
       first.send({ t: 'lobby:role', role: 'solo' });
+      first.send({ t: 'lobby:class', crewClass: 'engineer' });
       first.send({ t: 'lobby:start', quick: true });
       await until(() => first.snap !== null);
       const tick = first.snap!.tick;

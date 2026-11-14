@@ -39,7 +39,10 @@ export function runMission(o: SoakOptions): SoakResult {
   }
   const [mc, ...crew] = ids as [string, ...string[]];
   room.handle(mc, { t: 'lobby:role', role: 'mc' });
-  for (const id of crew) room.handle(id, { t: 'lobby:role', role: 'eva' });
+  for (const id of crew) {
+    room.handle(id, { t: 'lobby:role', role: 'eva' });
+    room.handle(id, { t: 'lobby:class', crewClass: 'geologist' });
+  }
   room.handle(mc, { t: 'lobby:scenario', id: o.scenario });
   if (o.preset) {
     room.handle(mc, { t: 'lobby:start', quick: false });

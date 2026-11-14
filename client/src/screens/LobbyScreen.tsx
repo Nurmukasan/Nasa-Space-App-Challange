@@ -105,6 +105,11 @@ export function LobbyScreen() {
     );
   }
 
+  // Astronauts who still have to pick a specialty; launch waits for them.
+  const waiting = room.players
+    .filter((p) => p.role !== null && p.role !== 'mc' && !p.classChosen)
+    .map((p) => p.name);
+
   return (
     <div className="screen" style={background}>
       {logo}
@@ -119,7 +124,11 @@ export function LobbyScreen() {
             <span>{p.name}</span>
             {p.isHost && <span className="tag">{t('lobby.host')}</span>}
             <span className="tag">{p.role ? t(`role.${p.role}`) : '—'}</span>
-            {p.role !== 'mc' && <span className="tag">{t(`crew.${p.crewClass}.name`)}</span>}
+            {p.role !== null && p.role !== 'mc' && (
+              <span className={`tag ${p.classChosen ? '' : 'err'}`}>
+                {p.classChosen ? t(`crew.${p.crewClass}.name`) : t('crew.unchosen')}
+              </span>
+            )}
             {!p.connected && <span className="tag err">{t('lobby.offlinePlayer')}</span>}
           </div>
         ))}
@@ -135,12 +144,18 @@ export function LobbyScreen() {
           </button>
         ))}
       </div>
-      {self.role !== 'mc' && <CrewClassPicker current={self.crewClass} />}
+      {self.role !== 'mc' && <CrewClassPicker current={self.classChosen ? self.crewClass : null} />}
       <ScenarioCards selected={room.scenario} isHost={self.isHost} />
+      {waiting.length > 0 && (
+        <div className="status-line" role="status">
+          {t('crew.waiting', { names: waiting.join(', ') })}
+        </div>
+      )}
       {self.isHost && (
         <div className="row">
           <button
             className="btn-main"
+            disabled={waiting.length > 0}
             onClick={() => {
               if (local) send({ t: 'lobby:scenario', id: 'training' });
               send({ t: 'lobby:start', quick: true });
@@ -148,12 +163,18 @@ export function LobbyScreen() {
           >
             {t(local ? 'lobby.quick_training' : 'lobby.quick')}
           </button>
-          <button className="btn-main" onClick={() => send({ t: 'lobby:start', quick: false })}>
+          <button
+            className="btn-main"
+            disabled={waiting.length > 0}
+            onClick={() => send({ t: 'lobby:start', quick: false })}
+          >
             {t('lobby.design')}
           </button>
         </div>
       )}
-      {error && <div className="err">{error}</div>}
+      {error && (
+        <div className="err">{error === 'class_not_chosen' ? t('crew.not_chosen') : error}</div>
+      )}
       <button onClick={() => endSession()}>{t('lobby.leave')}</button>
     </div>
   );

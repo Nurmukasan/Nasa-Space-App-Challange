@@ -1,4 +1,4 @@
-import { GameRoom, LAUNCH_COUNTDOWN_S, TICK_DT } from '@rs/shared';
+import { CREW_CLASS_IDS, GameRoom, LAUNCH_COUNTDOWN_S, TICK_DT } from '@rs/shared';
 import { clearSnaps, pushSnap } from '../../state/snapshots';
 import { store } from '../../state/store';
 /** Actual MC + three EVA simulation, thirty seconds after touchdown. */
@@ -15,6 +15,7 @@ export function baseFixture() {
     const player = room.join({ name: `Crew ${index + 1}` });
     if (!player.ok) throw new Error('Fixture join failed');
     room.handle(player.playerId, { t: 'lobby:role', role: index === 0 ? 'mc' : 'eva' });
+    room.handle(player.playerId, { t: 'lobby:class', crewClass: CREW_CLASS_IDS[index % 4]! });
   }
   room.handle(room.state.hostId, { t: 'lobby:start', quick: true });
   const ticks = Math.round((LAUNCH_COUNTDOWN_S + 30) / TICK_DT);
