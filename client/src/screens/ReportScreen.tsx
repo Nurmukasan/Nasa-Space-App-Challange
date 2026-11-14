@@ -1,3 +1,4 @@
+import '../ui/menu.css';
 import { send } from '../net/session';
 import { me, useApp } from '../state/store';
 import { t } from '../i18n';
