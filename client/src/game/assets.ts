@@ -1,32 +1,8 @@
 import type Phaser from 'phaser';
-import { MODULE_ORDER, RELAYS, VEHICLES } from '@rs/shared';
+import { ASSETS as MANIFEST } from './assetManifest';
 
-interface Asset {
-  key: string;
-  width: number;
-  height: number;
-  frames: number;
-}
-export const ASSETS: Asset[] = [
-  { key: 'astronaut', width: 16, height: 16, frames: 9 },
-  { key: 'astronaut_stripe', width: 16, height: 16, frames: 9 },
-  { key: 'lander', width: 64, height: 48, frames: 1 },
-  ...['delta', 'crater', 'basalt', 'impact'].map((kind) => ({
-    key: `site_${kind}`,
-    width: 16,
-    height: 16,
-    frames: 2,
-  })),
-  { key: 'station', width: 16, height: 16, frames: 1 },
-  { key: 'beacon', width: 16, height: 16, frames: 4 },
-  ...[1, 2, 3].map((n) => ({ key: `rock_${n}`, width: 16, height: 16, frames: 1 })),
-  ...['dust', 'spark'].map((kind) => ({ key: `fx_${kind}`, width: 8, height: 8, frames: 4 })),
-  ...[
-    ...MODULE_ORDER.map((id) => `icon_${id}`),
-    ...Object.keys(VEHICLES).map((id) => `icon_vehicle_${id}`),
-    ...Object.keys(RELAYS).map((id) => `icon_relay_${id}`),
-  ].map((key) => ({ key, width: 32, height: 32, frames: 1 })),
-];
+/** Field spritesheets only; React screens read 'ui' images from the same manifest. */
+export const ASSETS = MANIFEST.filter((a) => a.use === 'field');
 const files = import.meta.glob('/public/assets/sprites/*.png', {
   eager: true,
   query: '?url',
