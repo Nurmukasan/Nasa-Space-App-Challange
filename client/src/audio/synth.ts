@@ -1,4 +1,5 @@
 import type { SfxName } from './sounds';
+import { playEnding } from './synthEnding';
 
 /**
  * Procedural Mars sound set. No audio files ship with the repo, so every effect is built from
@@ -23,7 +24,7 @@ function noise(ctx: Ctx): AudioBuffer {
   return buf;
 }
 
-interface Burst {
+export interface Burst {
   at?: number;
   dur: number;
   vol: number;
@@ -33,7 +34,7 @@ interface Burst {
   q?: number;
   attack?: number;
 }
-function burst(ctx: Ctx, out: AudioNode, b: Burst): void {
+export function burst(ctx: Ctx, out: AudioNode, b: Burst): void {
   const t = ctx.currentTime + (b.at ?? 0);
   const src = ctx.createBufferSource();
   src.buffer = noise(ctx);
@@ -54,7 +55,7 @@ function burst(ctx: Ctx, out: AudioNode, b: Burst): void {
   src.onended = () => gain.disconnect();
 }
 
-interface Tone {
+export interface Tone {
   at?: number;
   dur: number;
   vol: number;
@@ -63,7 +64,7 @@ interface Tone {
   f1?: number;
   attack?: number;
 }
-function tone(ctx: Ctx, out: AudioNode, o: Tone): void {
+export function tone(ctx: Ctx, out: AudioNode, o: Tone): void {
   const t = ctx.currentTime + (o.at ?? 0);
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
@@ -186,7 +187,7 @@ export function playSynth(ctx: Ctx, out: AudioNode, name: SfxName, v: number): b
       n({ dur: 0.08, vol: 0.3, type: 'bandpass', f0: 1200, q: 1.5 });
       break;
     default:
-      return false;
+      return playEnding(ctx, out, name, v);
   }
   return true;
 }
