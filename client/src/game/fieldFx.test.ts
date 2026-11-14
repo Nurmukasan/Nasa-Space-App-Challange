@@ -3,7 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { EvaState } from '@rs/shared';
 import { fxBus } from '../fx/FxBus';
 import { FieldFx } from './fieldFx';
-vi.mock('../audio', () => ({ audio: { sfx: vi.fn(), stopEva: vi.fn() } }));
+vi.mock('../audio', () => ({
+  audio: { sfx: vi.fn(), stopEva: vi.fn(), step: vi.fn(), setStorm: vi.fn() },
+}));
 vi.mock('../state/prefs', () => ({ prefs: { getState: () => ({ reduceMotion: false }) } }));
 class SceneEvents {
   private target = new EventTarget();

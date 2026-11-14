@@ -11,18 +11,16 @@ export class FieldJuice {
   private spark: Phaser.GameObjects.Particles.ParticleEmitter;
   private tracks: Phaser.GameObjects.RenderTexture;
   private stamp: Phaser.GameObjects.Image;
-  private ring: Phaser.GameObjects.Graphics;
   private lastStep = new Map<string, number>();
   private lastDig = new Map<string, number>();
   private trackCount = 0;
-  private progress = -1;
   constructor(private scene: Phaser.Scene) {
     this.tracks = scene.add.renderTexture(0, 0, WORLD_PX, WORLD_PX).setOrigin(0).setDepth(-50);
     this.stamp = scene.make
       .image({ key: 'fx_dust', add: false })
-      .setTint(0x29151c)
-      .setAlpha(0.35)
-      .setScale(0.35, 0.18);
+      .setTint(0x1a0c10)
+      .setAlpha(0.6)
+      .setScale(0.42, 0.22);
     this.dust = scene.add
       .particles(0, 0, 'fx_dust', {
         emitting: false,
@@ -47,7 +45,6 @@ export class FieldJuice {
         maxAliveParticles: FIELD.juiceParticles / 2,
       })
       .setDepth(1400);
-    this.ring = scene.add.graphics().setDepth(850);
     const off = fxBus.on('sample', (event) => {
       if (!prefs.getState().reduceMotion) this.spark.emitParticleAt(event.x, event.y, 8);
     });
@@ -75,47 +72,18 @@ export class FieldJuice {
           this.tracks.clear();
           this.trackCount = 0;
         }
+        // Alternate left and right foot, offset sideways from the walking direction.
+        const side = (this.trackCount & 1 ? 1 : -1) * FIELD.footOffsetPx;
         this.stamp.setRotation(a.facing);
-        this.tracks.draw(this.stamp, Math.round(ax), Math.round(ay + 5));
+        this.tracks.draw(
+          this.stamp,
+          Math.round(ax - Math.sin(a.facing) * side),
+          Math.round(ay + 5 + Math.cos(a.facing) * side),
+        );
       }
       if (a.digging && !reduce && time - (this.lastDig.get(a.id) ?? 0) >= FIELD.digParticleMs) {
         this.lastDig.set(a.id, time);
         this.dust.emitParticleAt(ax + 7, ay + 5, 4);
-      }
-    }
-    let site: EvaState['sites'][number] | undefined;
-    if (own?.digging)
-      for (const candidate of snap.sites)
-        if (Math.hypot(candidate.x - own.x, candidate.y - own.y) <= DIG.reach) {
-          site = candidate;
-          break;
-        }
-    const maximum = site
-      ? Math.min(
-          2,
-          site.depth < DIG.surfaceDepth
-            ? DIG.surfaceDepth
-            : site.depth < DIG.deepDepth
-              ? DIG.deepDepth
-              : DIG.coreDepth,
-        )
-      : 1;
-    const progress = site ? Math.floor((site.depth / maximum) * 20) : -1;
-    if (progress !== this.progress) {
-      this.progress = progress;
-      this.ring.clear();
-      if (site) {
-        this.ring.lineStyle(2, FIELD.gold, 0.9);
-        this.ring.beginPath();
-        this.ring.arc(
-          site.x,
-          site.y,
-          13,
-          -Math.PI / 2,
-          -Math.PI / 2 + (progress / 20) * Math.PI * 2,
-          false,
-        );
-        this.ring.strokePath();
       }
     }
     this.scene.registry.set(

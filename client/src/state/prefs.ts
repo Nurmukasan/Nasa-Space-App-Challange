@@ -5,12 +5,15 @@ export interface Preferences {
   sfxVolume: number;
   muted: boolean;
   reduceMotion: boolean;
+  /** Dust, glare and tint painted on the helmet glass. Off keeps the view clean. */
+  visorGlass: boolean;
 }
 const defaults: Preferences = {
   musicVolume: 0.35,
   sfxVolume: 0.7,
   muted: false,
   reduceMotion: false,
+  visorGlass: false,
 };
 const KEY = 'red-signal-prefs';
 function load(): Preferences {
@@ -32,6 +35,7 @@ function load(): Preferences {
       sfxVolume: volume(v.sfxVolume, defaults.sfxVolume),
       muted: v.muted === true,
       reduceMotion: typeof v.reduceMotion === 'boolean' ? v.reduceMotion : reduceMotion,
+      visorGlass: v.visorGlass === true,
     };
   } catch {
     return { ...defaults, reduceMotion };

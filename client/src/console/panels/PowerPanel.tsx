@@ -2,7 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import type { EvaState, PowerAlloc } from '@rs/shared';
 import { command as send } from '../actions';
 import { t } from '../../i18n';
+import { PixelIcon } from '../../ui/PixelIcon';
+
 const systems = ['moxie', 'comms', 'scan'] as const;
+const ICONS = { moxie: 'icon_moxie_s', comms: 'icon_antenna_hg', scan: 'icon_gpr' } as const;
 export function PowerPanel({ snap }: { snap: EvaState }) {
   const [alloc, setAlloc] = useState(snap.lander.power.alloc);
   useEffect(() => {
@@ -20,11 +23,13 @@ export function PowerPanel({ snap }: { snap: EvaState }) {
   }, []);
   return (
     <section className="panel">
-      <h2>
+      <h2 className="panel-title">
+        <PixelIcon name="icon_battery" scale={1} />
         {t('console.power')} · {Math.round(snap.lander.power.availW)} W
       </h2>
       {systems.map((key) => (
-        <label key={key}>
+        <label key={key} className="power-row">
+          <PixelIcon name={ICONS[key]} scale={1} />
           {t(`power.${key}`)} {Math.round(alloc[key] * 100)}% · {t('console.efficiency')}{' '}
           {Math.round(snap.lander.power.eff[key] * 100)}%
           <input
@@ -46,7 +51,8 @@ export function PowerPanel({ snap }: { snap: EvaState }) {
           />
         </label>
       ))}
-      <div>
+      <div className="store-line">
+        <PixelIcon name="icon_o2_reserve" scale={1} />
         {t('console.store')} {Math.round(snap.lander.o2Store)} / {snap.lander.o2StoreMax}
       </div>
     </section>

@@ -7,17 +7,20 @@ import { fxBus } from '../fx/FxBus';
 import { prefs } from '../state/prefs';
 import { evaText as t } from '../i18n/en/eva';
 import { FIELD } from './style';
+import { worldLabels } from './WorldLabels';
+
+const EVENT_NOTE_MS = 5500;
 
 const SOUNDS: Partial<Record<FxType, SfxName>> = {
   tremor: 'tremor_loop',
   sample: 'sample_get',
   deposit: 'deposit',
-  down: 'down',
+  down: 'death',
   ping: 'radio_in',
   refill: 'refill_done',
   breach: 'breach',
   rescue: 'classify_ok',
-  lost: 'down',
+  lost: 'death',
   classify_ok: 'classify_ok',
   classify_bad: 'classify_bad',
   rockfall: 'rockfall',
@@ -73,7 +76,8 @@ export class FieldFx {
         event.type === 'signal_pulse'
           ? Math.min(1, event.n ?? 0.5)
           : Math.max(0, 1 - distance / FIELD.shakeRangePx);
-      if (strength > 0) this.scene.cameras.main.shake(350, 0.006 * strength);
+      if (strength > 0)
+        this.scene.cameras.main.shake(event.type === 'tremor' ? 2600 : 900, 0.006 * strength);
     }
     const a = this.snap?.astronauts.find((a) => a.id === event.playerId);
     const x = event.x ?? a?.x ?? mine?.x ?? 0,
@@ -112,7 +116,6 @@ export class FieldFx {
       }
     }
     if (event.type === 'sample') {
-      this.float(x, y, `+${event.n ?? 0}`, '#ffce72', reduce);
       if (!reduce) this.scene.cameras.main.flash(80, 255, 210, 110, false);
     } else if (event.type === 'deposit')
       this.float(x, y, `+${event.n ?? 0} ${t('eva.samples')}`, '#50e6f0', reduce);
@@ -120,40 +123,60 @@ export class FieldFx {
     else if (event.type === 'ping' && (!a || a.linked))
       this.float(x, y, t(`eva.ping.${event.s ?? 'ok'}`), '#e2ecff', reduce);
     else if (event.type === 'breach') this.float(x, y, t('eva.breach'), '#ffb030', reduce);
+    this.callout(event, x, y);
     if (event.type === 'fireball' && !reduce) {
       const meteor = this.scene.add
-        .rectangle(x - 200, y - 130, 45, 2, FIELD.gold)
+        .rectangle(x - 260, y - 170, 45, 2, FIELD.gold)
         .setRotation(0.5)
         .setDepth(1400);
       this.scene.tweens.add({
         targets: meteor,
         x,
         y,
-        duration: 750,
+        duration: 1900,
         onComplete: () => meteor.destroy(),
       });
     }
   }
+  /** Say what is happening, where, so nobody has to guess what the bang was. */
+  private callout(event: FxEvent, x: number, y: number): void {
+    const kinds: Partial<Record<FxType, string>> = {
+      fireball: '#ffb030',
+      impact: '#ff8a30',
+      rockfall: '#ff6a58',
+    };
+    const color = kinds[event.type];
+    if (!color || event.x === undefined) return;
+    worldLabels(this.scene).note(
+      x,
+      y - 28,
+      t(`eva.fx.${event.type}`),
+      t(`eva.fx.${event.type}_note`),
+      color,
+      event.type === 'fireball' ? 2600 : EVENT_NOTE_MS,
+    );
+  }
   private float(x: number, y: number, text: string, color: string, reduce: boolean): void {
-    const label = this.scene.add
-      .text(x, y - 20, text, {
-        fontFamily: 'monospace',
-        fontSize: '10px',
-        color,
-        stroke: '#161222',
-        strokeThickness: 2,
-      })
-      .setOrigin(0.5)
-      .setDepth(1350);
-    if (reduce) this.scene.time.delayedCall(FIELD.fxDurationMs, () => label.destroy());
-    else
-      this.scene.tweens.add({
-        targets: label,
-        y: y - 40,
-        alpha: 0,
-        duration: FIELD.fxDurationMs,
-        onComplete: () => label.destroy(),
-      });
+    worldLabels(this.scene).float(x, y - 20, text, color);
+    void reduce;
+  }
+  private lastX = NaN;
+  private lastY = NaN;
+  private stride = 0;
+  private lastStepAt = 0;
+  /** One footstep per STRIDE_PX walked, so running sounds faster than walking. */
+  private footsteps(x: number, y: number, active: boolean): void {
+    const moved = Number.isNaN(this.lastX) ? 0 : Math.hypot(x - this.lastX, y - this.lastY);
+    this.lastX = x;
+    this.lastY = y;
+    if (!active || moved <= 0 || moved > 40) return;
+    this.stride += moved;
+    const now = performance.now();
+    if (this.stride >= FIELD.footStridePx && now - this.lastStepAt > 120) {
+      this.stride = 0;
+      this.lastStepAt = now;
+      audio.step();
+    }
   }
   update(snap: EvaState, myId: string): void {
     this.snap = snap;
@@ -168,6 +191,8 @@ export class FieldFx {
       audio.startEva();
       this.musicStarted = true;
     }
+    this.footsteps(mine.x, mine.y, mine.status === 'active');
+    audio.setStorm(snap.weather.storm ? 1 : 0);
     const low = mine.o2 / mine.o2Max < O2.lowFrac && mine.status === 'active';
     if (low) audio.loop('heartbeat_loop');
     else audio.stop('heartbeat_loop');

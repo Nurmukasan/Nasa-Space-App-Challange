@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { LANDER_POS, SITES, TICK_HZ, WORLD_PX, generateSites, fieldSpeed } from '@rs/shared';
+import { DIG, LANDER_POS, SITES, TICK_HZ, WORLD_PX, fieldSpeed, generateSites } from '@rs/shared';
 import { send } from '../net/session';
 import { snaps } from '../state/snapshots';
 import { store } from '../state/store';
@@ -8,6 +8,9 @@ import { PortLayer } from './PortLayer';
 import { PropLayer } from './PropLayer';
 import { FieldJuice } from './FieldJuice';
 import { FieldFx } from './fieldFx';
+import { EventFx } from './EventFx';
+import { HazardFx } from './HazardFx';
+import { SampleFx } from './SampleFx';
 import { terrainTexture } from './terrainTexture';
 import { EntityLayer } from './EntityLayer';
 import { preloadAssets, ensureAssets } from './assets';
@@ -29,6 +32,9 @@ export class FieldScene extends Phaser.Scene {
   private ports!: PortLayer;
   private juice!: FieldJuice;
   private effects!: FieldFx;
+  private eventFx!: EventFx;
+  private hazardFx!: HazardFx;
+  private sampleFx!: SampleFx;
   private entities!: EntityLayer;
   private keys!: FieldKeys;
   private meX = 0;
@@ -51,10 +57,13 @@ export class FieldScene extends Phaser.Scene {
     ensureAssets(this);
     const room = store.getState().room;
     const salt = SITES[room?.params?.site ?? 'jezero'].terrainSalt;
-    terrainTexture(this, salt, room?.params?.scenario !== 'free');
+    terrainTexture(this, salt, room?.params?.scenario !== 'free', snaps.curr?.sites ?? []);
     if (room?.params) new PropLayer(this, salt, generateSites(room.params));
     this.entities = new EntityLayer(this);
     this.effects = new FieldFx(this);
+    this.eventFx = new EventFx(this);
+    this.hazardFx = new HazardFx(this);
+    this.sampleFx = new SampleFx(this);
     this.hazards = new HazardLayer(this);
     this.ports = new PortLayer(this);
     this.juice = new FieldJuice(this);
@@ -113,6 +122,16 @@ export class FieldScene extends Phaser.Scene {
       }
     }
 
+    this.eventFx.update(snap);
+    this.hazardFx.update(snap, performance.now());
+    this.sampleFx.update(
+      snap,
+      myId,
+      this.meX,
+      this.meY,
+      performance.now(),
+      store.getState().room?.params?.maxDepth ?? DIG.coreDepth,
+    );
     this.hazards.update(snap, _time);
     this.ports.update(snap, myId, st.room?.players.find((p) => p.id === myId)?.role === 'solo');
     this.juice.update(snap, myId, this.meX, this.meY, _time);

@@ -1,0 +1,96 @@
+/* Settings popup: shared by every phase, so it carries its own Mars look. */
+.settings {
+  --s-line: #a84a2e;
+  --s-accent: #ffb030;
+  font-family: 'Share Tech Mono', monospace;
+}
+.settings > button {
+  background: linear-gradient(#6a2c1c, #2f1210);
+  border: 2px solid var(--s-line);
+  color: #ffeedd;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 14px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  box-shadow: 0 3px 0 #0a0406;
+}
+.settings > button:hover {
+  border-color: var(--s-accent);
+}
+.settings .panel {
+  display: grid;
+  gap: 14px;
+  width: 280px;
+  margin-top: 6px;
+  padding: 14px;
+  background: #2a1210f2;
+  border: 2px solid var(--s-line);
+  color: #ffeedd;
+  font-size: 15px;
+  box-shadow: 4px 4px 0 #0a0406;
+}
+.settings .setting-slider {
+  display: grid;
+  gap: 6px;
+}
+.setting-head {
+  display: flex;
+  justify-content: space-between;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-size: 13px;
+}
+.setting-head output {
+  color: var(--s-accent);
+}
+.setting-slider input[type='range'] {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  accent-color: var(--s-accent);
+}
+.settings .setting-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-size: 13px;
+}
+.setting-check input {
+  appearance: none;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  padding: 0;
+  background: #160a0c;
+  border: 2px solid var(--s-line);
+  cursor: pointer;
+}
+.setting-check input:checked {
+  background: var(--s-accent);
+  border-color: #fff0c8;
+  box-shadow: inset 0 0 0 3px #160a0c;
+}
+.settings .panel > button {
+  padding: 8px;
+  background: linear-gradient(#6a2c1c, #2f1210);
+  border: 2px solid var(--s-line);
+  color: #ffeedd;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 14px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  box-shadow: 0 3px 0 #0a0406;
+}
+.settings .panel > button:hover {
+  border-color: var(--s-accent);
+}
+.settings :focus-visible {
+  outline: 2px solid var(--s-accent);
+  outline-offset: 2px;
+}

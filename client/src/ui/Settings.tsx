@@ -1,30 +1,38 @@
 import { useEffect, useState } from 'react';
 import { prefs, usePrefs } from '../state/prefs';
+import { useApp } from '../state/store';
 import { t } from '../i18n';
+import './menu.css';
+import './settings.css';
 export function Settings() {
   const [open, setOpen] = useState(false);
   const music = usePrefs((s) => s.musicVolume),
     effects = usePrefs((s) => s.sfxVolume),
     muted = usePrefs((s) => s.muted),
-    reduce = usePrefs((s) => s.reduceMotion);
+    reduce = usePrefs((s) => s.reduceMotion),
+    glass = usePrefs((s) => s.visorGlass);
+  // During the mission the button would sit on top of the HUD, so Esc opens it instead.
+  const inMission = useApp((s) => s.room?.phase === 'eva');
   useEffect(() => {
     document.documentElement.dataset.reduceMotion = String(reduce);
   }, [reduce]);
   useEffect(() => {
-    if (!open) return;
-    const close = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
+    const toggle = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen((v) => !v);
     };
-    window.addEventListener('keydown', close);
-    return () => window.removeEventListener('keydown', close);
-  }, [open]);
+    window.addEventListener('keydown', toggle);
+    return () => window.removeEventListener('keydown', toggle);
+  }, []);
   return (
     <div className="settings">
-      <button onClick={() => setOpen(!open)}>{t('settings.title')}</button>
+      {!inMission && <button onClick={() => setOpen(!open)}>{t('settings.title')}</button>}
       {open && (
         <section className="panel" role="dialog" aria-label={t('settings.title')}>
-          <label>
-            {t('settings.music')}
+          <label className="setting-slider">
+            <span className="setting-head">
+              {t('settings.music')}
+              <output>{Math.round(music * 100)}%</output>
+            </span>
             <input
               type="range"
               min={0}
@@ -34,8 +42,11 @@ export function Settings() {
               onChange={(e) => prefs.setState({ musicVolume: Number(e.target.value) })}
             />
           </label>
-          <label>
-            {t('settings.effects')}
+          <label className="setting-slider">
+            <span className="setting-head">
+              {t('settings.effects')}
+              <output>{Math.round(effects * 100)}%</output>
+            </span>
             <input
               type="range"
               min={0}
@@ -45,7 +56,7 @@ export function Settings() {
               onChange={(e) => prefs.setState({ sfxVolume: Number(e.target.value) })}
             />
           </label>
-          <label>
+          <label className="setting-check">
             <input
               type="checkbox"
               checked={muted}
@@ -53,13 +64,21 @@ export function Settings() {
             />
             {t('settings.muted')}
           </label>
-          <label>
+          <label className="setting-check">
             <input
               type="checkbox"
               checked={reduce}
               onChange={(e) => prefs.setState({ reduceMotion: e.target.checked })}
             />
             {t('settings.reduceMotion')}
+          </label>
+          <label className="setting-check">
+            <input
+              type="checkbox"
+              checked={glass}
+              onChange={(e) => prefs.setState({ visorGlass: e.target.checked })}
+            />
+            {t('settings.visorGlass')}
           </label>
           <button onClick={() => setOpen(false)}>{t('settings.close')}</button>
         </section>

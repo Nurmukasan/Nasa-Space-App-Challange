@@ -5,6 +5,7 @@ import { endSession, send, startSession } from '../net/session';
 import { me, useApp } from '../state/store';
 import { ScenarioCards } from './lobby/ScenarioCards';
 import { startSoloLobby } from './lobby/solo';
+import '../ui/menu.css';
 
 const ROLES: Role[] = ['mc', 'eva', 'solo'];
 
@@ -34,68 +35,87 @@ export function LobbyScreen() {
     };
   }, []);
 
+  const logo = (
+    <div className="logo">
+      <h1>{t('app.title')}</h1>
+      <div className="logo-tag">
+        <span className="logo-dot" />
+        {t('app.tagline')}
+      </div>
+    </div>
+  );
+
   if (!room || !self) {
     return (
       <div className="screen">
-        <h1>{t('app.title')}</h1>
-        <div className="dim">{t('app.tagline')}</div>
-        {health === 'online' && (
-          <div className="panel row">
+        {logo}
+        <div className="menu-col">
+          <label className="panel name-field">
+            <span className="field-label">{t('lobby.name')}</span>
             <input
-              placeholder={t('lobby.name')}
+              placeholder={t('lobby.namePlaceholder')}
               maxLength={12}
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
-            <button disabled={busy} onClick={() => void startSession('online', name)}>
+          </label>
+          {health === 'online' && (
+            <button
+              className="btn-main"
+              disabled={busy}
+              onClick={() => void startSession('online', name)}
+            >
               {t('lobby.create')}
             </button>
+          )}
+          {health === 'online' && (
+            <div className="panel row">
+              <input
+                placeholder={t('lobby.code')}
+                maxLength={4}
+                value={code}
+                onChange={(e) => setCode(e.target.value.toUpperCase())}
+              />
+              <button
+                disabled={busy || code.length !== 4}
+                onClick={() => void startSession('online', name, code)}
+              >
+                {t('lobby.join')}
+              </button>
+            </div>
+          )}
+          <button className="btn-main" disabled={busy} onClick={() => void startSoloLobby(name)}>
+            {t('lobby.solo')}
+          </button>
+          <div className="status-line" role="status">
+            <span className={`status-dot ${health}`} />
+            {t(`lobby.server.${health}`)}
           </div>
-        )}
-        {health === 'online' && (
-          <div className="panel row">
-            <input
-              placeholder={t('lobby.code')}
-              maxLength={4}
-              value={code}
-              onChange={(e) => setCode(e.target.value.toUpperCase())}
-            />
-            <button
-              disabled={busy || code.length !== 4}
-              onClick={() => void startSession('online', name, code)}
-            >
-              {t('lobby.join')}
-            </button>
-          </div>
-        )}
-        {health !== 'online' && (
-          <p role="status">{t(health === 'checking' ? 'lobby.checking' : 'lobby.offline')}</p>
-        )}
-        <button disabled={busy} onClick={() => void startSoloLobby(name)}>
-          {t('lobby.solo')}
-        </button>
-        {error && <div className="err">{error}</div>}
+          {error && <div className="err">{error}</div>}
+        </div>
       </div>
     );
   }
 
   return (
     <div className="screen">
-      <h1>{t('app.title')}</h1>
-      <div className="panel">
-        {t('lobby.code')}: <b className="ok">{room.code}</b>
+      {logo}
+      <div className="panel row">
+        <span className="dim">{t('lobby.code')}</span>
+        <b className="ok">{room.code}</b>
       </div>
-      <div className="panel">
+      <div className="panel roster">
+        <h2 className="panel-title">{t('lobby.crew')}</h2>
         {room.players.map((p) => (
-          <div key={p.id} className="row">
-            <span>{p.isHost ? '★' : '·'}</span>
+          <div key={p.id} className={`roster-row ${p.isHost ? 'host' : ''}`}>
             <span>{p.name}</span>
-            <span className="dim">{p.role ? t(`role.${p.role}`) : '—'}</span>
-            {!p.connected && <span className="err">{t('lobby.offlinePlayer')}</span>}
+            {p.isHost && <span className="tag">{t('lobby.host')}</span>}
+            <span className="tag">{p.role ? t(`role.${p.role}`) : '—'}</span>
+            {!p.connected && <span className="tag err">{t('lobby.offlinePlayer')}</span>}
           </div>
         ))}
       </div>
-      <div className="row">
+      <div className="role-grid">
         {ROLES.map((r) => (
           <button
             key={r}
@@ -110,6 +130,7 @@ export function LobbyScreen() {
       {self.isHost && (
         <div className="row">
           <button
+            className="btn-main"
             onClick={() => {
               if (local) send({ t: 'lobby:scenario', id: 'training' });
               send({ t: 'lobby:start', quick: true });
@@ -117,7 +138,7 @@ export function LobbyScreen() {
           >
             {t(local ? 'lobby.quick_training' : 'lobby.quick')}
           </button>
-          <button onClick={() => send({ t: 'lobby:start', quick: false })}>
+          <button className="btn-main" onClick={() => send({ t: 'lobby:start', quick: false })}>
             {t('lobby.design')}
           </button>
         </div>

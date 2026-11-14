@@ -65,7 +65,11 @@ AI assistants were used to help write and review code and to create some of the 
 repository; screens that show AI-made art carry a visible "AI-GENERATED ART" label.
 OpenAI Codex assisted with client foundation recovery, mission control, mission design, networking,
 scene lifecycle fixes, field effects, causal report UI, integration checks and deployment setup.
-Claude Code assisted with the remote-interpolation correction in PR #1, the v2 game design and work plan
+Claude Code assisted with the remote-interpolation correction in PR #1.
+Claude Code drew the 18 pixel-art constructor icons (modules, launch vehicles, relays) in code,
+and they are used in the mission design screen.
+Claude Code also drew the pixel-art Mars backdrop of the menu screens and restyled the menu UI.
+Claude Code also assisted with the v2 game design and work plan
 (`docs/phases.md`, `docs/product-logic.md`, `docs/architecture.md`, `docs/assets.md`) and the asset validator.
 The built-in fallback sprites and sounds are procedural; NASA audio is not bundled.
 Additional asset contributions must be credited by their authors before submission.

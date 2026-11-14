@@ -66,6 +66,7 @@ export class Lighting {
       .renderTexture(0, 0, VIEW_W, VIEW_H)
       .setOrigin(0)
       .setScrollFactor(0)
+      .setBlendMode(Phaser.BlendModes.MULTIPLY)
       .setDepth(900);
     this.brush = scene.make.image({ key: 'light-ship', add: false });
     this.tint = scene.add
@@ -112,7 +113,10 @@ export class Lighting {
     const ambient = snap.weather.light,
       storm = snap.weather.storm;
     const active = !!storm && snap.t >= storm.tStart && snap.t < storm.tEnd;
-    const dark = Math.min(0.94, 1 - ambient + (active ? 0.12 : 0));
+    const dark = Math.min(
+      0.94,
+      FIELD.darkFloor + (1 - ambient) * FIELD.darkRange + (active ? 0.12 : 0),
+    );
     const flare = snap.flare && snap.t >= snap.flare.tStart && snap.t < snap.flare.tEnd;
     const reduce = prefs.getState().reduceMotion;
     const own = lights.find((l) => l.key.startsWith('light-cone-'));

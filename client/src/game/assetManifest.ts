@@ -66,10 +66,11 @@ export const ASSETS: AssetSpec[] = [
   // --- Wired: the field view already draws these (procedural fallback until the file exists).
   sheet('astronaut', 16, 16, 9, true),
   sheet('astronaut_stripe', 16, 16, 9, true),
-  sheet('lander', 64, 48, 1, true),
+  sheet('lander', 128, 96, 1, true),
   ...['delta', 'crater', 'basalt', 'impact'].map((kind) => sheet(`site_${kind}`, 16, 16, 2, true)),
+  sheet('samples', 8, 8, 3, true),
   sheet('station', 16, 16, 1, true),
-  sheet('beacon', 16, 16, 4, true),
+  sheet('beacon', 16, 24, 6, true),
   ...[1, 2, 3].map((n) => sheet(`rock_${n}`, 16, 16, 1, true)),
   ...['dust', 'spark'].map((kind) => sheet(`fx_${kind}`, 8, 8, 4, true)),
   ...[
