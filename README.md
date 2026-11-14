@@ -74,6 +74,9 @@ Claude Code also assisted with the v2 game design and work plan
 Claude Code also assisted with v2 engine and Mission Control work: epicentre location, event director,
 RED SIGNAL, lander faults, solar flare, crew awards and report findings, the mission forecast and the
 "what's ahead" console feed.
+The four crew class sprites (engineer, scout, geologist, biologist) are AI-generated character sheets
+supplied by the team; Claude Code cut them into 64×64 animation frames and added the class picker and
+class perks.
 The built-in fallback sprites and sounds are procedural; NASA audio is not bundled.
 Additional asset contributions must be credited by their authors before submission.
 

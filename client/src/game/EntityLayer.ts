@@ -1,12 +1,11 @@
 import Phaser from 'phaser';
 import { prefs } from '../state/prefs';
-import { LANDER_POS, LAUNCH_COUNTDOWN_S, O2, PLAYER_COLORS } from '@rs/shared';
+import { LANDER_POS, LAUNCH_COUNTDOWN_S, O2 } from '@rs/shared';
 import type { Astronaut, EvaState } from '@rs/shared';
 import { snaps } from '../state/snapshots';
 import { store } from '../state/store';
 import { evaText } from '../i18n/en/eva';
 import { FIELD } from './style';
-import { skinKey } from './skins';
 import { worldLabels } from './WorldLabels';
 import type { WorldLabels } from './WorldLabels';
 import { RemoteInterpolator } from './interpolation';
@@ -14,7 +13,8 @@ import type { Point } from './interpolation';
 
 interface CrewVisual {
   body: Phaser.GameObjects.Sprite;
-  stripe: Phaser.GameObjects.Sprite;
+  /** Last drawn x, to face the sprite the way it walks. */
+  lastX: number;
 }
 
 /** Waypoint flag sprite: 6 animation frames, the pole foot sits on the target point. */
@@ -91,7 +91,6 @@ export class EntityLayer {
       for (const [id, v] of this.crew)
         if (!this.liveIds.has(id)) {
           v.body.destroy();
-          v.stripe.destroy();
           this.labels.forget(`name:${id}`);
           this.crew.delete(id);
         }
@@ -100,14 +99,13 @@ export class EntityLayer {
     for (const a of snap.astronauts) {
       let v = this.crew.get(a.id);
       if (!v) {
-        const color = PLAYER_COLORS[roster.find((p) => p.id === a.id)?.colorIdx ?? 0] ?? FIELD.cyan;
+        // 64x64 class art drawn at half size; the origin puts the boots on the astronaut's point.
         v = {
-          body: this.scene.add.sprite(
-            a.x,
-            a.y,
-            a.id === myId ? skinKey(prefs.getState().skin) : 'astronaut',
-          ),
-          stripe: this.scene.add.sprite(a.x, a.y, 'astronaut_stripe').setTint(color),
+          body: this.scene.add
+            .sprite(a.x, a.y, `crew_${a.crewClass}`)
+            .setScale(FIELD.crewScale)
+            .setOrigin(0.5, FIELD.crewOriginY),
+          lastX: a.x,
         };
         this.crew.set(a.id, v);
       }
@@ -128,23 +126,22 @@ export class EntityLayer {
             : a.moving
               ? 2 + (Math.floor(now / 120) % 4)
               : Math.floor(now / 500) % 2;
+      if (Math.abs(px - v.lastX) > FIELD.crewTurnPx) {
+        v.body.setFlipX(px < v.lastX);
+        v.lastX = px;
+      }
       v.body
         .setPosition(px, py)
         .setFrame(frame)
         .setDepth(py)
         .setVisible(snap.t >= 0 && a.status !== 'inside')
         .setAlpha(a.status === 'lost' ? 0.4 : 1);
-      v.stripe
-        .setPosition(px, py)
-        .setFrame(frame)
-        .setDepth(py + 0.1)
-        .setVisible(snap.t >= 0 && a.status !== 'inside');
       if (snap.t >= 0 && a.status !== 'inside')
         this.labels.set(
           `name:${a.id}`,
           roster.find((p) => p.id === a.id)?.name ?? a.id,
           px,
-          py - 14,
+          py - FIELD.crewLabelDy,
           'name',
         );
     }

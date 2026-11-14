@@ -6,7 +6,7 @@ import { t } from '../i18n';
 import { endSession, send, startSession } from '../net/session';
 import { me, useApp } from '../state/store';
 import { ScenarioCards } from './lobby/ScenarioCards';
-import { SkinPicker } from './lobby/SkinPicker';
+import { CrewClassPicker } from './lobby/CrewClassPicker';
 import { startSoloLobby } from './lobby/solo';
 import '../ui/menu.css';
 
@@ -119,6 +119,7 @@ export function LobbyScreen() {
             <span>{p.name}</span>
             {p.isHost && <span className="tag">{t('lobby.host')}</span>}
             <span className="tag">{p.role ? t(`role.${p.role}`) : '—'}</span>
+            {p.role !== 'mc' && <span className="tag">{t(`crew.${p.crewClass}.name`)}</span>}
             {!p.connected && <span className="tag err">{t('lobby.offlinePlayer')}</span>}
           </div>
         ))}
@@ -134,7 +135,7 @@ export function LobbyScreen() {
           </button>
         ))}
       </div>
-      <SkinPicker />
+      {self.role !== 'mc' && <CrewClassPicker current={self.crewClass} />}
       <ScenarioCards selected={room.scenario} isHost={self.isHost} />
       {self.isHost && (
         <div className="row">

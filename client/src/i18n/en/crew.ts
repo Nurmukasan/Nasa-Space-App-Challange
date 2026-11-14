@@ -1,0 +1,15 @@
+export default {
+  'crew.title': 'Choose your specialty',
+  'crew.engineer.name': 'Engineer',
+  'crew.engineer.desc': 'Repairs equipment and builds useful devices.',
+  'crew.scout.name': 'Scout',
+  'crew.scout.desc': 'Explores new areas and finds points of interest.',
+  'crew.geologist.name': 'Geologist',
+  'crew.geologist.desc': 'Analyzes minerals and finds valuable samples.',
+  'crew.biologist.name': 'Biologist',
+  'crew.biologist.desc': 'Studies organic matter and signs of life.',
+  'crew.perk.speed': 'Walks {n}% faster',
+  'crew.perk.dig': 'Digs {n}% faster',
+  'crew.perk.repair': 'Repairs {n}% faster',
+  'crew.perk.sample': 'Samples worth +{n}%',
+};
