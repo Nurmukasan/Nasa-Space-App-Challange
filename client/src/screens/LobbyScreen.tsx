@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Role } from '@rs/shared';
-import { t } from '../i18n/en';
+import { t } from '../i18n';
 import { endSession, send, startSession } from '../net/session';
 import { me, useApp } from '../state/store';
 

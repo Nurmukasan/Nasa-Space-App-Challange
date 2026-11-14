@@ -16,6 +16,7 @@ export async function startSession(
   code?: string,
 ): Promise<void> {
   endSession();
+  snapCount = 0;
   store.setState({ conn: 'connecting', mode, error: null });
   const t: Transport = mode === 'local' ? new LocalTransport() : new SocketTransport();
   t.onMessage((m) => {
