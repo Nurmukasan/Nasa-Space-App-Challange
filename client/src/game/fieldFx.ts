@@ -26,6 +26,7 @@ const SOUNDS: Partial<Record<FxType, SfxName>> = {
   alert: 'radio_in',
   storm_start: 'tremor_loop',
   deploy: 'deploy',
+  signal_pulse: 'signal_pulse',
 };
 
 /** All listeners are released with the scene; effect IDs are consumed by the session. */
@@ -51,6 +52,7 @@ export class FieldFx {
     scene.events.once('destroy', cleanup);
   }
   private effect(event: FxEvent): void {
+    if (event.type === 'signal_pulse' && event.playerId && event.playerId !== this.myId) return;
     const reduce = prefs.getState().reduceMotion;
     const mine = this.snap?.astronauts.find((a) => a.id === this.myId);
     const distance =
@@ -61,13 +63,40 @@ export class FieldFx {
     if (sound) audio.sfx(sound, { volume: Math.max(0.15, 1 - distance / 1400) });
     this.scene.registry.set('fxCount', ++this.count);
     if (
-      (event.type === 'tremor' || event.type === 'impact' || event.type === 'rockfall') &&
+      (event.type === 'tremor' ||
+        event.type === 'impact' ||
+        event.type === 'rockfall' ||
+        event.type === 'signal_pulse') &&
       !reduce
-    )
-      this.scene.cameras.main.shake(350, Math.max(0.001, 0.006 * (1 - distance / 1400)));
+    ) {
+      const strength =
+        event.type === 'signal_pulse'
+          ? Math.min(1, event.n ?? 0.5)
+          : Math.max(0, 1 - distance / FIELD.shakeRangePx);
+      if (strength > 0) this.scene.cameras.main.shake(350, 0.006 * strength);
+    }
     const a = this.snap?.astronauts.find((a) => a.id === event.playerId);
     const x = event.x ?? a?.x ?? mine?.x ?? 0,
       y = event.y ?? a?.y ?? mine?.y ?? 0;
+    if (event.type === 'rockfall') {
+      for (let i = 0; i < 6; i++) {
+        const angle = (i * Math.PI) / 3;
+        const bit = this.scene.add
+          .image(x + Math.cos(angle) * 10, y + Math.sin(angle) * 8, 'fx_debris', i % 4)
+          .setDepth(y + 2);
+        if (reduce) this.scene.time.delayedCall(FIELD.fxDurationMs, () => bit.destroy());
+        else
+          this.scene.tweens.add({
+            targets: bit,
+            x: x + Math.cos(angle) * 28,
+            y: y + Math.sin(angle) * 18,
+            alpha: 0,
+            angle: i * 90,
+            duration: FIELD.fxDurationMs,
+            onComplete: () => bit.destroy(),
+          });
+      }
+    }
     if (event.type === 'deploy') {
       const kit = this.scene.add.image(x, y, 'station_kit').setDepth(y + 1);
       if (reduce) this.scene.time.delayedCall(FIELD.fxDurationMs, () => kit.destroy());
@@ -151,6 +180,11 @@ export class FieldFx {
       this.logId = latest.id;
       if (mine.linked) audio.sfx('radio_in');
     }
+    const inDevil = snap.devils.some(
+      (d) => snap.t < d.until && Math.hypot(mine.x - d.x, mine.y - d.y) <= d.r,
+    );
+    if (inDevil && mine.status === 'active') audio.loop('devil_loop');
+    else audio.stop('devil_loop');
     const unresolved = snap.seismic.some((e) => e.truth === null);
     const danger =
       mine.o2 / mine.o2Max < 0.2 || snap.t < mine.dangerUntil || snap.durationS - snap.t < 60;
