@@ -3,6 +3,7 @@ import { LANDER_POS, SITES, TICK_HZ, WORLD_PX, moveSpeed } from '@rs/shared';
 import { send } from '../net/session';
 import { snaps } from '../state/snapshots';
 import { store } from '../state/store';
+import { FieldFx } from './fieldFx';
 import { terrainTexture } from './terrainTexture';
 import { EntityLayer } from './EntityLayer';
 import { preloadAssets, ensureAssets } from './assets';
@@ -12,6 +13,7 @@ const SNAP_BACK_PX = 24;
 
 /** Walking-skeleton field view: coarse terrain, rectangles for crew, local movement. */
 export class FieldScene extends Phaser.Scene {
+  private effects!: FieldFx;
   private entities!: EntityLayer;
   private keys!: Record<'W' | 'A' | 'S' | 'D' | 'SHIFT' | 'E' | 'SPACE', Phaser.Input.Keyboard.Key>;
   private meX = 0;
@@ -36,6 +38,7 @@ export class FieldScene extends Phaser.Scene {
     const salt = SITES[room?.params?.site ?? 'jezero'].terrainSalt;
     terrainTexture(this, salt);
     this.entities = new EntityLayer(this);
+    this.effects = new FieldFx(this);
 
     makeLightTexture(this, 'light56', 56);
     makeLightTexture(this, 'light28', 28);
@@ -59,6 +62,7 @@ export class FieldScene extends Phaser.Scene {
     const st = store.getState();
     const myId = st.playerId;
     if (!snap || !myId) return;
+    this.effects.update(snap, myId);
     const dt = Math.min(0.05, deltaMs / 1000);
     const params = st.room?.params;
 
