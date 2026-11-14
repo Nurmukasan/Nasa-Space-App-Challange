@@ -295,6 +295,12 @@ export const FAULTS = {
 export const FLARE = { leadS: 40, durS: 40, doseRate: 2, doseLimit: 50, penaltyPer10: 10 };
 
 export const DIRECTOR = {
+  /** First director event (always the tutorial wind), seconds. */
+  firstWindMinS: 45,
+  firstWindMaxS: 60,
+  /** Third-act crisis start window, seconds. */
+  crisisMinS: 330,
+  crisisMaxS: 345,
   /** Postpone events while someone is below this O2 fraction or down. */
   tensionO2Frac: 0.25,
   postponeS: 8,
