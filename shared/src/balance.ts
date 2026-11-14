@@ -92,6 +92,7 @@ export const DATA = {
 };
 
 export const COMMS = {
+  relayFirstOpenS: 60,
   lowGain: 300,
   highGain: 520,
   /** Range multiplier at 0% comms efficiency. */
@@ -139,6 +140,8 @@ export const WEATHER = {
   stormSpeed: 0.85,
   stormDurS: 90,
   stormEarliestS: 330,
+  stormLatestS: 420,
+  debugDelayS: 5,
   forecastWithStationS: 60,
   forecastWithoutS: 15,
 };
