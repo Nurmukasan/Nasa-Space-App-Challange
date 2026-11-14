@@ -53,19 +53,19 @@ export class Seismograph {
     if (!ctx || !s) return;
     const width = this.canvas.width,
       height = this.canvas.height;
-    ctx.fillStyle = '#06140e';
+    ctx.fillStyle = '#140a0a';
     ctx.fillRect(0, 0, width, height);
     const rows = s.stations.length + (store.getState().room?.params?.hasWeather ? 1 : 0);
     const rowHeight = height / Math.max(1, rows);
     for (let row = 0; row < rows; row++) {
       const pressure = row === s.stations.length;
       const base = rowHeight * (row + 0.5);
-      ctx.strokeStyle = '#254937';
+      ctx.strokeStyle = '#4a2c20';
       ctx.beginPath();
       ctx.moveTo(0, base);
       ctx.lineTo(width, base);
       ctx.stroke();
-      ctx.strokeStyle = pressure ? '#77d9e5' : '#9dffb7';
+      ctx.strokeStyle = pressure ? '#77d9e5' : '#ffc66a';
       ctx.beginPath();
       for (let x = 0; x < width; x++) {
         const time = s.t - 20 + (x / width) * 20;
