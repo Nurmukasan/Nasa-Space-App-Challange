@@ -26,4 +26,10 @@ export const TRAINING: ScenarioDef = {
     { at: 210, action: { kind: 'window' } },
   ],
   acts: [],
+  objectives: [
+    { kind: 'deliver', primary: true, target: 2 },
+    { kind: 'deploy_stations', primary: false, target: 1 },
+    { kind: 'classify', primary: false, target: 2 },
+    { kind: 'all_aboard', primary: false, target: 1 },
+  ],
 };

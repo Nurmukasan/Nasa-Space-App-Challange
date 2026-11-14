@@ -1,5 +1,5 @@
 // Shapes of scenario data. A scenario is data, not code (docs/architecture.md 6.5).
-import type { EventKind, FaultKind, PresetId, ScenarioId, SiteId } from '../types';
+import type { EventKind, FaultKind, ObjectiveKind, PresetId, ScenarioId, SiteId } from '../types';
 
 export type DirectorEvent = 'wind' | 'quake' | 'impact' | 'devil' | 'fault';
 
@@ -27,6 +27,19 @@ export interface ActDef {
   pool: Partial<Record<DirectorEvent, number>>;
 }
 
+/**
+ * One mission objective. `target` is a number or comes from the mission:
+ * 'quota' / 'deep' from the science goal, 'kits' from the design. Then `minus` is subtracted
+ * and the result is raised to `min`. An objective whose target ends up at 0 is dropped.
+ */
+export interface ObjectiveSpec {
+  kind: ObjectiveKind;
+  primary: boolean;
+  target: number | 'quota' | 'deep' | 'kits';
+  minus?: number;
+  min?: number;
+}
+
 export interface ScenarioDef {
   id: ScenarioId;
   durationS: number;
@@ -47,4 +60,6 @@ export interface ScenarioDef {
   beats: Beat[];
   /** Director acts; empty = no director (training, free). */
   acts: ActDef[];
+  /** Mission objectives (docs/product-logic.md 5.1, 7.18). */
+  objectives: ObjectiveSpec[];
 }

@@ -1,3 +1,4 @@
+import { finalizeObjectives } from './objectives';
 import type { Sim, System } from './sim';
 
 export function endMission(sim: Sim): void {
@@ -12,6 +13,7 @@ export function endMission(sim: Sim): void {
   stats.endedAtS = Math.max(0, sim.pub.t);
   stats.allAboard = stats.lost === 0;
   stats.o2StoreLeft = sim.pub.lander.o2Store;
+  finalizeObjectives(sim);
   sim.pub.ended = true;
 }
 

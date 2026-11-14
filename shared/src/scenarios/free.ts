@@ -15,4 +15,10 @@ export const FREE: ScenarioDef = {
   quickPreset: 'balanced',
   beats: [],
   acts: [],
+  // v1 success rule: quota and deep quota; all aboard is scored separately.
+  objectives: [
+    { kind: 'deliver', primary: true, target: 'quota' },
+    { kind: 'deliver_deep', primary: true, target: 'deep' },
+    { kind: 'all_aboard', primary: false, target: 1 },
+  ],
 };

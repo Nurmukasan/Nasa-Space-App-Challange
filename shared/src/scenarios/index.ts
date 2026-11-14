@@ -4,7 +4,7 @@ import { SIGNAL_MISSION } from './signal';
 import { TRAINING } from './training';
 import type { ScenarioDef } from './types';
 
-export type { ActDef, Beat, BeatAction, DirectorEvent, ScenarioDef } from './types';
+export type { ActDef, Beat, BeatAction, DirectorEvent, ObjectiveSpec, ScenarioDef } from './types';
 
 export const SCENARIOS: Record<ScenarioId, ScenarioDef> = {
   training: TRAINING,

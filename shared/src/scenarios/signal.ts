@@ -25,4 +25,12 @@ export const SIGNAL_MISSION: ScenarioDef = {
     { at: 420, action: { kind: 'window' } },
   ],
   acts: [],
+  objectives: [
+    { kind: 'deliver', primary: true, target: 'quota', minus: 1, min: 3 },
+    { kind: 'retrieve_signal', primary: true, target: 1 },
+    { kind: 'deliver_deep', primary: false, target: 'deep' },
+    { kind: 'deploy_stations', primary: false, target: 'kits' },
+    { kind: 'repair_all', primary: false, target: 1 },
+    { kind: 'all_aboard', primary: false, target: 1 },
+  ],
 };
