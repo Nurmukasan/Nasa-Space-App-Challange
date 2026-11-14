@@ -4,6 +4,8 @@ import { O2, moveSpeed } from '@rs/shared';
 import type { EvaState, MissionParams, PlayerInfo } from '@rs/shared';
 import { command as send } from '../actions';
 import { t } from '../../i18n';
+import { PixelIcon } from '../../ui/PixelIcon';
+
 export function CrewPanel({
   snap,
   params,
@@ -21,7 +23,10 @@ export function CrewPanel({
   cache.current.observe(snap);
   return (
     <section className="panel">
-      <h2>{t('console.crew')}</h2>
+      <h2 className="panel-title">
+        <PixelIcon name="icon_vehicle_medium" scale={1} />
+        {t('console.crew')}
+      </h2>
       {snap.astronauts.map((live) => {
         const a = cache.current.contacts.get(live.id)?.crew ?? live;
         const seconds =
@@ -35,11 +40,11 @@ export function CrewPanel({
               ? 'tight'
               : 'no';
         return (
-          <div key={a.id}>
+          <div key={a.id} className={`crew-row verdict-${live.linked ? verdict : 'lost'}`}>
             <button className={target === a.id ? 'on' : ''} onClick={() => select(a.id)}>
               {players.find((p) => p.id === a.id)?.name ?? a.id}
             </button>
-            <span>
+            <span className="crew-stat">
               {cache.current.contacts.has(live.id) ? `${Math.round((a.o2 / a.o2Max) * 100)}%` : '—'}{' '}
               · {t(`status.${a.status}`)} ·{' '}
               {live.linked ? t(`return.${verdict}`) : t('console.noSignal')}

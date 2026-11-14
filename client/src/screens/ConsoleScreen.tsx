@@ -5,11 +5,12 @@ import { snaps } from '../state/snapshots';
 import { useApp } from '../state/store';
 import { t } from '../i18n';
 import '../console/layout.css';
-import '../ui/crt.css';
+import '../ui/menu.css';
 import { CrewPanel } from '../console/panels/CrewPanel';
 import { PowerPanel } from '../console/panels/PowerPanel';
 import { SeismicPanel } from '../console/panels/SeismicPanel';
 import { Commands } from '../console/panels/Commands';
+import { PixelIcon } from '../ui/PixelIcon';
 import { fxBus } from '../fx/FxBus';
 import { audio } from '../audio';
 export function ConsoleScreen() {
@@ -45,9 +46,9 @@ export function ConsoleScreen() {
     };
   }, []);
   return (
-    <main className="console-screen crt">
+    <main className="screen console-screen">
       <section>
-        <h1>{t('console.title')}</h1>
+        <h1 className="console-title">{t('console.title')}</h1>
         <canvas
           aria-label={t('console.title')}
           className="console-map"
@@ -85,7 +86,10 @@ export function ConsoleScreen() {
       </aside>
       <footer className="console-footer panel">
         <Commands target={target} crew={hud?.astronauts.map((a) => a.id) ?? []} />
-        <h2>{t('console.radio')}</h2>
+        <h2 className="panel-title">
+          <PixelIcon name="icon_antenna_hg" scale={1} />
+          {t('console.radio')}
+        </h2>
         <div className="radio-log">
           {hud?.log.map((entry) => (
             <div key={entry.id}>
