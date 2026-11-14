@@ -18,6 +18,7 @@ import {
   pulseRing,
   sweepAngle,
 } from './radarDraw';
+import { drawPending, drawStormBar, mmss, returnBudget } from './radarPanels';
 export const MAP_SIZE = 640;
 const SCALE = MAP_SIZE / WORLD_PX;
 const RINGS = [50, 100, 150];
@@ -179,6 +180,21 @@ export class TacticalMap {
       ctx.stroke();
       if (this.selected() === a.id) this.circle(ctx, a.x, a.y, 35, '#ffffff');
       const seconds = Math.max(0, Math.floor(s.t - contact.seenAt));
+      const budget = returnBudget(
+        a.o2,
+        Math.hypot(a.x - s.lander.x, a.y - s.lander.y),
+        params?.walkSpeed ?? 40,
+        active ? WEATHER.stormSpeed : 1,
+      );
+      if (linked && budget.level !== 'ok') {
+        ctx.fillStyle = budget.level === 'lost' ? RADAR.danger : RADAR.amber;
+        ctx.fillText(
+          budget.level === 'lost' ? 'NO RETURN' : `HOME NOW · +${mmss(budget.marginS)}`,
+          px(a.x) + 14,
+          px(a.y) + 18,
+        );
+        ctx.fillStyle = color;
+      }
       ctx.fillText(
         linked
           ? player.name
@@ -196,6 +212,14 @@ export class TacticalMap {
         ctx.fillText(player.name, px(a.waypoint.x) + 8, px(a.waypoint.y));
       }
     }
+    drawPending(ctx, MAP_SIZE, s.seismic, s.t);
+    if (
+      storm &&
+      s.t < storm.tEnd &&
+      s.weather.stormForecastAt !== null &&
+      s.t >= s.weather.stormForecastAt
+    )
+      drawStormBar(ctx, MAP_SIZE, s.t, storm, active);
     if (active && !still) drawNoise(ctx, MAP_SIZE, 1);
     ctx.fillStyle = RADAR.text;
     const relayKey =
