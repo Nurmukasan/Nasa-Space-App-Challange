@@ -261,6 +261,17 @@ export class TacticalMap {
         40,
       );
     }
+    const flare = s.flare;
+    if (flare && s.t < flare.tEnd) {
+      ctx.fillStyle = RADAR.amber;
+      ctx.fillText(
+        s.t >= flare.tStart
+          ? t('console.flareActive')
+          : t('console.flare', { seconds: Math.max(0, Math.ceil(flare.tStart - s.t)) }),
+        12,
+        60,
+      );
+    }
     recordFrame(
       performance.now() - start,
       s.sites.length + s.stations.length + this.telemetry.contacts.size + 1,

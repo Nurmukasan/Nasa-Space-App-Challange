@@ -11,6 +11,7 @@ import type {
 } from '../types';
 import { primariesDone } from './objectives';
 import { revealKey } from './signal';
+import { dosePenalty } from './flare';
 import { buildInsights } from './insights';
 export { buildInsights } from './insights';
 import type { Sim } from './sim';
@@ -46,7 +47,8 @@ export function scoreMission(
   const safety = clamp(
     Math.round((SCORE.safetyMax * survivors) / Math.max(1, stats.crew)) -
       stats.breaches * SCORE.breachPenalty -
-      Math.max(0, stats.downs - stats.lost) * SCORE.downPenalty,
+      Math.max(0, stats.downs - stats.lost) * SCORE.downPenalty -
+      dosePenalty(stats.doseMax),
     0,
     SCORE.safetyMax,
   );

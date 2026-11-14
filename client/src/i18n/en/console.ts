@@ -20,6 +20,8 @@ export default {
   'site.impact': 'Fresh impact',
   'site.signal': 'Signal source',
   'console.pick': 'YOUR PICK',
+  'console.flare': 'SOLAR FLARE · {seconds}s',
+  'console.flareActive': 'SOLAR FLARE ACTIVE · SHELTER',
   'console.systems': 'Lander systems',
   'console.systemsOk': 'ALL SYSTEMS NOMINAL',
   'console.sendToPort': 'SEND TO PORT',
