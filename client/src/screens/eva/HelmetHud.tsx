@@ -1,5 +1,6 @@
-import { useRef } from 'react';
-import { O2 } from '@rs/shared';
+import { useEffect, useRef } from 'react';
+import { audio } from '../../audio';
+import { O2, RETURN, returnCost } from '@rs/shared';
 import type { EvaState, MissionParams } from '@rs/shared';
 import { evaText as t } from '../../i18n/en/eva';
 import { usePrefs } from '../../state/prefs';
@@ -20,6 +21,12 @@ export function HelmetHud({
   const reduce = usePrefs((p) => p.reduceMotion);
   const tutorial = useRef({ moved: false, dug: false, returned: false, x: NaN, y: NaN });
   const a = snap.astronauts.find((a) => a.id === playerId);
+  const needed = a ? returnCost(params, snap.weather, a.x, a.y) : 0;
+  const returnNow =
+    !!a && snap.t >= 0 && a.status === 'active' && a.o2 < needed + RETURN.warningUnits;
+  useEffect(() => {
+    if (returnNow) audio.sfx('radio_in');
+  }, [returnNow]);
   if (!a) return null;
   const first = tutorial.current;
   if (Number.isNaN(first.x)) {
@@ -65,6 +72,7 @@ export function HelmetHud({
     <div
       className={`helmet-hud ${low ? 'low-oxygen' : ''} ${a.leak ? 'suit-breach' : ''} ${reduce ? 'reduce-motion' : ''}`}
       data-status={a.status}
+      data-return-cost={needed.toFixed(2)}
     >
       <div className="visor-frame" aria-hidden="true" />
       <header className="helmet-top">
@@ -83,6 +91,13 @@ export function HelmetHud({
             {Array.from({ length: 20 }, (_, i) => (
               <i key={i} className={frac * 20 > i ? 'filled' : ''} />
             ))}
+          </div>
+          <div className="return-track" aria-label={t('eva.return_cost', { n: Math.ceil(needed) })}>
+            <i
+              className="return-marker"
+              style={{ left: `${Math.min(100, (needed / a.o2Max) * 100)}%` }}
+            />
+            <span>{t('eva.return_cost', { n: Math.ceil(needed) })}</span>
           </div>
           {a.leak && <b className="helmet-warning">{t('eva.breach')}</b>}
         </div>
@@ -109,12 +124,19 @@ export function HelmetHud({
         {a.status === 'lost' && <div className="helmet-banner critical">{t('eva.lost')}</div>}
         {a.status === 'active' && (
           <>
-            {danger && <div className="helmet-banner critical">{t('eva.danger')}</div>}
-            {tremor && <div className="helmet-banner">{t('eva.tremor')}</div>}
+            {returnNow && (
+              <div className="helmet-banner critical" data-return-warning>
+                {t('eva.return_now')}
+              </div>
+            )}
+            {!returnNow && danger && (
+              <div className="helmet-banner critical">{t('eva.danger')}</div>
+            )}
+            {!returnNow && tremor && <div className="helmet-banner">{t('eva.tremor')}</div>}
             {!a.linked && <div className="helmet-banner">{t('eva.no_signal')}</div>}
-            {active ? (
+            {!returnNow && active ? (
               <div className="helmet-banner">{t('eva.storm')}</div>
-            ) : storm && snap.t < storm.tStart ? (
+            ) : !returnNow && storm && snap.t < storm.tStart ? (
               <div className="helmet-banner">
                 {t('eva.forecast', { n: Math.ceil(storm.tStart - snap.t) })}
               </div>

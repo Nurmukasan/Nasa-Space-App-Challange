@@ -1,4 +1,6 @@
 const en: Record<string, string> = {
+  'eva.return_now': 'TULPAR · RETURN NOW',
+  'eva.return_cost': 'RETURN RESERVE · {n} O2',
   'eva.oxygen': 'OXYGEN',
   'eva.samples': 'SAMPLES',
   'eva.deposited': 'DELIVERED',

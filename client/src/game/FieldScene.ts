@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
-import { LANDER_POS, SITES, TICK_HZ, WORLD_PX, moveSpeed } from '@rs/shared';
+import { LANDER_POS, SITES, TICK_HZ, WORLD_PX, generateSites, moveSpeed } from '@rs/shared';
 import { send } from '../net/session';
 import { snaps } from '../state/snapshots';
 import { store } from '../state/store';
+import { PropLayer } from './PropLayer';
 import { FieldJuice } from './FieldJuice';
 import { FieldFx } from './fieldFx';
 import { terrainTexture } from './terrainTexture';
@@ -13,6 +14,7 @@ import { Lighting } from './Lighting';
 import type { Light } from './Lighting';
 const CONE_KEYS = Array.from({ length: FIELD.coneDirections }, (_, index) => `light-cone-${index}`);
 
+type FieldKeys = Record<'W' | 'A' | 'S' | 'D' | 'SHIFT' | 'E' | 'SPACE', Phaser.Input.Keyboard.Key>;
 const SNAP_BACK_PX = 24;
 
 /** Walking-skeleton field view: coarse terrain, rectangles for crew, local movement. */
@@ -24,7 +26,7 @@ export class FieldScene extends Phaser.Scene {
   private juice!: FieldJuice;
   private effects!: FieldFx;
   private entities!: EntityLayer;
-  private keys!: Record<'W' | 'A' | 'S' | 'D' | 'SHIFT' | 'E' | 'SPACE', Phaser.Input.Keyboard.Key>;
+  private keys!: FieldKeys;
   private meX = 0;
   private meY = 0;
   private facing = 0;
@@ -46,6 +48,7 @@ export class FieldScene extends Phaser.Scene {
     const room = store.getState().room;
     const salt = SITES[room?.params?.site ?? 'jezero'].terrainSalt;
     terrainTexture(this, salt);
+    if (room?.params) new PropLayer(this, salt, generateSites(room.params));
     this.entities = new EntityLayer(this);
     this.effects = new FieldFx(this);
     this.juice = new FieldJuice(this);
@@ -55,7 +58,7 @@ export class FieldScene extends Phaser.Scene {
     this.cameras.main.setBounds(0, 0, WORLD_PX, WORLD_PX);
     this.cameras.main.centerOn(LANDER_POS.x, LANDER_POS.y);
     const kb = this.input.keyboard!;
-    this.keys = kb.addKeys('W,A,S,D,SHIFT,E,SPACE') as typeof this.keys;
+    this.keys = kb.addKeys('W,A,S,D,SHIFT,E,SPACE') as FieldKeys;
     for (const [i, kind] of ['ok', 'help', 'low_o2', 'returning', 'found'].entries())
       kb.on(`keydown-${i + 1}`, () =>
         send({ t: 'eva:ping', kind: kind as 'ok' | 'help' | 'low_o2' | 'returning' | 'found' }),
