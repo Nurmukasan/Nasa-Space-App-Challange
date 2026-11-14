@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { prefs, usePrefs } from '../state/prefs';
 import { t } from '../i18n';
+import './menu.css';
+import './settings.css';
 export function Settings() {
   const [open, setOpen] = useState(false);
   const music = usePrefs((s) => s.musicVolume),
@@ -23,8 +25,11 @@ export function Settings() {
       <button onClick={() => setOpen(!open)}>{t('settings.title')}</button>
       {open && (
         <section className="panel" role="dialog" aria-label={t('settings.title')}>
-          <label>
-            {t('settings.music')}
+          <label className="setting-slider">
+            <span className="setting-head">
+              {t('settings.music')}
+              <output>{Math.round(music * 100)}%</output>
+            </span>
             <input
               type="range"
               min={0}
@@ -34,8 +39,11 @@ export function Settings() {
               onChange={(e) => prefs.setState({ musicVolume: Number(e.target.value) })}
             />
           </label>
-          <label>
-            {t('settings.effects')}
+          <label className="setting-slider">
+            <span className="setting-head">
+              {t('settings.effects')}
+              <output>{Math.round(effects * 100)}%</output>
+            </span>
             <input
               type="range"
               min={0}
@@ -45,7 +53,7 @@ export function Settings() {
               onChange={(e) => prefs.setState({ sfxVolume: Number(e.target.value) })}
             />
           </label>
-          <label>
+          <label className="setting-check">
             <input
               type="checkbox"
               checked={muted}
@@ -53,7 +61,7 @@ export function Settings() {
             />
             {t('settings.muted')}
           </label>
-          <label>
+          <label className="setting-check">
             <input
               type="checkbox"
               checked={reduce}
