@@ -1,4 +1,5 @@
-import { COMMS, WEATHER } from '../balance';
+import { COMMS, FAULTS, WEATHER } from '../balance';
+import { faultActive } from './faults';
 import { stormActive } from './weather';
 import { dist } from './sim';
 import type { System } from './sim';
@@ -23,7 +24,8 @@ export const commsSystem: System = (sim) => {
   const range =
     sim.params.commsRange *
     (stormActive(sim.pub.weather) ? WEATHER.stormComms : 1) *
-    (COMMS.minEffMul + (1 - COMMS.minEffMul) * lander.power.eff.comms);
+    (COMMS.minEffMul + (1 - COMMS.minEffMul) * lander.power.eff.comms) *
+    (faultActive(sim, 'antenna_drift') ? FAULTS.antennaMul : 1);
   for (const a of sim.pub.astronauts) {
     a.linked = a.status === 'inside' || relay.open || dist(a.x, a.y, lander.x, lander.y) <= range;
   }

@@ -10,4 +10,12 @@ export default {
   'alert.evac': '{id}: evacuate the hazard zone',
   'alert.return': '{id}: return to lander',
   'alert.hold': '{id}: hold position',
+  'log.fault.moxie_clog': 'MOXIE output lost. Fault at a service port.',
+  'log.fault.antenna_drift': 'Antenna drifting. Link range reduced.',
+  'log.fault.battery_fault': 'Battery fault. Arrays will not hold power tonight.',
+  'log.fault.panel_dust': 'Arrays covered in dust. Solar power halved.',
+  'log.repaired.moxie_clog': 'MOXIE intake cleared.',
+  'log.repaired.antenna_drift': 'Antenna realigned.',
+  'log.repaired.battery_fault': 'Battery back online.',
+  'log.repaired.panel_dust': 'Arrays cleaned.',
 };

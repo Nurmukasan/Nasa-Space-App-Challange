@@ -12,6 +12,7 @@ import { SeismicPanel } from '../console/panels/SeismicPanel';
 import { Commands } from '../console/panels/Commands';
 import { PixelIcon } from '../ui/PixelIcon';
 import { ObjectivesPanel } from '../console/panels/ObjectivesPanel';
+import { SystemsPanel } from '../console/panels/SystemsPanel';
 import { fxBus } from '../fx/FxBus';
 import { audio } from '../audio';
 const VOICES = ['earth', 'tulpar', 'mc', 'sys'];
@@ -32,8 +33,10 @@ export function ConsoleScreen() {
   useEffect(() => {
     const off = fxBus.on('tremor', () => audio.sfx('alarm_seismic'));
     const impact = fxBus.on('impact', () => audio.sfx('alarm_seismic'));
+    const fault = fxBus.on('fault', () => audio.sfx('fault_alarm'));
     return () => {
       off();
+      fault();
       impact();
     };
   }, []);
@@ -117,6 +120,7 @@ export function ConsoleScreen() {
             />
             <ObjectivesPanel snap={hud} />
             <SeismicPanel snap={hud} locating={locating} setLocating={setLocating} />
+            {hud.scenario !== 'free' && <SystemsPanel snap={hud} target={target} />}
             <PowerPanel snap={hud} />
           </>
         )}

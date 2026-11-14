@@ -2,6 +2,7 @@
 import { spawnDevil } from './devils';
 import type { DebugCmd } from '../protocol';
 import { SEISMIC } from '../balance';
+import { faultActive, spawnFault } from './faults';
 import { emitPulse } from './signal';
 import type { Sim } from './sim';
 
@@ -11,7 +12,14 @@ export function debugSim(sim: Sim, cmd: DebugCmd, _n?: number): void {
     case 'event_signal':
       emitPulse(sim, sim.pub.t + SEISMIC.debugDelayS);
       return;
-    // owner A: fault, flare, next_act
+    case 'fault': {
+      const kind = (['moxie_clog', 'antenna_drift', 'panel_dust'] as const).find(
+        (k) => !faultActive(sim, k),
+      );
+      if (kind) spawnFault(sim, kind);
+      return;
+    }
+    // owner A: flare, next_act
     // owner B: devil, reveal_all
     case 'devil':
       spawnDevil(sim, sim.pub.astronauts.find((a) => a.status === 'active') ?? sim.pub.lander);

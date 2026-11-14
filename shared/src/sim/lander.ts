@@ -1,4 +1,5 @@
 import { O2 } from '../balance';
+import { faultActive } from './faults';
 import { dist, pushFx } from './sim';
 import type { System } from './sim';
 
@@ -8,7 +9,8 @@ export const landerSystem: System = (sim, dt) => {
   const lander = sim.pub.lander;
   lander.o2Store = Math.min(
     lander.o2StoreMax,
-    lander.o2Store + sim.params.moxieRate * lander.power.eff.moxie * dt,
+    lander.o2Store +
+      (faultActive(sim, 'moxie_clog') ? 0 : sim.params.moxieRate * lander.power.eff.moxie * dt),
   );
   for (const a of sim.pub.astronauts) {
     if (!a.wantsRefill || a.status !== 'active') continue;
