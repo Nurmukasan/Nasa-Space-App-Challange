@@ -1,4 +1,5 @@
-import { POWER, WEATHER } from '../balance';
+import { FAULTS, POWER, WEATHER } from '../balance';
+import { faultActive } from './faults';
 import { stormActive } from './weather';
 import type { System } from './sim';
 
@@ -13,12 +14,14 @@ export const powerSystem: System = (sim) => {
   const p = sim.params;
   const power = sim.pub.lander.power;
   let solar = sim.pub.weather.solarFactor;
-  if (p.hasBattery)
+  // A battery fault stops the arrays being held up after sunset.
+  if (p.hasBattery && !faultActive(sim, 'battery_fault'))
     solar = Math.max(
       solar,
       POWER.batteryFloor * (stormActive(sim.pub.weather) ? WEATHER.stormSolar : 1),
     );
-  const net = Math.max(0, p.rtgW + p.solarPeakW * solar - p.baseLoadW);
+  const dust = faultActive(sim, 'panel_dust') ? FAULTS.panelMul : 1;
+  const net = Math.max(0, p.rtgW + p.solarPeakW * solar * dust - p.baseLoadW);
   power.availW = Math.round(net);
   power.eff.moxie = eff(net * power.alloc.moxie, p.moxieNeedW);
   power.eff.comms = eff(net * power.alloc.comms, p.commsNeedW);

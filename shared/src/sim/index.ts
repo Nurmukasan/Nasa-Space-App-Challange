@@ -7,4 +7,4 @@ export { endMission } from './endcheck';
 export { sampleValue } from './digging';
 export { buildObjectives } from './objectives';
 export { terrainMul } from './devils';
-export { faultActive } from './faults';
+export { faultActive, portPos } from './faults';

@@ -1,5 +1,6 @@
 import { WEATHER } from '../balance';
 import type { WeatherState } from '../types';
+import { spawnFault } from './faults';
 import { pushFx } from './sim';
 import type { System } from './sim';
 
@@ -27,5 +28,7 @@ export const weatherSystem: System = (sim) => {
   if (storm && t >= storm.tEnd && !sim.hidden.stormEnded) {
     sim.hidden.stormEnded = true;
     pushFx(sim, { type: 'storm_end' });
+    // v2: the storm always leaves dust on the arrays (free mission keeps v1).
+    if (sim.params.scenario !== 'free') spawnFault(sim, 'panel_dust');
   }
 };
