@@ -1,7 +1,8 @@
 import { DIFFICULTIES, OBJECTIVES, RELAYS, SITES, VEHICLES } from '@rs/shared';
-import type { DesignField } from '@rs/shared';
+import type { DesignField, SiteId } from '@rs/shared';
 import { t } from '../../i18n';
 import { send } from '../../net/session';
+import { SiteCard } from './SiteCard';
 import { AssetImage } from '../../ui/AssetImage';
 
 function brief(field: DesignField, id: string): string {
@@ -35,11 +36,29 @@ export function ChoiceCards({
   field,
   options,
   selected,
+  suggested,
 }: {
   field: DesignField;
   options: string[];
   selected: string;
+  suggested?: string;
 }) {
+  if (field === 'site')
+    return (
+      <section className="choice-section">
+        <h2>{t('design.field.site')}</h2>
+        <div className="site-cards">
+          {options.map((id) => (
+            <SiteCard
+              key={id}
+              id={id as SiteId}
+              selected={selected === id}
+              suggested={suggested === id}
+            />
+          ))}
+        </div>
+      </section>
+    );
   return (
     <section className="choice-section">
       <h2>{t(`design.field.${field}`)}</h2>
@@ -48,7 +67,7 @@ export function ChoiceCards({
           <button
             key={id}
             aria-pressed={id === selected}
-            className={id === selected ? 'on' : ''}
+            className={`${id === selected ? 'on' : ''} ${id === suggested ? 'suggested' : ''}`}
             onClick={() => send({ t: 'design:set', field, value: id })}
           >
             <AssetImage
@@ -63,6 +82,7 @@ export function ChoiceCards({
             />
             <b>{t(`${field}.${id}.name`)}</b>
             <small>{brief(field, id)}</small>
+            {suggested === id && <em>{t('design.suggested')}</em>}
           </button>
         ))}
       </div>
