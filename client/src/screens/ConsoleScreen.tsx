@@ -5,11 +5,27 @@ import { snaps } from '../state/snapshots';
 import { useApp } from '../state/store';
 import { t } from '../i18n';
 import '../console/layout.css';
+import '../ui/crt.css';
+import { CrewPanel } from '../console/panels/CrewPanel';
+import { PowerPanel } from '../console/panels/PowerPanel';
+import { SeismicPanel } from '../console/panels/SeismicPanel';
+import { Commands } from '../console/panels/Commands';
+import { fxBus } from '../fx/FxBus';
+import { audio } from '../audio';
 export function ConsoleScreen() {
   const canvas = useRef<HTMLCanvasElement>(null),
     map = useRef<TacticalMap | null>(null);
   const hud = useApp((s) => s.hud),
     players = useApp((s) => s.room?.players);
+  const params = useApp((s) => s.room?.params ?? null);
+  useEffect(() => {
+    const off = fxBus.on('tremor', () => audio.sfx('alarm_seismic'));
+    const impact = fxBus.on('impact', () => audio.sfx('alarm_seismic'));
+    return () => {
+      off();
+      impact();
+    };
+  }, []);
   const [selected, setSelected] = useState<string | null>(null);
   const target = selected ?? hud?.astronauts[0]?.id ?? null;
   const targetRef = useRef(target);
@@ -29,7 +45,7 @@ export function ConsoleScreen() {
     };
   }, []);
   return (
-    <main className="console-screen">
+    <main className="console-screen crt">
       <section>
         <h1>{t('console.title')}</h1>
         <canvas
@@ -53,29 +69,30 @@ export function ConsoleScreen() {
         <p>{t('console.help')}</p>
       </section>
       <aside className="console-side">
-        <section className="panel">
-          <h2>{t('console.crew')}</h2>
-          {hud?.astronauts.map((a) => (
-            <button
-              key={a.id}
-              className={target === a.id ? 'on' : ''}
-              onClick={() => setSelected(a.id)}
-            >
-              {players?.find((p) => p.id === a.id)?.name ?? a.id} ·{' '}
-              {Math.round((a.o2 / a.o2Max) * 100)}%
-            </button>
-          ))}
-        </section>
-        <section className="panel">
-          <h2>{t('console.seismic')}</h2>
-        </section>
-        <section className="panel">
-          <h2>{t('console.power')}</h2>
-        </section>
+        {hud && (
+          <>
+            <CrewPanel
+              snap={hud}
+              params={params}
+              players={players ?? []}
+              target={target}
+              select={setSelected}
+            />
+            <SeismicPanel snap={hud} />
+            <PowerPanel snap={hud} />
+          </>
+        )}
       </aside>
       <footer className="console-footer panel">
+        <Commands target={target} crew={hud?.astronauts.map((a) => a.id) ?? []} />
         <h2>{t('console.radio')}</h2>
-        <button onClick={() => send({ t: 'mc:liftoff' })}>{t('console.liftoff')}</button>
+        <div className="radio-log">
+          {hud?.log.map((entry) => (
+            <div key={entry.id}>
+              {Math.floor(entry.t)} · {entry.from} · {t(entry.key, entry.params)}
+            </div>
+          ))}
+        </div>
       </footer>
     </main>
   );
