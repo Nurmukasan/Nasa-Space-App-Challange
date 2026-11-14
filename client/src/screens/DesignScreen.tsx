@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   DIFFICULTIES,
   MODULES,
@@ -6,89 +7,175 @@ import {
   RELAYS,
   SITES,
   VEHICLES,
+  PRESETS,
+  MISSION_DURATION_S,
+  POWER,
 } from '@rs/shared';
-import type { DesignField } from '@rs/shared';
+import type { DesignField, PresetId } from '@rs/shared';
 import { send } from '../net/session';
 import { me, useApp } from '../state/store';
-
-// Walking-skeleton version: plain controls, fully data-driven from the catalog.
-// The real screen (blueprint, bays, icons) replaces the markup, not the logic.
-const FIELDS: Array<{ field: DesignField; options: string[] }> = [
-  { field: 'objective', options: Object.keys(OBJECTIVES) },
-  { field: 'site', options: Object.keys(SITES) },
-  { field: 'vehicle', options: Object.keys(VEHICLES) },
-  { field: 'relay', options: Object.keys(RELAYS) },
-  { field: 'difficulty', options: Object.keys(DIFFICULTIES) },
+import { t } from '../i18n';
+import '../ui/design.css';
+const fields: { field: DesignField; options: string[]; step: number }[] = [
+  { field: 'objective', options: Object.keys(OBJECTIVES), step: 0 },
+  { field: 'site', options: Object.keys(SITES), step: 0 },
+  { field: 'difficulty', options: Object.keys(DIFFICULTIES), step: 0 },
+  { field: 'vehicle', options: Object.keys(VEHICLES), step: 1 },
+  { field: 'relay', options: Object.keys(RELAYS), step: 3 },
 ];
-
+const disciplines = ['planning', 'spacecraft', 'science', 'comms'];
+const steps = ['goal', 'launch', 'spacecraft', 'comms', 'review'];
 export function DesignScreen() {
-  const room = useApp((s) => s.room);
-  const self = useApp(me);
+  const room = useApp((s) => s.room),
+    self = useApp(me);
+  const [step, setStep] = useState(0);
   if (!room || !self) return null;
   const { design, check } = room;
-  const tt = check.totals;
+  const totals = check.totals;
+  const prediction = check.prediction;
+  const indicators = [
+    { key: 'budget', value: `${totals.cost} / ${totals.budget}`, bad: totals.cost > totals.budget },
+    {
+      key: 'mass',
+      value: `${totals.massKg} / ${totals.massCapKg} kg`,
+      bad: totals.massKg > totals.massCapKg,
+    },
+    {
+      key: 'power',
+      value: `${totals.powerUseW} / ${totals.powerGenW} W`,
+      bad: totals.powerUseW > totals.powerGenW,
+    },
+    {
+      key: 'data',
+      value: `${totals.dataGen} / ${totals.dataCap} Mb/sol`,
+      bad: totals.dataGen > totals.dataCap,
+    },
+    { key: 'comms', value: `${prediction.commsRangeM} m`, bad: false },
+    {
+      key: 'time',
+      value: t('design.window', { duration: MISSION_DURATION_S / 60, sunset: POWER.duskEndS / 60 }),
+      bad: false,
+    },
+  ];
   return (
-    <div className="screen">
-      <h1>MISSION DESIGN</h1>
-      <div className="panel row">
-        {FIELDS.map(({ field, options }) => (
-          <label key={field}>
-            {field}{' '}
-            <select
-              value={design[field]}
-              onChange={(e) => send({ t: 'design:set', field, value: e.target.value })}
-            >
-              {options.map((o) => (
-                <option key={o}>{o}</option>
-              ))}
-            </select>
-          </label>
+    <main className="screen design-screen">
+      <h1>{t('design.title')}</h1>
+      <nav className="row" aria-label={t('design.steps')}>
+        {steps.map((key, i) => (
+          <button key={key} className={step === i ? 'on' : ''} onClick={() => setStep(i)}>
+            {i + 1}. {t(`design.step.${key}`)}
+          </button>
         ))}
-      </div>
-      <div className="panel row" style={{ maxWidth: 760 }}>
-        {MODULE_ORDER.map((id) => {
-          const m = MODULES[id];
-          const on = design.modules.includes(id);
-          return (
-            <button
-              key={id}
-              className={on ? 'on' : ''}
-              onClick={() => send({ t: 'design:module', id, on: !on })}
-            >
-              {id} ${m.cost} {m.massKg}kg {m.powerW > 0 ? '+' : ''}
-              {m.powerW}W
-            </button>
-          );
-        })}
-      </div>
-      <div className="panel">
-        <div className={tt.cost > tt.budget ? 'err' : ''}>
-          BUDGET {tt.cost} / {tt.budget}
-        </div>
-        <div className={tt.massKg > tt.massCapKg ? 'err' : ''}>
-          MASS {tt.massKg} / {tt.massCapKg} kg
-        </div>
-        <div className={tt.powerUseW > tt.powerGenW ? 'warn' : ''}>
-          POWER {tt.powerUseW} / {tt.powerGenW} W
-        </div>
-        <div className={tt.dataGen > tt.dataCap ? 'warn' : ''}>
-          DATA {tt.dataGen} / {tt.dataCap} Mb/sol
-        </div>
-        <div className={tt.baysUsed > tt.baysMax ? 'err' : ''}>
-          BAYS {tt.baysUsed} / {tt.baysMax}
-        </div>
-        {check.issues.map((i) => (
-          <div key={i.code} className={i.severity === 'error' ? 'err' : 'warn'}>
-            {i.severity.toUpperCase()}: {i.code} {i.params ? JSON.stringify(i.params) : ''}
+      </nav>
+      <section className="design-indicators">
+        {indicators.map((item) => (
+          <div key={item.key} className={`panel ${item.bad ? 'err' : ''}`}>
+            <h2>{t(`design.${item.key}`)}</h2>
+            <output>{item.value}</output>
           </div>
         ))}
-        <div className="dim">PREDICTION {JSON.stringify(check.prediction)}</div>
+      </section>
+      <section className="panel row">
+        {fields
+          .filter((f) => f.step === step || step === 4)
+          .map(({ field, options }) => (
+            <label key={field}>
+              {t(`design.field.${field}`)}
+              <select
+                value={design[field]}
+                onChange={(e) => send({ t: 'design:set', field, value: e.target.value })}
+              >
+                {options.map((id) => (
+                  <option key={id} value={id}>
+                    {t(`${field}.${id}.name`)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ))}
+      </section>
+      {(step === 2 || step === 3 || step === 4) && (
+        <section className="panel row">
+          {MODULE_ORDER.filter(
+            (id) =>
+              step === 4 ||
+              (step === 3 ? MODULES[id].group === 'comms' : MODULES[id].group !== 'comms'),
+          ).map((id) => {
+            const m = MODULES[id];
+            return (
+              <button
+                key={id}
+                aria-pressed={design.modules.includes(id)}
+                className={design.modules.includes(id) ? 'on' : ''}
+                onClick={() => send({ t: 'design:module', id, on: !design.modules.includes(id) })}
+              >
+                <b>{t(`module.${id}.name`)}</b>
+                <small>{t(`module.${id}.desc`)}</small>
+                <span>
+                  ${m.cost} · {m.massKg} kg · {m.powerW} W
+                </span>
+              </button>
+            );
+          })}
+        </section>
+      )}
+      <div className="panel">
+        {t('design.bays')} {totals.baysUsed} / {totals.baysMax}
       </div>
+      <section className="panel">
+        {(['error', 'warning'] as const).map((severity) => (
+          <div key={severity}>
+            <h2>{t(`design.${severity}`)}</h2>
+            {check.issues
+              .filter((i) => i.severity === severity)
+              .map((issue) => (
+                <p key={issue.code} className={severity === 'error' ? 'err' : 'warn'}>
+                  {t(`issue.${issue.code}`, issue.params)}
+                </p>
+              ))}
+          </div>
+        ))}
+      </section>
+      <section className="design-indicators">
+        {Object.entries(prediction).map(([key, value]) => (
+          <div className="panel" key={key}>
+            <h2>{t(`prediction.${key}`)}</h2>
+            <output>
+              {Math.round(value * 10) / 10}
+              {t(`unit.${key}`)}
+            </output>
+          </div>
+        ))}
+      </section>
+      <section className="panel row">
+        {(Object.keys(PRESETS) as PresetId[]).map((id) => (
+          <button key={id} onClick={() => send({ t: 'design:preset', id })}>
+            {t(`preset.${id}`)}
+          </button>
+        ))}
+      </section>
+      <section className="panel">
+        {room.players.map((p, i) => (
+          <div key={p.id}>
+            {p.name} ·{' '}
+            {disciplines
+              .filter((_, index) => index % room.players.length === i)
+              .map((key) => t(`design.discipline.${key}`))
+              .join(' / ')}{' '}
+            · {t(p.ready ? 'design.ready' : 'design.notReady')}
+            {p.id === self.id && (
+              <button onClick={() => send({ t: 'lobby:ready', ready: !p.ready })}>
+                {t('design.toggleReady')}
+              </button>
+            )}
+          </div>
+        ))}
+      </section>
       {self.isHost && (
         <button disabled={!check.ok} onClick={() => send({ t: 'design:launch' })}>
-          LAUNCH
+          {t('design.launch')}
         </button>
       )}
-    </div>
+    </main>
   );
 }
