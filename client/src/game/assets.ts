@@ -10,15 +10,16 @@ interface Asset {
 export const ASSETS: Asset[] = [
   { key: 'astronaut', width: 16, height: 16, frames: 9 },
   { key: 'astronaut_stripe', width: 16, height: 16, frames: 9 },
-  { key: 'lander', width: 64, height: 48, frames: 1 },
+  { key: 'lander', width: 128, height: 96, frames: 1 },
   ...['delta', 'crater', 'basalt', 'impact'].map((kind) => ({
     key: `site_${kind}`,
     width: 16,
     height: 16,
     frames: 2,
   })),
+  { key: 'samples', width: 8, height: 8, frames: 3 },
   { key: 'station', width: 16, height: 16, frames: 1 },
-  { key: 'beacon', width: 16, height: 16, frames: 4 },
+  { key: 'beacon', width: 16, height: 24, frames: 6 },
   ...[1, 2, 3].map((n) => ({ key: `rock_${n}`, width: 16, height: 16, frames: 1 })),
   ...['dust', 'spark'].map((kind) => ({ key: `fx_${kind}`, width: 8, height: 8, frames: 4 })),
   ...[

@@ -1,5 +1,6 @@
-import type Phaser from 'phaser';
-import { O2, PLAYER_COLORS, VIEW_H, VIEW_W } from '@rs/shared';
+import Phaser from 'phaser';
+import { prefs } from '../state/prefs';
+import { O2, PLAYER_COLORS } from '@rs/shared';
 import type { Astronaut, EvaState } from '@rs/shared';
 import { snaps } from '../state/snapshots';
 import { store } from '../state/store';
@@ -14,6 +15,11 @@ interface CrewVisual {
   body: Phaser.GameObjects.Sprite;
   stripe: Phaser.GameObjects.Sprite;
 }
+
+/** Waypoint flag sprite: 6 animation frames, the pole foot sits on the target point. */
+const BEACON_FRAMES = 6;
+const BEACON_ORIGIN_Y = 21 / 24;
+const BASE_HALF_H = 48;
 
 export class EntityLayer {
   private observed: EvaState | null = null;
@@ -33,8 +39,28 @@ export class EntityLayer {
 
   constructor(private scene: Phaser.Scene) {
     scene.add.image(768, 768, 'lander').setDepth(768);
-    this.beacon = scene.add.sprite(0, 0, 'beacon').setDepth(1200).setVisible(false);
+    this.baseLights(scene);
+    this.beacon = scene.add
+      .sprite(0, 0, 'beacon')
+      .setOrigin(0.5, BEACON_ORIGIN_Y)
+      .setDepth(1200)
+      .setVisible(false);
     this.labels = worldLabels(scene);
+  }
+
+  /** The base is alive: a blinking mast light and a pulsing airlock glow. */
+  private baseLights(scene: Phaser.Scene): void {
+    if (prefs.getState().reduceMotion) return;
+    const mast = scene.add
+      .circle(768, 768 - BASE_HALF_H + 1, 2.5, 0xff4a40, 1)
+      .setDepth(769)
+      .setBlendMode(Phaser.BlendModes.ADD);
+    scene.tweens.add({ targets: mast, alpha: 0.1, yoyo: true, repeat: -1, duration: 650 });
+    const door = scene.add
+      .rectangle(768, 768 - BASE_HALF_H + 65, 12, 22, 0x50e6f0, 0.28)
+      .setDepth(769)
+      .setBlendMode(Phaser.BlendModes.ADD);
+    scene.tweens.add({ targets: door, alpha: 0.08, yoyo: true, repeat: -1, duration: 1300 });
   }
 
   update(snap: EvaState, myId: string, x: number, y: number, now: number): void {
@@ -143,23 +169,26 @@ export class EntityLayer {
     const point = mine?.linked ? mine.waypoint : null;
     this.beacon.setVisible(!!point);
     if (!point) return;
-    this.beacon.setPosition(point.x, point.y).setFrame(Math.floor(now / 180) % 4);
+    this.beacon.setPosition(point.x, point.y).setFrame(Math.floor(now / 140) % BEACON_FRAMES);
     const cam = this.scene.cameras.main,
       sx = point.x - cam.scrollX,
       sy = point.y - cam.scrollY;
-    if (sx >= 12 && sx <= VIEW_W - 12 && sy >= 12 && sy <= VIEW_H - 12) return;
-    const dx = sx - VIEW_W / 2,
-      dy = sy - VIEW_H / 2;
+    const v = this.labels.visible();
+    if (sx >= v.x0 + 12 && sx <= v.x1 - 12 && sy >= v.y0 + 12 && sy <= v.y1 - 12) return;
+    const mx = (v.x0 + v.x1) / 2,
+      my = (v.y0 + v.y1) / 2;
+    const dx = sx - mx,
+      dy = sy - my;
     const k = Math.min(
-      (VIEW_W / 2 - 40) / Math.max(1, Math.abs(dx)),
-      (VIEW_H / 2 - 35) / Math.max(1, Math.abs(dy)),
+      ((v.x1 - v.x0) / 2 - 40) / Math.max(1, Math.abs(dx)),
+      ((v.y1 - v.y0) / 2 - 35) / Math.max(1, Math.abs(dy)),
     );
     const direction = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? '→' : '←') : dy > 0 ? '↓' : '↑';
     this.labels.set(
       'arrow',
       `${direction} ${evaText('eva.waypoint', { n: Math.round(Math.hypot(point.x - x, point.y - y) * 0.25) })}`,
-      VIEW_W / 2 + dx * k,
-      VIEW_H / 2 + dy * k,
+      mx + dx * k,
+      my + dy * k,
       'arrow',
       true,
     );

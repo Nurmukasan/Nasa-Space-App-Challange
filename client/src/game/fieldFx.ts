@@ -74,7 +74,6 @@ export class FieldFx {
     const x = event.x ?? a?.x ?? mine?.x ?? 0,
       y = event.y ?? a?.y ?? mine?.y ?? 0;
     if (event.type === 'sample') {
-      this.float(x, y, `+${event.n ?? 0}`, '#ffce72', reduce);
       if (!reduce) this.scene.cameras.main.flash(80, 255, 210, 110, false);
     } else if (event.type === 'deposit')
       this.float(x, y, `+${event.n ?? 0} ${t('eva.samples')}`, '#50e6f0', reduce);

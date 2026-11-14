@@ -105,8 +105,9 @@ export class WorldLabels {
       }
       const sx = n.x - cam.scrollX,
         sy = n.y - cam.scrollY;
-      const cx = Math.min(VIEW_W - NOTE_MARGIN_X, Math.max(NOTE_MARGIN_X, sx)),
-        cy = Math.min(VIEW_H - NOTE_MARGIN_Y, Math.max(NOTE_MARGIN_Y, sy));
+      const v = this.visible();
+      const cx = Math.min(v.x1 - NOTE_MARGIN_X, Math.max(v.x0 + NOTE_MARGIN_X, sx)),
+        cy = Math.min(v.y1 - NOTE_MARGIN_Y, Math.max(v.y0 + NOTE_MARGIN_Y, sy));
       n.el.classList.toggle('off-screen', cx !== sx || cy !== sy);
       place(n.el, cx, cy, true);
       return true;
@@ -119,6 +120,20 @@ export class WorldLabels {
       place(f.el, f.x, f.y, false);
       return true;
     });
+  }
+
+  /** The part of the 480x270 view that is actually on screen (the window may crop the rest). */
+  visible(): { x0: number; y0: number; x1: number; y1: number } {
+    const rects = this.rects;
+    if (!rects) return { x0: 0, y0: 0, x1: VIEW_W, y1: VIEW_H };
+    const { canvas, origin } = rects;
+    const k = canvas.width / VIEW_W;
+    return {
+      x0: Math.max(0, (origin.left - canvas.left) / k),
+      y0: Math.max(0, (origin.top - canvas.top) / k),
+      x1: Math.min(VIEW_W, (origin.right - canvas.left) / k),
+      y1: Math.min(VIEW_H, (origin.bottom - canvas.top) / k),
+    };
   }
 
   /** Drop labels that no longer exist (an astronaut who left). */

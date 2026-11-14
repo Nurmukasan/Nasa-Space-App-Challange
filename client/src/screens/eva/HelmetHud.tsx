@@ -7,6 +7,8 @@ import { PixelIcon } from '../../ui/PixelIcon';
 
 const GEM_FRAME: Record<string, number> = { surface: 0, deep: 1, core: 2 };
 const GEM_PX = 24;
+/** The key reminder only matters at the start of a mission. */
+const CONTROLS_SHOWN_S = 25;
 const METERS_PER_WORLD_PX = 0.25;
 
 export function clock(t: number): string {
@@ -137,7 +139,7 @@ export function HelmetHud({
         )}
       </div>
       <footer className="helmet-bottom">
-        <div className="helmet-samples">
+        <div className={`helmet-samples ${a.carrying.length ? 'has-samples' : ''}`}>
           <span>{t('eva.samples')}</span>
           {[0, 1].map((i) => (
             <div className={`sample-slot ${a.carrying[i] ? 'occupied' : ''}`} key={i}>
@@ -163,16 +165,11 @@ export function HelmetHud({
             </div>
           ))}
         </div>
-        {a.linked && a.waypoint && (
-          <div className="helmet-beacon">
-            {t('eva.waypoint', {
-              n: Math.round(Math.hypot(a.x - a.waypoint.x, a.y - a.waypoint.y) * 0.25),
-            })}
-          </div>
-        )}
         <div className="helmet-instructions">
           {lesson && <span>{t(lesson)}</span>}
-          <small>{t('eva.controls')}</small>
+          {snap.t < CONTROLS_SHOWN_S && (
+            <small className="controls-hint">{t('eva.controls')}</small>
+          )}
         </div>
         {log && a.linked && (
           <div className="helmet-radio" key={log.id}>

@@ -7,7 +7,7 @@ const HAZARD_FX = {
   depth: 1290,
   tintDepth: 900,
   tintColor: 0x8a3a1c,
-  tintMaxAlpha: 0.22,
+  tintMaxAlpha: 0.1,
   rampS: 3,
   pulseMs: 110,
   fillColor: 0xff5a3c,

@@ -14,7 +14,8 @@ export function createGame(parent: HTMLElement): Phaser.Game {
     roundPixels: true,
     antialias: false,
     banner: false,
-    scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
+    // ENVELOP fills the window; the edges that do not fit are cropped instead of letterboxed.
+    scale: { mode: Phaser.Scale.ENVELOP, autoCenter: Phaser.Scale.CENTER_BOTH },
     render: { powerPreference: 'high-performance' },
     fps: { target: 60 },
     scene: [FieldScene],
