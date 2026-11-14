@@ -2,7 +2,7 @@
 // Pure logic, no network and no timers: the server (Socket.IO) and the client
 // (LocalTransport for solo/offline play) both drive this same class.
 import { MAX_EVA, MAX_PLAYERS, SEISMIC, SOLO, WEATHER } from '../balance';
-import { PRESETS } from '../catalog';
+import { PRESETS, defaultCrewClass } from '../catalog';
 import { SCENARIOS, isScenarioId } from '../scenarios';
 import { debugSim } from '../sim/debug';
 import {
@@ -107,6 +107,7 @@ export class GameRoom {
       name: cleanName(req.name),
       colorIdx,
       role: null,
+      crewClass: defaultCrewClass(colorIdx),
       ready: false,
       connected: true,
       isHost: false,

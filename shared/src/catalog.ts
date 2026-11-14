@@ -4,6 +4,7 @@
 // Numbers are game units, simplified from real missions (see docs/product-logic.md).
 // =============================================================================
 import type {
+  CrewClassId,
   DifficultyId,
   MissionDesign,
   ModuleGroup,
@@ -268,3 +269,20 @@ export const PRESETS: Record<PresetId, MissionDesign> = {
     modules: ['rtg', 'moxie_s', 'drill', 'seismo_net'],
   },
 };
+
+/** Crew classes in lobby order. New players get the next one by colour slot. */
+export const CREW_CLASS_IDS: readonly CrewClassId[] = [
+  'engineer',
+  'scout',
+  'geologist',
+  'biologist',
+];
+
+export function isCrewClassId(v: unknown): v is CrewClassId {
+  return typeof v === 'string' && (CREW_CLASS_IDS as readonly string[]).includes(v);
+}
+
+/** Class handed out by colour slot, so a fresh room already has a mixed crew. */
+export function defaultCrewClass(slot: number): CrewClassId {
+  return CREW_CLASS_IDS[Math.abs(Math.trunc(slot)) % CREW_CLASS_IDS.length]!;
+}

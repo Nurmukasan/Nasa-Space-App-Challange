@@ -16,12 +16,17 @@ export type Phase = 'lobby' | 'design' | 'eva' | 'report';
 /** mc = Mission Control operator, eva = field astronaut, solo = one player doing both. */
 export type Role = 'mc' | 'eva' | 'solo';
 
+/** Field specialty of an EVA astronaut: its suit sprite and one small perk (balance.ts CREW). */
+export type CrewClassId = 'engineer' | 'scout' | 'geologist' | 'biologist';
+
 export interface PlayerInfo {
   id: string;
   name: string;
   /** Index into PLAYER_COLORS. */
   colorIdx: number;
   role: Role | null;
+  /** Chosen in the lobby; used when this player goes outside (roles eva and solo). */
+  crewClass: CrewClassId;
   ready: boolean;
   connected: boolean;
   isHost: boolean;
@@ -227,6 +232,8 @@ export type AstroStatus = 'active' | 'inside' | 'down' | 'lost';
 export interface Astronaut {
   /** Same as PlayerInfo.id. */
   id: string;
+  /** Copied from PlayerInfo at launch: sprite and perk. */
+  crewClass: CrewClassId;
   x: number;
   y: number;
   /** Radians, 0 = +x. */
