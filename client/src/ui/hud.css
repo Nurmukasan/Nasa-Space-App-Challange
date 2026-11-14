@@ -18,6 +18,11 @@
 }
 .visor-frame {
   position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+/* the old rounded helmet rim and tint, now opt-in via Settings */
+.visor-glass .visor-frame {
   inset: 8px;
   border: 1px solid #ffb03040;
   border-radius: 44px;
@@ -384,9 +389,7 @@
   background: linear-gradient(105deg, transparent 42%, #ffffff12 50%, transparent 58%);
 }
 .storm-on .visor-frame {
-  box-shadow:
-    inset 0 0 0 7px #1c0d0c55,
-    inset 0 0 140px #c8683eaa;
+  box-shadow: inset 0 0 140px #c8683e88;
 }
 .visor-glass.storm-on .visor-frame::before {
   background:
@@ -398,9 +401,7 @@
     radial-gradient(ellipse at center, transparent 40%, #7a3a1c66 100%);
 }
 .low-oxygen .visor-frame {
-  box-shadow:
-    inset 0 0 0 7px #1c0d0c55,
-    inset 0 0 160px #e33a3499;
+  box-shadow: inset 0 0 160px #e33a3499;
 }
 .quake .helmet-top,
 .quake .helmet-bottom,
