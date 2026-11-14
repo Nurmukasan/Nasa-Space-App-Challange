@@ -98,7 +98,13 @@ export class Lighting {
       .setScrollFactor(0)
       .setDepth(910)
       .setAlpha(0);
-    scene.events.once('shutdown', () => this.brush.destroy());
+    const cleanup = () => {
+      scene.events.off('shutdown', cleanup);
+      scene.events.off('destroy', cleanup);
+      this.brush.destroy();
+    };
+    scene.events.once('shutdown', cleanup);
+    scene.events.once('destroy', cleanup);
   }
   render(snap: EvaState, lights: Light[], cam: Phaser.Cameras.Scene2D.Camera): void {
     const ambient = snap.weather.light,

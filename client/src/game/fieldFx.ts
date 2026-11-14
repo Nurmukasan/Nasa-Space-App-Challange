@@ -39,10 +39,15 @@ export class FieldFx {
   constructor(private scene: Phaser.Scene) {
     for (const type of Object.keys(SOUNDS) as FxType[])
       this.dispose.push(fxBus.on(type, (e) => this.effect(e)));
-    scene.events.once('shutdown', () => {
-      this.dispose.forEach((fn) => fn());
+    const cleanup = () => {
+      scene.events.off('shutdown', cleanup);
+      scene.events.off('destroy', cleanup);
+      for (const off of this.dispose) off();
+      this.dispose.length = 0;
       audio.stopEva();
-    });
+    };
+    scene.events.once('shutdown', cleanup);
+    scene.events.once('destroy', cleanup);
   }
   private effect(event: FxEvent): void {
     const reduce = prefs.getState().reduceMotion;
