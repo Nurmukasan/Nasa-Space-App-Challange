@@ -19,3 +19,10 @@
 .design-screen select {
   display: block;
 }
+
+/* Pixel icons: crisp scaling, never smoothed. */
+.px-icon {
+  image-rendering: pixelated;
+  display: block;
+  margin: 0 auto 4px;
+}

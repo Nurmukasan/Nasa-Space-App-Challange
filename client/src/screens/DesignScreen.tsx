@@ -15,6 +15,7 @@ import type { DesignField, PresetId } from '@rs/shared';
 import { send } from '../net/session';
 import { me, useApp } from '../state/store';
 import { t } from '../i18n';
+import { PixelIcon } from '../ui/PixelIcon';
 import '../ui/design.css';
 const fields: { field: DesignField; options: string[]; step: number }[] = [
   { field: 'objective', options: Object.keys(OBJECTIVES), step: 0 },
@@ -80,6 +81,9 @@ export function DesignScreen() {
           .filter((f) => f.step === step || step === 4)
           .map(({ field, options }) => (
             <label key={field}>
+              {(field === 'vehicle' || field === 'relay') && (
+                <PixelIcon name={`icon_${field}_${design[field]}`} />
+              )}
               {t(`design.field.${field}`)}
               <select
                 value={design[field]}
@@ -109,6 +113,7 @@ export function DesignScreen() {
                 className={design.modules.includes(id) ? 'on' : ''}
                 onClick={() => send({ t: 'design:module', id, on: !design.modules.includes(id) })}
               >
+                <PixelIcon name={`icon_${id}`} />
                 <b>{t(`module.${id}.name`)}</b>
                 <small>{t(`module.${id}.desc`)}</small>
                 <span>
