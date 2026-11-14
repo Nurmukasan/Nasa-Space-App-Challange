@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { LANDER_POS, SITES, TICK_HZ, WORLD_PX, generateSites, moveSpeed } from '@rs/shared';
+import { LANDER_POS, SITES, TICK_HZ, WORLD_PX, generateSites, fieldSpeed } from '@rs/shared';
 import { send } from '../net/session';
 import { snaps } from '../state/snapshots';
 import { store } from '../state/store';
@@ -93,7 +93,7 @@ export class FieldScene extends Phaser.Scene {
           const len = Math.hypot(dx, dy);
           dx /= len;
           dy /= len;
-          const speed = moveSpeed(params, snap.weather, running);
+          const speed = fieldSpeed(params, snap, this.meX, this.meY, running);
           this.meX = Phaser.Math.Clamp(this.meX + dx * speed * dt, 8, WORLD_PX - 8);
           this.meY = Phaser.Math.Clamp(this.meY + dy * speed * dt, 8, WORLD_PX - 8);
           this.facing = Math.atan2(dy, dx);

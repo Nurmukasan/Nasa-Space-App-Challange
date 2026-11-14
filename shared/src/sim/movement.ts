@@ -1,5 +1,7 @@
 import { LANDER_POS, O2, RETURN, WEATHER } from '../balance';
-import type { MissionParams, WeatherState } from '../types';
+import { SITES } from '../catalog';
+import { terrainMul } from './devils';
+import type { EvaState, MissionParams, WeatherState } from '../types';
 
 import { stormActive } from './weather';
 
@@ -22,4 +24,18 @@ export function returnCost(
 ): number {
   const distance = Math.max(0, Math.hypot(x - LANDER_POS.x, y - LANDER_POS.y) - O2.airlockRadius);
   return (distance / moveSpeed(params, weather, false)) * O2.walk * RETURN.margin + RETURN.reserve;
+}
+
+/** Identical terrain-aware speed for client prediction and server movement limits. */
+export function fieldSpeed(
+  params: MissionParams,
+  state: EvaState,
+  x: number,
+  y: number,
+  running: boolean,
+): number {
+  return (
+    moveSpeed(params, state.weather, running) *
+    terrainMul(state, SITES[params.site].terrainSalt, x, y).speed
+  );
 }

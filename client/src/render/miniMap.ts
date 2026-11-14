@@ -7,6 +7,7 @@ export function drawMiniMap(
   snap: EvaState,
   playerId: string,
   size = 128,
+  hasWeather = false,
 ): void {
   const scale = size / WORLD_PX;
   const dot = (x: number, y: number, color: string, radius = 2) => {
@@ -34,7 +35,7 @@ export function drawMiniMap(
   }
   ctx.setLineDash([]);
   for (const h of snap.hazards) if (h.warned && snap.t <= h.tHit) circle(h.x, h.y, h.r, '#ff7667');
-  for (const d of snap.devils) circle(d.x, d.y, d.r, '#e8c28a');
+  if (hasWeather) for (const d of snap.devils) circle(d.x, d.y, d.r, '#e8c28a');
   for (const s of snap.sites)
     if (s.known && (s.expiresAt === null || s.expiresAt > snap.t))
       dot(s.x, s.y, s.kind === 'signal' ? '#ff5782' : '#a4ec9c');
