@@ -1,6 +1,9 @@
 export default {
   'report.success': 'MISSION SUCCESS',
   'report.failed': 'MISSION FAILED',
+  'report.debrief': 'Mission debrief',
+  'report.scores': 'Score',
+  'report.of': '/',
   'report.grade': 'Grade',
   'report.total': 'Total',
   'report.science': 'Science',
