@@ -96,7 +96,7 @@ it('includes a deployed station in the next seismic event measurements', () => {
 
 it('free keeps its auto-placed network and cannot deploy even a forged kit', () => {
   const sim = createSim(deriveParams(PRESETS.balanced, 11), ['a']);
-  const before = structuredClone(sim.pub.stations);
+  const before = sim.pub.stations.map((s) => ({ ...s }));
   const a = sim.pub.astronauts[0]!;
   sim.pub.t = 0;
   a.kits = 1;
