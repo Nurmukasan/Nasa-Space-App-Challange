@@ -47,18 +47,23 @@ export function LobbyScreen() {
       <div className="screen">
         {logo}
         <div className="menu-col">
+          <label className="panel name-field">
+            <span className="field-label">{t('lobby.name')}</span>
+            <input
+              placeholder={t('lobby.namePlaceholder')}
+              maxLength={12}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </label>
           {health === 'online' && (
-            <div className="panel row">
-              <input
-                placeholder={t('lobby.name')}
-                maxLength={12}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-              <button disabled={busy} onClick={() => void startSession('online', name)}>
-                {t('lobby.create')}
-              </button>
-            </div>
+            <button
+              className="btn-main"
+              disabled={busy}
+              onClick={() => void startSession('online', name)}
+            >
+              {t('lobby.create')}
+            </button>
           )}
           {health === 'online' && (
             <div className="panel row">

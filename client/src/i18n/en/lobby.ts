@@ -3,7 +3,8 @@
 const en: Record<string, string> = {
   'app.title': 'RED SIGNAL',
   'app.tagline': 'Design the mission. Then survive it.',
-  'lobby.name': 'Call sign',
+  'lobby.name': 'Your name',
+  'lobby.namePlaceholder': 'Type a call sign',
   'lobby.create': 'Create room',
   'lobby.join': 'Join',
   'lobby.solo': 'Play solo (offline)',
