@@ -27,6 +27,7 @@ with sync_playwright() as p:
         page.get_by_role('button',name='Quick start',exact=True).click()
         page.wait_for_function('window.rs.snaps.curr!==null')
         page.evaluate('window.rs.send({t:"mc:power",alloc:{moxie:.7,comms:.15,scan:.15}})')
+        duration=page.evaluate('window.rs.snaps.curr.durationS')
         start=time.monotonic();last_log=-30;answered=set()
         while True:
             state=page.evaluate('({room:window.rs.store.getState().room,snap:window.rs.snaps.curr})')
@@ -43,7 +44,7 @@ with sync_playwright() as p:
             assert not errors,errors
             page.wait_for_timeout(500)
         report=state['room']['report'];elapsed=time.monotonic()-start
-        assert elapsed>=state['snap']['durationS']-1,('early report',elapsed,report)
+        assert elapsed>=duration-1,('early report',elapsed,report)
         assert report['stats']['samplesDeposited']>0,report
         assert report['stats']['allAboard'],report
         assert not errors,errors
