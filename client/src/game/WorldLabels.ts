@@ -2,6 +2,8 @@ import type Phaser from 'phaser';
 import { VIEW_W } from '@rs/shared';
 import { FIELD } from './style';
 
+const RECT_REFRESH_MS = 400;
+
 /**
  * Text drawn as real DOM above the canvas. The game canvas is 480x270 scaled up,
  * so Phaser text turns to mush; DOM text stays sharp at any window size.
@@ -10,6 +12,8 @@ export class WorldLabels {
   private root = document.createElement('div');
   private items = new Map<string, HTMLDivElement>();
   private used = new Set<string>();
+  private rects: { canvas: DOMRect; origin: DOMRect } | null = null;
+  private rectAt = 0;
   private floats: { el: HTMLDivElement; x: number; y: number; until: number }[] = [];
 
   constructor(private scene: Phaser.Scene) {
@@ -49,8 +53,16 @@ export class WorldLabels {
   /** Call once per frame after all set() calls. */
   flush(): void {
     const cam = this.scene.cameras.main;
-    const canvas = this.scene.game.canvas.getBoundingClientRect();
-    const origin = this.root.getBoundingClientRect();
+    // Layout reads are costly; the canvas only moves on resize, so refresh a few times a second.
+    const stamp = performance.now();
+    if (!this.rects || stamp - this.rectAt > RECT_REFRESH_MS) {
+      this.rects = {
+        canvas: this.scene.game.canvas.getBoundingClientRect(),
+        origin: this.root.getBoundingClientRect(),
+      };
+      this.rectAt = stamp;
+    }
+    const { canvas, origin } = this.rects;
     const k = canvas.width / VIEW_W;
     const place = (el: HTMLElement, wx: number, wy: number, screen: boolean) => {
       const sx = screen ? wx : wx - cam.scrollX,
