@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   DIFFICULTIES,
   MODULES,
@@ -13,6 +13,7 @@ import type { DesignField, PresetId } from '@rs/shared';
 import { send } from '../net/session';
 import { me, useApp } from '../state/store';
 import { t } from '../i18n';
+import { designHint, useDesignHint } from '../state/designHint';
 import { ResourceGauges } from './design/ResourceGauges';
 import { ChoiceCards } from './design/ChoiceCards';
 import { LanderCutaway } from './design/LanderCutaway';
@@ -32,7 +33,16 @@ const steps = ['goal', 'launch', 'spacecraft', 'comms', 'review'];
 export function DesignScreen() {
   const room = useApp((s) => s.room),
     self = useApp(me);
-  const [step, setStep] = useState(0);
+  const fix = useDesignHint();
+  const [step, setStep] = useState(() =>
+    fix?.module ? 2 : (fields.find((f) => f.field === fix?.field)?.step ?? 0),
+  );
+  useEffect(
+    () => () => {
+      designHint.setState({ fix: null });
+    },
+    [],
+  );
   if (!room || !self) return null;
   const { design, check } = room;
   const totals = check.totals;
@@ -69,6 +79,7 @@ export function DesignScreen() {
               key={id}
               module={MODULES[id]}
               on={design.modules.includes(id)}
+              suggested={id === fix?.module}
               onToggle={() => send({ t: 'design:module', id, on: !design.modules.includes(id) })}
             />
           ))}

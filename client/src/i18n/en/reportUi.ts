@@ -1,0 +1,78 @@
+export default {
+  'reportUi.objectives': 'MISSION OBJECTIVES',
+  'reportUi.primary': 'Primary',
+  'reportUi.secondary': 'Secondary',
+  'reportUi.state.active': 'Incomplete',
+  'reportUi.state.done': 'Complete',
+  'reportUi.state.failed': 'Failed',
+  'reportUi.timeline': 'MISSION TIMELINE',
+  'reportUi.awards': 'CREW AWARDS',
+  'reportUi.because': 'BECAUSE',
+  'reportUi.try': 'Try: {name}',
+  'reportUi.reveal': 'THE RED SIGNAL',
+  'reportUi.reveal.common':
+    'Repeating small quakes came from one source. Like clusters traced by InSight near Cerberus Fossae, they suggest movement beneath the surface.',
+  'reportUi.reveal.jezero':
+    'The sample reveals fresh fractures in ancient delta sediments. In this mission, the delta edge is still settling and releasing small, repeating quakes.',
+  'reportUi.reveal.elysium':
+    'Fresh fault debris and fractured basalt point to an active fault. This mission draws inspiration from the repeated quakes InSight traced toward Cerberus Fossae.',
+  'reportUi.reveal.arcadia':
+    'Ice fills fractures beneath a fresh crater. In this mission, an impact exposed buried ice that is cracking beneath the surface.',
+  'reportUi.reveal.partial':
+    'The repeating source was located, but no sample returned. The seismic evidence suggests a shared origin; the geological explanation remains an in-game hypothesis.',
+  'reportUi.reveal.note': 'In-game hypothesis inspired by real InSight findings',
+  'reportUi.event.default': 'Mission event',
+  'reportUi.event.act': 'New act',
+  'reportUi.event.deposit': 'Samples deposited',
+  'reportUi.event.discovery': 'Site discovered',
+  'reportUi.event.deploy': 'Station deployed',
+  'reportUi.event.tremor': 'Ground motion',
+  'reportUi.event.impact': 'Meteorite impact',
+  'reportUi.event.rockfall': 'Rockfall',
+  'reportUi.event.breach': 'Suit breach',
+  'reportUi.event.down': 'Crew down',
+  'reportUi.event.rescue': 'Crew rescued',
+  'reportUi.event.lost': 'Crew lost',
+  'reportUi.event.fault': 'System fault',
+  'reportUi.event.repair_done': 'Repair complete',
+  'reportUi.event.storm_start': 'Storm begins',
+  'reportUi.event.flare_start': 'Solar flare begins',
+  'reportUi.event.signal_located': 'Source located',
+  'reportUi.event.signal_found': 'Source discovered',
+  'reportUi.event.objective_done': 'Objective complete',
+  'reportUi.event.window_closing': 'Launch window closing',
+  'reportUi.event.liftoff': 'Liftoff',
+  'reportUi.award.rock_hound': 'ROCK HOUND',
+  'reportUi.award.rock_hound.why': 'Brought home the most science.',
+  'reportUi.award.explorer': 'EXPLORER',
+  'reportUi.award.explorer.why': 'Discovered new sites in the field.',
+  'reportUi.award.lifeguard': 'LIFEGUARD',
+  'reportUi.award.lifeguard.why': 'Shared oxygen to rescue a crewmate.',
+  'reportUi.award.mechanic': 'MECHANIC',
+  'reportUi.award.mechanic.why': 'Restored a lander system.',
+  'reportUi.award.pathfinder': 'PATHFINDER',
+  'reportUi.award.pathfinder.why': 'Covered the most ground.',
+  'reportUi.award.iron_lungs': 'IRON LUNGS',
+  'reportUi.award.iron_lungs.why': 'Used suit oxygen efficiently.',
+  'reportUi.award.seismologist': 'SEISMOLOGIST',
+  'reportUi.award.seismologist.why': 'Read the station rings to place accurate picks.',
+  'reportUi.award.flight_director': 'FLIGHT DIRECTOR',
+  'reportUi.award.flight_director.why': 'Kept Mission Control running.',
+  'reportUi.insight.bad_pick':
+    'Epicentre picks missed the source area, so warnings went to the wrong place.',
+  'reportUi.insight.no_kits':
+    'No carried seismometer was deployed. The mission relied on the lander station.',
+  'reportUi.insight.fault_downtime':
+    'System faults reduced the time available for productive work.',
+  'reportUi.insight.flare_dose':
+    'Crew stayed outside during the solar particle event and received excess radiation dose.',
+  'reportUi.insight.sand_trap': 'Soft terrain slowed the crew and increased oxygen use.',
+  'reportUi.insight.signal_missed':
+    'The source was located, but its sample did not return before liftoff.',
+  'reportUi.insight.blind_scouting':
+    'Few hidden sites were discovered without ground-penetrating radar.',
+  'reportUi.insight.good_pick': 'Accurate epicentre picks helped send warnings to the right area.',
+  'reportUi.insight.signal_found':
+    'The source sample returned, connecting the seismic evidence to geology.',
+  'reportUi.insight.other': 'This mission decision affected the result.',
+};
