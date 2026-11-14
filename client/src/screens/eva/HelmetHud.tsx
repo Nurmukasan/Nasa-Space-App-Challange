@@ -6,6 +6,7 @@ import { t } from '../../i18n';
 import { usePrefs } from '../../state/prefs';
 import { PixelIcon } from '../../ui/PixelIcon';
 import { MissionObjectives, ActTitle } from './MissionStatus';
+import { MissionFlow } from './MissionFlow';
 import { Scanner } from './Scanner';
 import { RadioLine } from './RadioLine';
 import { actionHint, hudBanner } from './hudView';
@@ -153,6 +154,7 @@ export function HelmetHud({
         </div>
       )}
       <ActTitle snap={snap} />
+      <MissionFlow snap={snap} />
       <div className="helmet-banners" role="status">
         {banner && (
           <div

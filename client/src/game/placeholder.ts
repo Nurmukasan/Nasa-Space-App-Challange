@@ -33,6 +33,16 @@ export function placeholderSheet(a: AssetDef): HTMLCanvasElement {
         ctx.fillStyle = '#b0b6c4';
         ctx.fillRect(2, 10, 12, 5);
       }
+    } else if (a.key === 'lander_flame') {
+      ctx.fillStyle = '#ffb030';
+      ctx.beginPath();
+      ctx.moveTo(6, 0);
+      ctx.lineTo(26, 0);
+      ctx.lineTo(16, 24 + frame * 2);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#fff1b0';
+      ctx.fillRect(11, 0, 10, 13);
     } else if (a.key === 'devil') {
       for (let band = 0; band < 5; band++) {
         const y = 27 - band * 5,

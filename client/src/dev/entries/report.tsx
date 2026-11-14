@@ -53,6 +53,6 @@ function Demo() {
     };
     store.setState({ room: { ...room, phase: 'report', report } });
   }, []);
-  return <ReportScreen />;
+  return <ReportScreen skipTakeoff />;
 }
 export default { name: 'report', render: () => <Demo /> };

@@ -32,11 +32,12 @@ export function ActTitle({ snap }: { snap: EvaState }) {
     const timer = setTimeout(() => setVisible(false), HUD.actTitleMs);
     return () => clearTimeout(timer);
   }, [snap.act, snap.scenario, started]);
-  if (!visible || snap.t < 0 || snap.scenario === 'free') return null;
+  if (!visible || snap.t < 0 || (snap.scenario === 'free' && snap.t >= HUD.actTitleMs / 1000))
+    return null;
   return (
     <div className="helmet-act-title" key={snap.act}>
-      {t('eva.act', { n: snap.act })}
-      <strong>{t(`eva.act.${snap.act}`)}</strong>
+      {snap.scenario === 'free' ? '' : t('eva.act', { n: snap.act })}
+      <strong>{snap.scenario === 'free' ? t('eva.touchdown') : t(`eva.act.${snap.act}`)}</strong>
     </div>
   );
 }

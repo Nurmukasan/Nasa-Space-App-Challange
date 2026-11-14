@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { Insight } from '@rs/shared';
 import '../ui/menu.css';
@@ -10,6 +11,7 @@ import { t } from '../i18n';
 import { GradeSeal } from './report/GradeSeal';
 import { InkFilter } from './report/InkFilter';
 import { ScoreRow } from './report/ScoreRow';
+import { Takeoff, TAKEOFF_MS } from './report/Takeoff';
 import { Stamp } from './report/Stamp';
 import { Objectives } from './report/Objectives';
 import { Timeline } from './report/Timeline';
@@ -18,11 +20,21 @@ import { Findings } from './report/Findings';
 import { Reveal } from './report/Reveal';
 import { REPORT_TIMING, SCORE_ROWS } from './report/constants';
 
-export function ReportScreen() {
+export function ReportScreen({ skipTakeoff = false }: { skipTakeoff?: boolean }) {
   const report = useApp((s) => s.room?.report ?? null),
     self = useApp(me);
+  const [ready, setReady] = useState(skipTakeoff);
+  useEffect(() => {
+    if (skipTakeoff) {
+      setReady(true);
+      return;
+    }
+    const timer = setTimeout(() => setReady(true), TAKEOFF_MS);
+    return () => clearTimeout(timer);
+  }, [skipTakeoff]);
   const players = useApp((s) => s.room?.players ?? []);
   if (!report || !self) return null;
+  if (!ready) return <Takeoff />;
   const { score, design } = report;
   const findings = report.insights.filter((i) => !i.code.startsWith('twin_'));
   const twins = report.insights.filter((i) => i.code.startsWith('twin_'));

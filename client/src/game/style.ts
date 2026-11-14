@@ -29,6 +29,7 @@ export const FIELD = {
   hazardLifeMs: 900,
   hazardEmitMs: 100,
   shakeRangePx: 1000,
+  landingHeight: 170,
   maxTracks: 900,
   footStridePx: 15,
   footOffsetPx: 2.5,

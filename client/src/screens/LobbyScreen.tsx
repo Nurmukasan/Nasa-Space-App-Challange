@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import type { CSSProperties } from 'react';
+import { spriteFiles } from '../game/assets';
 import type { Role } from '@rs/shared';
 import { t } from '../i18n';
 import { endSession, send, startSession } from '../net/session';
@@ -10,6 +12,11 @@ import '../ui/menu.css';
 const ROLES: Role[] = ['mc', 'eva', 'solo'];
 
 export function LobbyScreen() {
+  const background = spriteFiles['/public/assets/sprites/title_bg.png']
+    ? ({
+        '--title-bg': `url(${import.meta.env.BASE_URL}assets/sprites/title_bg.png)`,
+      } as CSSProperties)
+    : undefined;
   const room = useApp((s) => s.room);
   const self = useApp(me);
   const conn = useApp((s) => s.conn);
@@ -47,7 +54,7 @@ export function LobbyScreen() {
 
   if (!room || !self) {
     return (
-      <div className="screen">
+      <div className="screen" style={background}>
         {logo}
         <div className="menu-col">
           <label className="panel name-field">
@@ -98,7 +105,7 @@ export function LobbyScreen() {
   }
 
   return (
-    <div className="screen">
+    <div className="screen" style={background}>
       {logo}
       <div className="panel row">
         <span className="dim">{t('lobby.code')}</span>
