@@ -209,7 +209,7 @@ export function startBed(ctx: Ctx, out: AudioNode): Bed {
   windF.frequency.value = 420;
   windF.Q.value = 0.7;
   const windG = ctx.createGain();
-  windG.gain.value = 0.5;
+  windG.gain.value = 0.3;
   windSrc.connect(windF).connect(windG).connect(master);
 
   // Slow gusts: LFO on the filter and on the gain.
@@ -226,9 +226,9 @@ export function startBed(ctx: Ctx, out: AudioNode): Bed {
 
   // Cold drone, a fifth apart, with a slow beat.
   const droneG = ctx.createGain();
-  droneG.gain.value = 0.22;
+  droneG.gain.value = 0.16;
   droneG.connect(master);
-  const drones = [55, 55.4, 82.5, 110.3].map((f) => {
+  const drones = [55, 58.3, 77.8, 116.5].map((f) => {
     const o = ctx.createOscillator();
     o.type = f > 100 ? 'triangle' : 'sine';
     o.frequency.value = f;
@@ -260,31 +260,45 @@ export function startBed(ctx: Ctx, out: AudioNode): Bed {
   pulseLfo.connect(pulseLfoG).connect(pulseAm.gain);
   pulseAm.gain.value = 0.5;
 
+  // Thin high whine, like a suit sensor: barely there, grows with danger.
+  const whine = ctx.createOscillator();
+  whine.type = 'sine';
+  whine.frequency.value = 3150;
+  const whineG = ctx.createGain();
+  whineG.gain.value = 0.004;
+  const whineLfo = ctx.createOscillator();
+  whineLfo.frequency.value = 0.21;
+  const whineLfoG = ctx.createGain();
+  whineLfoG.gain.value = 40;
+  whineLfo.connect(whineLfoG).connect(whine.frequency);
+  whine.connect(whineG).connect(master);
+
   // Rare distant sounds: a metallic creak or a radio chirp.
   let alive = true;
   let timer: ReturnType<typeof setTimeout> | undefined;
   const ping = () => {
     if (!alive) return;
-    const f = [220, 277, 330, 415][Math.floor(Math.random() * 4)] ?? 220;
-    tone(ctx, master, { dur: 2.4, vol: 0.05, f0: f, f1: f * 0.99, attack: 0.6 });
-    tone(ctx, master, { dur: 2.4, vol: 0.03, f0: f * 2.01, attack: 0.8 });
+    const f = [185, 233, 277, 370][Math.floor(Math.random() * 4)] ?? 220;
+    tone(ctx, master, { dur: 2.4, vol: 0.03, f0: f, f1: f * 0.99, attack: 0.6 });
+    tone(ctx, master, { dur: 2.4, vol: 0.015, f0: f * 2.01, attack: 0.8 });
     timer = setTimeout(ping, 7000 + Math.random() * 9000);
   };
   timer = setTimeout(ping, 3500);
 
-  const nodes = [windSrc, gust, gust2, droneLfo, pulse, pulseLfo, ...drones];
+  const nodes = [whine, whineLfo, windSrc, gust, gust2, droneLfo, pulse, pulseLfo, ...drones];
   nodes.forEach((o) => o.start());
 
   return {
     setLevel(music, tension, storm) {
       const t = ctx.currentTime;
       master.gain.cancelScheduledValues(t);
-      master.gain.linearRampToValueAtTime(music * 0.9, t + 0.6);
-      windG.gain.linearRampToValueAtTime(0.35 + storm * 0.9 + tension * 0.1, t + 1.2);
+      master.gain.linearRampToValueAtTime(music * 0.45, t + 0.6);
+      windG.gain.linearRampToValueAtTime(0.22 + storm * 0.7 + tension * 0.1, t + 1.2);
       windF.Q.linearRampToValueAtTime(0.7 + storm * 1.6, t + 1.2);
-      droneG.gain.linearRampToValueAtTime(0.18 + tension * 0.3, t + 1.2);
-      pulseG.gain.linearRampToValueAtTime(tension > 0.5 ? (tension - 0.4) * 1.2 : 0, t + 1);
-      pulseLfo.frequency.linearRampToValueAtTime(1 + tension * 1.8, t + 1);
+      droneG.gain.linearRampToValueAtTime(0.14 + tension * 0.3, t + 1.2);
+      pulseG.gain.linearRampToValueAtTime(0.1 + Math.max(0, tension - 0.4) * 1.3, t + 1);
+      pulseLfo.frequency.linearRampToValueAtTime(0.7 + tension * 2, t + 1);
+      whineG.gain.linearRampToValueAtTime(0.004 + tension * 0.02, t + 1.5);
     },
     stop() {
       alive = false;

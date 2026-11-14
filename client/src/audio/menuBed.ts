@@ -67,7 +67,7 @@ export function startMenuBed(ctx: AudioContext, out: AudioNode): Bed {
     setLevel(music) {
       const t = ctx.currentTime;
       master.gain.cancelScheduledValues(t);
-      master.gain.linearRampToValueAtTime(music * 1.1, t + 1.5);
+      master.gain.linearRampToValueAtTime(music * 0.6, t + 1.5);
     },
     stop() {
       alive = false;
