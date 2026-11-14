@@ -1,0 +1,45 @@
+import { expect, it } from 'vitest';
+import { O2 } from '../src';
+import { launched } from './helpers';
+
+it('rescues before interacting with the nearby airlock, and rescued crew can survive', () => {
+  const { h, mc, crew } = launched(2);
+  h.seconds(5.1);
+  const sim = h.room.simulation!;
+  const [a, b] = sim.pub.astronauts;
+  Object.assign(b!, { x: a!.x, y: a!.y, status: 'down', o2: 0, downUntil: sim.pub.t + 20 });
+  const before = a!.o2;
+  h.send(crew[0]!, { t: 'eva:interact' });
+  expect(b!.status).toBe('active');
+  expect(b!.o2).toBe(15);
+  expect(b!.downUntil).toBe(0);
+  expect(a!.o2).toBeCloseTo(before - 15);
+  expect(a!.status).toBe('active');
+  expect(sim.hidden.stats.o2Shared).toBe(15);
+  expect(sim.pub.fx.some((f) => f.type === 'rescue')).toBe(true);
+  a!.status = 'inside';
+  b!.status = 'inside';
+  h.send(mc, { t: 'mc:liftoff' });
+  h.ticks(1);
+  expect(h.room.state.report!.stats.lost).toBe(0);
+});
+it('requires oxygen above the reserve, range, and an active rescuer', () => {
+  const { h, crew } = launched(2);
+  h.seconds(5.1);
+  const sim = h.room.simulation!;
+  const [a, b] = sim.pub.astronauts;
+  a!.x = 100;
+  a!.y = 100;
+  Object.assign(b!, { x: 100, y: 100, status: 'down', o2: 0 });
+  a!.o2 = O2.shareAmount + 5;
+  h.send(crew[0]!, { t: 'eva:interact' });
+  expect(b!.status).toBe('down');
+  a!.o2 = 60;
+  b!.x += O2.shareRange + 1;
+  h.send(crew[0]!, { t: 'eva:interact' });
+  expect(b!.status).toBe('down');
+  b!.x = 100;
+  a!.status = 'down';
+  h.send(crew[0]!, { t: 'eva:interact' });
+  expect(b!.status).toBe('down');
+});

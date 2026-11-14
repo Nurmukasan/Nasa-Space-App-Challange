@@ -67,6 +67,22 @@ export function handleSimMsg(
         return;
       }
       if (a.status !== 'active') return;
+      const down = sim.pub.astronauts.find(
+        (b) =>
+          b.id !== a.id &&
+          b.status === 'down' &&
+          t < b.downUntil &&
+          dist(a.x, a.y, b.x, b.y) <= O2.shareRange,
+      );
+      if (down && a.o2 > O2.shareAmount + 5) {
+        a.o2 -= O2.shareAmount;
+        down.o2 = O2.shareAmount;
+        down.status = 'active';
+        down.downUntil = 0;
+        sim.hidden.stats.o2Shared += O2.shareAmount;
+        pushFx(sim, { type: 'rescue', playerId: down.id, x: down.x, y: down.y });
+        return;
+      }
       if (dist(a.x, a.y, lander.x, lander.y) > O2.airlockRadius) return;
       if (a.carrying.length > 0) {
         for (const s of a.carrying) {
