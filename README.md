@@ -36,7 +36,7 @@ Add `?debug=1` to the URL to get `window.rs` (send, store, snaps) in the browser
 - `shared/` – game rules: types, protocol, balance, catalog, simulation, room engine. Pure TypeScript.
 - `server/` – thin Socket.IO wrapper around the engine.
 - `client/` – React UI, Phaser field view, canvas Mission Control console.
-- `docs/` – product logic, architecture, work plan.
+- `docs/` – product logic, architecture, work plan (`phases.md`), asset guide (`assets.md`).
 
 ## Deploy
 
@@ -65,7 +65,8 @@ AI assistants were used to help write and review code and to create some of the 
 repository; screens that show AI-made art carry a visible "AI-GENERATED ART" label.
 OpenAI Codex assisted with client foundation recovery, mission control, mission design, networking,
 scene lifecycle fixes, field effects, causal report UI, integration checks and deployment setup.
-Claude Code assisted with the remote-interpolation correction in PR #1.
+Claude Code assisted with the remote-interpolation correction in PR #1, the v2 game design and work plan
+(`docs/phases.md`, `docs/product-logic.md`, `docs/architecture.md`, `docs/assets.md`) and the asset validator.
 The built-in fallback sprites and sounds are procedural; NASA audio is not bundled.
 Additional asset contributions must be credited by their authors before submission.
 

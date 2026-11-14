@@ -17,10 +17,14 @@ function Demo() {
       guess: null,
       truth: null,
       estimate: null,
+      signal: false,
+      pick: null,
       signals: Array.from({ length: kind === 'wind' ? 1 : 3 }, (_, stationIdx) => ({
         stationIdx: kind === 'wind' ? 2 : stationIdx,
         delayS: stationIdx * 0.8,
         amp: 0.8,
+        distEst: 0,
+        bearingEst: null,
         ...SIGNALS[kind],
       })),
     }));

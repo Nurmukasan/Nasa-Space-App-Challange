@@ -6,6 +6,8 @@ import { endMission } from './endcheck';
 import { resolveEvent } from './seismic';
 import { moveSpeed } from './movement';
 import { dist, findAstronaut, pushFx, pushLog } from './sim';
+import { tryStartRepair } from './faults';
+import { tryDeployKit } from './stations';
 import type { Sim } from './sim';
 
 function num(v: unknown): v is number {
@@ -83,7 +85,12 @@ export function handleSimMsg(
         pushFx(sim, { type: 'rescue', playerId: down.id, x: down.x, y: down.y });
         return;
       }
-      if (dist(a.x, a.y, lander.x, lander.y) > O2.airlockRadius) return;
+      // E order (docs/product-logic.md 7.4): rescue -> airlock -> repair -> deploy a kit.
+      if (dist(a.x, a.y, lander.x, lander.y) > O2.airlockRadius) {
+        if (tryStartRepair(sim, a)) return;
+        tryDeployKit(sim, a);
+        return;
+      }
       if (a.carrying.length > 0) {
         for (const s of a.carrying) {
           lander.cache.push(s);
@@ -166,6 +173,9 @@ export function handleSimMsg(
       if (event && event.truth === null && t < event.deadline) resolveEvent(sim, event, msg.kind);
       return;
     }
+    case 'mc:locate':
+      // Epicentre picks arrive in task A3; the message is accepted and ignored until then.
+      return;
     default:
       return;
   }

@@ -4,22 +4,26 @@ import {
   COMMS,
   DATA,
   DIG,
+  DISCOVERY,
   LANDER,
   METERS_PER_PX,
-  MISSION_DURATION_S,
   MOVE,
   O2,
   POWER,
   SAMPLE,
+  STATIONS,
 } from './balance';
+import { SCENARIOS } from './scenarios';
 import { DIFFICULTIES, MODULES, OBJECTIVES, PRESETS, RELAYS, SITES, VEHICLES } from './catalog';
 import type {
   DesignCheck,
   DesignField,
   DesignIssue,
   MissionDesign,
+  MissionForecast,
   MissionParams,
   ModuleId,
+  ScenarioId,
 } from './types';
 
 export function defaultDesign(): MissionDesign {
@@ -73,7 +77,12 @@ export function dataBudget(d: MissionDesign): { gen: number; cap: number; factor
   return { gen, cap, factor };
 }
 
-export function deriveParams(d: MissionDesign, seed: number): MissionParams {
+export function deriveParams(
+  d: MissionDesign,
+  seed: number,
+  scenario: ScenarioId = 'free',
+): MissionParams {
+  const sc = SCENARIOS[scenario];
   const obj = OBJECTIVES[d.objective];
   const site = SITES[d.site];
   const diff = DIFFICULTIES[d.difficulty];
@@ -106,7 +115,7 @@ export function deriveParams(d: MissionDesign, seed: number): MissionParams {
     objective: d.objective,
     site: d.site,
     difficulty: d.difficulty,
-    durationS: MISSION_DURATION_S,
+    durationS: sc.durationS,
     quota: obj.quota,
     deepQuota: obj.deepQuota,
     favoredKind: obj.favoredKind,
@@ -136,14 +145,35 @@ export function deriveParams(d: MissionDesign, seed: number): MissionParams {
     hasGpr: gpr,
     dataFactor: dataBudget(d).factor,
     classifyWindowS: diff.classifyWindowS,
+    scenario,
+    duskEndS: sc.duskEndS,
+    solo: false,
+    deployStations: sc.deployStations,
+    kits: sc.deployStations && net ? STATIONS.kitsWithNet : 0,
+    scanRange: DISCOVERY.scanRange * (gpr ? DISCOVERY.gprScanMul : 1),
+    scienceFull: sc.scienceFull,
   };
 }
 
-export function checkDesign(d: MissionDesign): DesignCheck {
+/**
+ * Design-time projection of power and oxygen over the mission (docs/product-logic.md 6.10).
+ * Phase 0 stub: real curves come in task A10.
+ */
+export function forecastMission(d: MissionDesign, _scenario: ScenarioId = 'free'): MissionForecast {
+  return {
+    points: [],
+    powerShortAtS: null,
+    storeEmptyAtS: null,
+    deepReachM: 0,
+    dataReturnPct: Math.round(dataBudget(d).factor * 100),
+  };
+}
+
+export function checkDesign(d: MissionDesign, scenario: ScenarioId = 'free'): DesignCheck {
   const diff = DIFFICULTIES[d.difficulty];
   const vehicle = VEHICLES[d.vehicle];
   const relay = RELAYS[d.relay];
-  const p = deriveParams(d, 0);
+  const p = deriveParams(d, 0, scenario);
   const data = dataBudget(d);
 
   let cost = vehicle.cost + relay.cost;
@@ -211,5 +241,6 @@ export function checkDesign(d: MissionDesign): DesignCheck {
     },
     issues,
     prediction,
+    forecast: forecastMission(d, scenario),
   };
 }

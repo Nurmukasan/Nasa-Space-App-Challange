@@ -11,17 +11,31 @@ import type {
   PresetId,
   Role,
   RoomState,
+  ScenarioId,
 } from './types';
 
-export type PingKind = 'ok' | 'help' | 'low_o2' | 'returning' | 'found';
+export type PingKind = 'ok' | 'help' | 'low_o2' | 'returning' | 'found' | 'shaking';
 export type AlertKind = 'evac' | 'return' | 'hold';
 export type DebugCmd =
-  'skip_phase' | 'event_quake' | 'event_impact' | 'event_wind' | 'storm' | 'set_time' | 'drain_o2';
+  | 'skip_phase'
+  | 'event_quake'
+  | 'event_impact'
+  | 'event_wind'
+  | 'storm'
+  | 'set_time'
+  | 'drain_o2'
+  | 'event_signal'
+  | 'devil'
+  | 'fault'
+  | 'flare'
+  | 'next_act'
+  | 'reveal_all';
 
 export type ClientMsg =
   | { t: 'lobby:role'; role: Role | null }
   | { t: 'lobby:ready'; ready: boolean }
   | { t: 'lobby:start'; quick: boolean }
+  | { t: 'lobby:scenario'; id: ScenarioId }
   | { t: 'design:set'; field: DesignField; value: string }
   | { t: 'design:module'; id: ModuleId; on: boolean }
   | { t: 'design:preset'; id: PresetId }
@@ -33,6 +47,7 @@ export type ClientMsg =
   | { t: 'mc:waypoint'; playerId: string; x: number; y: number }
   | { t: 'mc:clearWaypoint'; playerId: string }
   | { t: 'mc:classify'; eventId: string; kind: EventKind }
+  | { t: 'mc:locate'; eventId: string; x: number; y: number }
   | { t: 'mc:power'; alloc: PowerAlloc }
   | { t: 'mc:dispense'; playerId: string }
   | { t: 'mc:ration'; on: boolean }
