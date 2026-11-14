@@ -2,6 +2,7 @@ import { DIG, FLARE, INSIGHTS, LANDER_POS, METERS_PER_PX, O2, REPORT_INSIGHTS } 
 import { MODULES } from '../catalog';
 import { checkDesign } from '../design';
 import type { Insight, MissionDesign, ModuleId } from '../types';
+import { primariesDone } from './objectives';
 import type { Sim } from './sim';
 
 /** Rules return data keys; localized copy and sourced fact cards belong to the client. */
@@ -10,8 +11,15 @@ export function buildInsights(sim: Sim, design: MissionDesign): Insight[] {
     p = sim.params;
   const has = (id: MissionDesign['modules'][number]) => design.modules.includes(id);
   const crew = Math.max(1, s.crew);
-  const success =
-    s.crew > s.lost && s.samplesDeposited >= p.quota && s.deepDeposited >= p.deepQuota;
+  const v2 = p.scenario !== 'free';
+  // v2 scenarios decide success and the deep target from their own objectives (PL 7.18);
+  // Free mission keeps the v1 quota rule.
+  const deepGoal = v2
+    ? (sim.pub.objectives.find((o) => o.kind === 'deliver_deep')?.target ?? 0)
+    : p.deepQuota;
+  const success = v2
+    ? s.crew > s.lost && primariesDone(sim.pub.objectives)
+    : s.crew > s.lost && s.samplesDeposited >= p.quota && s.deepDeposited >= p.deepQuota;
   const totals = checkDesign(design).totals;
   const budgetFrac = (totals.budget - totals.cost) / totals.budget;
   const out: Insight[] = [];
@@ -28,10 +36,9 @@ export function buildInsights(sim: Sim, design: MissionDesign): Insight[] {
     if (fixModule && !has(fixModule)) insight.fix = { module: fixModule };
     out.push(insight);
   };
-  const v2 = p.scenario !== 'free';
   add(s.lost > 0, 'lost_crew', 'bad', { count: s.lost, minute: Math.round(s.endedAtS / 60) });
   add(
-    s.deepDeposited < p.deepQuota && !has('drill'),
+    s.deepDeposited < deepGoal && !has('drill'),
     'no_drill_deep',
     'bad',
     {
