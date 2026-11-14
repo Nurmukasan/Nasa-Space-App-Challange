@@ -64,6 +64,8 @@ export type ErrorCode =
   | 'game_in_progress'
   | 'bad_request'
   | 'not_allowed'
+  /** lobby:start refused: an EVA or solo player has not picked a crew class yet. */
+  | 'class_not_chosen'
   | 'server_full';
 
 export type ServerMsg =

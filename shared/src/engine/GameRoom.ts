@@ -108,6 +108,7 @@ export class GameRoom {
       colorIdx,
       role: null,
       crewClass: defaultCrewClass(colorIdx),
+      classChosen: false,
       ready: false,
       connected: true,
       isHost: false,
