@@ -1,21 +1,23 @@
 import { useEffect, useRef } from 'react';
 import { t } from '../../i18n';
 import { send } from '../../net/session';
+import { useApp } from '../../state/store';
 import { snaps } from '../../state/snapshots';
 import { drawMiniMap, miniMapPoint } from '../../render/miniMap';
 
 export function WristMap({ playerId }: { playerId: string }) {
+  const hasWeather = useApp((s) => s.room?.params?.hasWeather ?? false);
   const canvas = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     let frame = 0;
     const draw = () => {
       frame = requestAnimationFrame(draw);
       const ctx = canvas.current?.getContext('2d');
-      if (ctx && snaps.curr) drawMiniMap(ctx, snaps.curr, playerId);
+      if (ctx && snaps.curr) drawMiniMap(ctx, snaps.curr, playerId, 128, hasWeather);
     };
     draw();
     return () => cancelAnimationFrame(frame);
-  }, [playerId]);
+  }, [playerId, hasWeather]);
   return (
     <section className="wrist-map">
       <h2>{t('eva.wrist_map')}</h2>

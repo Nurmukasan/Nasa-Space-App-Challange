@@ -86,6 +86,7 @@ const en: Record<string, string> = {
   'eva.cleared': 'NO ACTIVE ALERTS',
   'log.sample_collected': 'Sample secured: {tier} +{value}',
   'log.discovery': '{id} found: {kind} · richness {richness}',
+  'log.panel_clean': 'Dust devil cleaned the arrays! +power',
   'log.deploy': 'Seismometer deployed · network: {n}',
   'log.down': 'Crew {id} needs rescue',
   'log.lost': 'Crew {id} lost',
