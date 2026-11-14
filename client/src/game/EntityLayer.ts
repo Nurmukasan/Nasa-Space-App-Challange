@@ -99,7 +99,7 @@ export class EntityLayer {
     for (const a of snap.astronauts) {
       let v = this.crew.get(a.id);
       if (!v) {
-        // 64x64 class art drawn at half size; the origin puts the boots on the astronaut's point.
+        // Class art from game/crewArt.ts; the origin puts the boots just below the astronaut's point.
         v = {
           body: this.scene.add
             .sprite(a.x, a.y, `crew_${a.crewClass}`)

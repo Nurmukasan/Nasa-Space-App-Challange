@@ -29,4 +29,4 @@ External source pages and final scientific wording still need the science lead's
 
 | What | Used for | Source | Notes |
 | --- | --- | --- | --- |
-| `crew_engineer.png`, `crew_scout.png`, `crew_geologist.png`, `crew_biologist.png` (client/public/assets/sprites/) | Crew class sprites in the field view and the lobby picker | AI-generated character sheets supplied by the team; cut into 64×64 frames (background and shadow removed, box-downscaled) with Claude Code | **AI-generated.** Shown with the "AI-GENERATED ART" label. No logos, flags or mission patches. Image generator: _to be filled in by the team_ |
+| Crew class sprites (engineer, scout, geologist, biologist), `client/src/game/crewArt.ts` | Field view and the lobby specialty picker | Drawn pixel by pixel in code by Claude Code (24×24 frames, own walk cycle). Colours and silhouettes follow AI-generated reference sheets from the team; the reference images are not shipped | **AI-made.** Shown with the "AI-GENERATED ART" label. No logos, flags or mission patches |
