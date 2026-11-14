@@ -1,23 +1,33 @@
-import { useState } from 'react';
 import type { ReactNode } from 'react';
-interface Entry {
+import { t } from '../i18n';
+export interface DevEntry {
   name: string;
   render: () => ReactNode;
 }
-const entries = Object.values(import.meta.glob<Entry>('./entries/*.tsx', { eager: true }));
-/** Small routing bridge for B fixtures; additional C/B entries are discovered automatically. */
+type EntryModule = Partial<DevEntry> & { default?: DevEntry };
+const modules = import.meta.glob<EntryModule>('./entries/*.tsx', { eager: true });
+// B pages use named exports; C pages may export the same entry as default.
+const entries = Object.values(modules)
+  .map((module) => module.default ?? module)
+  .filter(
+    (entry): entry is DevEntry =>
+      typeof entry.name === 'string' && typeof entry.render === 'function',
+  )
+  .sort((a, b) => a.name.localeCompare(b.name));
 export function Playground({ name }: { name: string }) {
-  const [selected, setSelected] = useState(name);
-  const entry = entries.find((e) => e.name === selected);
+  const entry = entries.find((page) => page.name === name);
   if (entry) return entry.render();
   return (
-    <div className="screen">
-      <h1>DEVELOPMENT PLAYGROUND</h1>
-      {entries.map((e) => (
-        <button key={e.name} onClick={() => setSelected(e.name)}>
-          {e.name}
-        </button>
-      ))}
-    </div>
+    <main className="screen">
+      <h1>{t('dev.title')}</h1>
+      <p>{name ? t('dev.unknown', { name }) : t('dev.empty')}</p>
+      <nav aria-label={t('dev.title')}>
+        {entries.map((page) => (
+          <a key={page.name} href={`?dev=${encodeURIComponent(page.name)}`}>
+            {page.name}
+          </a>
+        ))}
+      </nav>
+    </main>
   );
 }

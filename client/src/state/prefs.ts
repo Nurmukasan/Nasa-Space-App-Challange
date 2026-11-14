@@ -14,8 +14,15 @@ const defaults: Preferences = {
 };
 const KEY = 'red-signal-prefs';
 function load(): Preferences {
+  let reduceMotion = defaults.reduceMotion;
   try {
-    const v = JSON.parse(localStorage.getItem(KEY) ?? '{}');
+    reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  } catch {
+    /* Non-browser context. */
+  }
+  try {
+    const parsed: unknown = JSON.parse(localStorage.getItem(KEY) ?? '{}');
+    const v = parsed !== null && typeof parsed === 'object' ? (parsed as Partial<Preferences>) : {};
     const volume = (value: unknown, fallback: number) =>
       typeof value === 'number' && Number.isFinite(value)
         ? Math.max(0, Math.min(1, value))
@@ -24,13 +31,10 @@ function load(): Preferences {
       musicVolume: volume(v.musicVolume, defaults.musicVolume),
       sfxVolume: volume(v.sfxVolume, defaults.sfxVolume),
       muted: v.muted === true,
-      reduceMotion:
-        typeof v.reduceMotion === 'boolean'
-          ? v.reduceMotion
-          : matchMedia('(prefers-reduced-motion: reduce)').matches,
+      reduceMotion: typeof v.reduceMotion === 'boolean' ? v.reduceMotion : reduceMotion,
     };
   } catch {
-    return { ...defaults };
+    return { ...defaults, reduceMotion };
   }
 }
 export const prefs = createStore<Preferences>(() => load());

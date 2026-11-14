@@ -11,7 +11,9 @@ import './ui/theme.css';
 
 // No <StrictMode>: its double-mount in dev would create two Phaser games.
 const dev = new URLSearchParams(location.search).get('dev');
-createRoot(document.getElementById('root')!).render(dev ? <Playground name={dev} /> : <App />);
+createRoot(document.getElementById('root')!).render(
+  dev !== null ? <Playground name={dev} /> : <App />,
+);
 // Audio must unlock inside the first trusted user gesture, including lobby clicks.
 window.addEventListener('pointerdown', () => audio.unlock());
 window.addEventListener('keydown', () => audio.unlock());
