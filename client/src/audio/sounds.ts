@@ -21,6 +21,9 @@ export const SFX_NAMES = [
   'impact',
   'launch',
   'stamp',
+  'stamp_win',
+  'stamp_fail',
+  'death',
 ] as const;
 export type SfxName = (typeof SFX_NAMES)[number];
 export type MusicName =
