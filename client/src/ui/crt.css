@@ -1,0 +1,13 @@
+.crt {
+  position: relative;
+  text-shadow: 0 0 3px #66d79066;
+}
+.crt::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(transparent 0 3px, #0002 3px 4px),
+    radial-gradient(ellipse, transparent 60%, #0004);
+}
