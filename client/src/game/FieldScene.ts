@@ -1,7 +1,6 @@
 import Phaser from 'phaser';
 import {
   LANDER_POS,
-  PLAYER_COLORS,
   SITES,
   TICK_HZ,
   TILE,
@@ -13,6 +12,8 @@ import {
 import { send } from '../net/session';
 import { snaps } from '../state/snapshots';
 import { store } from '../state/store';
+import { EntityLayer } from './EntityLayer';
+import { preloadAssets, ensureAssets } from './assets';
 import { Lighting, makeLightTexture } from './Lighting';
 
 const LEVEL_COLORS = [0x6c2a2e, 0x8a362a, 0xa84a2e, 0xc6643a, 0xe28650];
@@ -20,7 +21,7 @@ const SNAP_BACK_PX = 24;
 
 /** Walking-skeleton field view: coarse terrain, rectangles for crew, local movement. */
 export class FieldScene extends Phaser.Scene {
-  private sprites = new Map<string, Phaser.GameObjects.Rectangle>();
+  private entities!: EntityLayer;
   private keys!: Record<'W' | 'A' | 'S' | 'D' | 'SHIFT' | 'E' | 'SPACE', Phaser.Input.Keyboard.Key>;
   private meX = 0;
   private meY = 0;
@@ -34,7 +35,12 @@ export class FieldScene extends Phaser.Scene {
     super('field');
   }
 
+  preload(): void {
+    preloadAssets(this);
+  }
+
   create(): void {
+    ensureAssets(this);
     const room = store.getState().room;
     const salt = SITES[room?.params?.site ?? 'jezero'].terrainSalt;
     const g = this.add.graphics();
@@ -48,7 +54,7 @@ export class FieldScene extends Phaser.Scene {
     g.generateTexture('terrain', WORLD_PX, WORLD_PX);
     g.destroy();
     this.add.image(0, 0, 'terrain').setOrigin(0, 0);
-    this.add.rectangle(LANDER_POS.x, LANDER_POS.y, 36, 26, 0xb0b6c4).setStrokeStyle(2, 0x1e1a28);
+    this.entities = new EntityLayer(this);
 
     makeLightTexture(this, 'light56', 56);
     makeLightTexture(this, 'light28', 28);
@@ -101,21 +107,9 @@ export class FieldScene extends Phaser.Scene {
       }
     }
 
-    for (const a of snap.astronauts) {
-      let s = this.sprites.get(a.id);
-      if (!s) {
-        const colorIdx = st.room?.players.find((p) => p.id === a.id)?.colorIdx ?? 0;
-        s = this.add
-          .rectangle(a.x, a.y, 10, 14, PLAYER_COLORS[colorIdx] ?? 0xffffff)
-          .setStrokeStyle(1, 0x181424);
-        this.sprites.set(a.id, s);
-      }
-      s.setVisible(a.status !== 'inside');
-      s.setAlpha(a.status === 'active' ? 1 : 0.4);
-      if (a.id === myId) s.setPosition(this.meX, this.meY);
-      else s.setPosition(Phaser.Math.Linear(s.x, a.x, 0.25), Phaser.Math.Linear(s.y, a.y, 0.25));
-    }
     if (mine) this.cameras.main.centerOn(this.meX, this.meY);
+
+    this.entities.update(snap, myId, this.meX, this.meY, performance.now());
 
     const lights = [{ x: LANDER_POS.x, y: LANDER_POS.y, key: 'light56', r: 56 }];
     for (const a of snap.astronauts) {
