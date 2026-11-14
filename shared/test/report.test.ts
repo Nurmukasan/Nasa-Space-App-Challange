@@ -282,3 +282,24 @@ it('the report timeline is bounded and in time order', async () => {
   expect(r.timeline.every((e, i) => i === 0 || r.timeline[i - 1]!.t <= e.t)).toBe(true);
   expect(r.timeline.some((e) => e.type === 'ping')).toBe(false);
 });
+
+it('no drill finding follows the scenario: never in training, from the deep objective in signal', () => {
+  const training = createSim(deriveParams(PRESETS.budget, 1, 'training'), ['a']);
+  expect(training.pub.objectives.some((o) => o.kind === 'deliver_deep')).toBe(false);
+  expect(buildInsights(training, PRESETS.budget).some((i) => i.code === 'no_drill_deep')).toBe(
+    false,
+  );
+  const signal = setupV2();
+  signal.sim.hidden.stats.deepDeposited = 0;
+  expect(buildInsights(signal.sim, signal.design).some((i) => i.code === 'no_drill_deep')).toBe(
+    true,
+  );
+});
+
+it('lean design in v2 needs the scenario primaries, not the v1 quota', () => {
+  const v = setupV2();
+  v.sim.hidden.stats.samplesDeposited = 99;
+  expect(buildInsights(v.sim, v.design).some((i) => i.code === 'lean_design')).toBe(false);
+  for (const o of v.sim.pub.objectives) if (o.primary) o.state = 'done';
+  expect(buildInsights(v.sim, v.design).some((i) => i.code === 'lean_design')).toBe(true);
+});
