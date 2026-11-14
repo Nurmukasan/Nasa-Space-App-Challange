@@ -20,7 +20,15 @@ function Chart({ eventId }: { eventId?: string }) {
     />
   );
 }
-export function SeismicPanel({ snap }: { snap: EvaState }) {
+export function SeismicPanel({
+  snap,
+  locating,
+  setLocating,
+}: {
+  snap: EvaState;
+  locating: string | null;
+  setLocating: (id: string | null) => void;
+}) {
   return (
     <section className="panel">
       <h2>{t('console.seismic')}</h2>
@@ -30,7 +38,15 @@ export function SeismicPanel({ snap }: { snap: EvaState }) {
           <Chart eventId={e.id} />
           <progress max={e.deadline - e.t0} value={Math.max(0, e.deadline - snap.t)} />
           <span>{Math.max(0, Math.ceil(e.deadline - snap.t))}s</span>
-          <div>
+          {e.signal && <b className="signal-label">{t('console.redSignal')}</b>}
+          <button
+            className={locating === e.id ? 'on' : ''}
+            disabled={snap.t >= e.deadline}
+            onClick={() => setLocating(locating === e.id ? null : e.id)}
+          >
+            {t(locating === e.id ? 'console.locating' : 'console.locate')}
+          </button>
+          <div hidden={e.signal}>
             {(['quake', 'impact', 'wind'] as const).map((kind) => (
               <button
                 key={kind}
