@@ -1,5 +1,9 @@
 export default {
   'crew.title': 'Choose your specialty',
+  'crew.prompt': 'Choose your specialty to launch',
+  'crew.unchosen': 'No specialty',
+  'crew.waiting': 'Waiting for a specialty: {names}',
+  'crew.not_chosen': 'Every astronaut must choose a specialty first.',
   'crew.engineer.name': 'Engineer',
   'crew.engineer.desc': 'Repairs equipment and builds useful devices.',
   'crew.scout.name': 'Scout',

@@ -49,6 +49,7 @@ export function fieldFixture(state: FieldState = 'active'): {
   const player = room.join({ name: 'TULPAR' });
   if (!player.ok) throw Error('fixture join');
   room.handle(player.playerId, { t: 'lobby:role', role: 'solo' });
+  room.handle(player.playerId, { t: 'lobby:class', crewClass: 'geologist' });
   if (['objectives', 'scanner', 'flare', 'act'].includes(state))
     room.handle(player.playerId, { t: 'lobby:scenario', id: 'training' });
   room.handle(player.playerId, { t: 'lobby:start', quick: true });

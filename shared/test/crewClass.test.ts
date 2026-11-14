@@ -75,6 +75,21 @@ describe('crew class choice and perks', () => {
     h.send(b, { t: 'lobby:class', crewClass: 'pilot' as never });
     expect(info(h, a).crewClass).toBe('biologist');
     expect(info(h, b).crewClass).toBe('geologist');
+    expect(info(h, b).classChosen).toBe(false);
+    // b has not picked a class: nobody launches, the host is told why.
+    h.send(mc, { t: 'lobby:start', quick: true });
+    expect(h.room.state.phase).toBe('lobby');
+    expect(
+      h.sent.some(
+        (m) => m.target === mc && m.msg.t === 'error' && m.msg.code === 'class_not_chosen',
+      ),
+    ).toBe(true);
+    h.send(mc, { t: 'lobby:start', quick: false });
+    expect(h.room.state.phase).toBe('lobby');
+    // Picking the default class explicitly counts; Mission Control never has to pick.
+    h.send(b, { t: 'lobby:class', crewClass: 'geologist' });
+    expect(info(h, b).classChosen).toBe(true);
+    expect(info(h, mc).classChosen).toBe(false);
     h.send(mc, { t: 'lobby:start', quick: true });
     h.ticks(1);
     const snap = h.lastSnap()!;

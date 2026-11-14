@@ -16,6 +16,7 @@ describe('lobby', () => {
     h.send(b.playerId, { t: 'lobby:start', quick: true });
     expect(h.room.state.phase).toBe('lobby'); // not host, roles incomplete
     h.send(b.playerId, { t: 'lobby:role', role: 'eva' });
+    h.send(b.playerId, { t: 'lobby:class', crewClass: 'scout' });
     h.send(a.playerId, { t: 'lobby:start', quick: true });
     expect(h.room.state.phase).toBe('eva');
   });
@@ -25,6 +26,7 @@ describe('lobby', () => {
     const a = h.room.join({ name: 'A' });
     if (!a.ok) throw new Error('join');
     h.send(a.playerId, { t: 'lobby:role', role: 'solo' });
+    h.send(a.playerId, { t: 'lobby:class', crewClass: 'geologist' });
     h.send(a.playerId, { t: 'lobby:start', quick: true });
     expect(h.room.state.phase).toBe('eva');
     expect(h.room.simulation!.pub.astronauts).toHaveLength(1);

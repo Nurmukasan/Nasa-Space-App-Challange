@@ -63,6 +63,7 @@ it('training warns at 3:05 and the flare follows 30 s later', () => {
   const a = h.room.join({ name: 'A' });
   if (!a.ok) throw new Error('join');
   h.send(a.playerId, { t: 'lobby:role', role: 'solo' });
+  h.send(a.playerId, { t: 'lobby:class', crewClass: 'geologist' });
   h.send(a.playerId, { t: 'lobby:scenario', id: 'training' });
   h.send(a.playerId, { t: 'lobby:start', quick: true });
   const sim = h.room.simulation!;
@@ -81,6 +82,7 @@ it('debug flare schedules the standard flare', () => {
   const a = h.room.join({ name: 'A' });
   if (!a.ok) throw new Error('join');
   h.send(a.playerId, { t: 'lobby:role', role: 'solo' });
+  h.send(a.playerId, { t: 'lobby:class', crewClass: 'geologist' });
   h.send(a.playerId, { t: 'lobby:start', quick: true });
   h.seconds(6);
   h.send(a.playerId, { t: 'debug', cmd: 'flare' });

@@ -53,7 +53,10 @@ export function launched(eva = 2, seed = 1234): { h: Harness; mc: string; crew: 
   const mc = ids[0]!;
   const crew = ids.slice(1);
   h.send(mc, { t: 'lobby:role', role: 'mc' });
-  for (const id of crew) h.send(id, { t: 'lobby:role', role: 'eva' });
+  for (const id of crew) {
+    h.send(id, { t: 'lobby:role', role: 'eva' });
+    h.send(id, { t: 'lobby:class', crewClass: 'geologist' });
+  }
   h.send(mc, { t: 'lobby:start', quick: true });
   return { h, mc, crew };
 }

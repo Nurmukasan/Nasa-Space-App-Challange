@@ -187,6 +187,7 @@ export class GameRoom {
         // Changeable until the crew walks out; Fly again keeps the last choice.
         if (phase === 'eva' || !isCrewClassId(msg.crewClass)) return;
         me.crewClass = msg.crewClass;
+        me.classChosen = true;
         this.dirty = true;
         return;
       case 'lobby:scenario':
@@ -203,6 +204,11 @@ export class GameRoom {
         if (phase !== 'lobby' || !isHost) return;
         if (!this.rolesValid()) {
           this.emit(me.id, { t: 'error', code: 'not_allowed' });
+          return;
+        }
+        // Everyone who goes outside picks their own specialty first.
+        if (this.slots.some((s) => s.info.role !== 'mc' && !s.info.classChosen)) {
+          this.emit(me.id, { t: 'error', code: 'class_not_chosen' });
           return;
         }
         if (msg.quick === true) {
