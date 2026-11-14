@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { prefs, usePrefs } from '../state/prefs';
 import { useApp } from '../state/store';
+import { endSession } from '../net/session';
 import { t } from '../i18n';
 import './menu.css';
 import './settings.css';
@@ -13,6 +14,7 @@ export function Settings() {
     glass = usePrefs((s) => s.visorGlass);
   // During the mission the button would sit on top of the HUD, so Esc opens it instead.
   const inMission = useApp((s) => s.room?.phase === 'eva');
+  const inRoom = useApp((s) => !!s.room);
   useEffect(() => {
     document.documentElement.dataset.reduceMotion = String(reduce);
   }, [reduce]);
@@ -80,7 +82,20 @@ export function Settings() {
             />
             {t('settings.visorGlass')}
           </label>
-          <button onClick={() => setOpen(false)}>{t('settings.close')}</button>
+          <button onClick={() => setOpen(false)}>
+            {t(inMission ? 'settings.resume' : 'settings.close')}
+          </button>
+          {inRoom && (
+            <button
+              className="danger"
+              onClick={() => {
+                setOpen(false);
+                endSession();
+              }}
+            >
+              {t('settings.leave')}
+            </button>
+          )}
         </section>
       )}
     </div>

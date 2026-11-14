@@ -7,6 +7,8 @@ export interface Preferences {
   reduceMotion: boolean;
   /** Dust, glare and tint painted on the helmet glass. Off keeps the view clean. */
   visorGlass: boolean;
+  /** Astronaut suit id, see game/skins.ts. Only your own astronaut uses it. */
+  skin: string;
 }
 const defaults: Preferences = {
   musicVolume: 0.35,
@@ -14,6 +16,7 @@ const defaults: Preferences = {
   muted: false,
   reduceMotion: false,
   visorGlass: false,
+  skin: 'classic',
 };
 const KEY = 'red-signal-prefs';
 function load(): Preferences {
@@ -36,6 +39,7 @@ function load(): Preferences {
       muted: v.muted === true,
       reduceMotion: typeof v.reduceMotion === 'boolean' ? v.reduceMotion : reduceMotion,
       visorGlass: v.visorGlass === true,
+      skin: typeof v.skin === 'string' ? v.skin : defaults.skin,
     };
   } catch {
     return { ...defaults, reduceMotion };
