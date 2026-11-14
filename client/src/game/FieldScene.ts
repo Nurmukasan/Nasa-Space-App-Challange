@@ -103,9 +103,10 @@ export class FieldScene extends Phaser.Scene {
     for (const a of snap.astronauts) {
       if (a.status === 'inside' || a.status === 'lost') continue;
       const own = a.id === myId;
+      const drawn = own ? undefined : (this.entities.drawnAt(a.id) ?? a);
       lights.push({
-        x: own ? this.meX : a.x,
-        y: own ? this.meY : a.y,
+        x: drawn ? drawn.x : this.meX,
+        y: drawn ? drawn.y : this.meY,
         key: own
           ? `light-cone-${Math.round(((((this.facing % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2)) / (Math.PI * 2)) * FIELD.coneDirections) % FIELD.coneDirections}`
           : 'light-friend',
