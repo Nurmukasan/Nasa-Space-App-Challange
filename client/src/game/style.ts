@@ -25,6 +25,7 @@ export const FIELD = {
   coneDirections: 16,
   maxParticles: 160,
   maxTracks: 900,
+  footStridePx: 15,
   footOffsetPx: 2.5,
   stepMs: 200,
   digParticleMs: 140,

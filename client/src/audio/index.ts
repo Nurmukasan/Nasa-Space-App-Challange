@@ -3,6 +3,9 @@ import { prefs } from '../state/prefs';
 import { FIELD } from '../game/style';
 import { sources } from './sounds';
 import type { MusicName, SfxName } from './sounds';
+import { playSynth, startBed } from './synth';
+import type { Bed } from './synth';
+import { startMenuBed } from './menuBed';
 export type { SfxName } from './sounds';
 export interface SfxOptions {
   volume?: number;
@@ -22,6 +25,11 @@ class AudioManager {
   private ducked = false;
   private duckTimer: ReturnType<typeof setTimeout> | null = null;
   private ready = false;
+  private bed: Bed | null = null;
+  private menuBed: Bed | null = null;
+  private storm = 0;
+  private inEva = false;
+  private stepFlip = false;
   /** Read-only counters support browser smoke tests and effect deduplication checks. */
   readonly diagnostics = { tones: 0, oneShots: 0 };
   constructor() {
@@ -39,6 +47,7 @@ class AudioManager {
       .resume()
       .then(() => {
         this.ready = true;
+        this.syncBeds();
       })
       .catch(() => undefined);
   }
@@ -73,33 +82,7 @@ class AudioManager {
   private tone(name: SfxName, volume: number): void {
     const ctx = this.context;
     if (!this.ready || !ctx || volume <= 0) return;
-    const oscillator = ctx.createOscillator(),
-      gain = ctx.createGain();
-    const high = ['sample_get', 'refill_done', 'classify_ok', 'ui_click'].includes(name);
-    const frequency = high
-      ? 740
-      : ['breach', 'down', 'rockfall', 'classify_bad'].includes(name)
-        ? 110
-        : 260;
-    const duration = name === 'radio_in' ? 0.16 : 0.09;
-    oscillator.type = high ? 'sine' : 'triangle';
-    oscillator.frequency.setValueAtTime(frequency, ctx.currentTime);
-    oscillator.frequency.exponentialRampToValueAtTime(
-      frequency * (high ? 1.35 : 0.7),
-      ctx.currentTime + duration,
-    );
-    gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(volume * 0.12, ctx.currentTime + 0.008);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
-    oscillator.connect(gain);
-    gain.connect(ctx.destination);
-    oscillator.start();
-    oscillator.stop(ctx.currentTime + duration);
-    oscillator.onended = () => {
-      oscillator.disconnect();
-      gain.disconnect();
-    };
-    this.diagnostics.tones++;
+    if (playSynth(ctx, ctx.destination, name, volume)) this.diagnostics.tones++;
   }
   sfx(name: SfxName, opts: SfxOptions = {}): void {
     if (!this.ready) return;
@@ -146,6 +129,7 @@ class AudioManager {
     prefs.setState({ muted: value });
   }
   private applyVolumes(): void {
+    this.syncBeds();
     for (const [name, sound] of this.cache)
       if (sound) {
         const v = this.volume(name);
@@ -162,11 +146,43 @@ class AudioManager {
       this.applyVolumes();
     }, 700);
   }
+  /** Footstep with alternating feet; callers decide the cadence. */
+  step(volume = 0.6): void {
+    this.stepFlip = !this.stepFlip;
+    this.sfx(this.stepFlip ? 'step_1' : 'step_2', { volume });
+  }
+  setStorm(value: number): void {
+    const next = clamp(value);
+    if (Math.abs(next - this.storm) < 0.05) return;
+    this.storm = next;
+    this.syncBeds();
+  }
+  /** Procedural beds: Mars wind in the field, a cold space pad everywhere else. */
+  private syncBeds(): void {
+    const ctx = this.context;
+    if (!this.ready || !ctx) return;
+    const music = prefs.getState().muted ? 0 : prefs.getState().musicVolume;
+    if (this.inEva) {
+      this.menuBed?.stop();
+      this.menuBed = null;
+      this.bed ??= startBed(ctx, ctx.destination);
+      this.bed.setLevel(music, this.tension, this.storm);
+    } else {
+      this.bed?.stop();
+      this.bed = null;
+      this.menuBed ??= startMenuBed(ctx, ctx.destination);
+      this.menuBed.setLevel(music, 0, 0);
+    }
+  }
   startEva(): void {
+    this.inEva = true;
     for (const name of musicNames) this.loop(name);
+    this.syncBeds();
   }
   stopEva(): void {
+    this.inEva = false;
     for (const name of [...this.loops.keys()]) this.stop(name);
+    this.syncBeds();
   }
 }
 export const audio = new AudioManager();

@@ -118,6 +118,24 @@ export class FieldFx {
     worldLabels(this.scene).float(x, y - 20, text, color);
     void reduce;
   }
+  private lastX = NaN;
+  private lastY = NaN;
+  private stride = 0;
+  private lastStepAt = 0;
+  /** One footstep per STRIDE_PX walked, so running sounds faster than walking. */
+  private footsteps(x: number, y: number, active: boolean): void {
+    const moved = Number.isNaN(this.lastX) ? 0 : Math.hypot(x - this.lastX, y - this.lastY);
+    this.lastX = x;
+    this.lastY = y;
+    if (!active || moved <= 0 || moved > 40) return;
+    this.stride += moved;
+    const now = performance.now();
+    if (this.stride >= FIELD.footStridePx && now - this.lastStepAt > 120) {
+      this.stride = 0;
+      this.lastStepAt = now;
+      audio.step();
+    }
+  }
   update(snap: EvaState, myId: string): void {
     this.snap = snap;
     this.myId = myId;
@@ -131,6 +149,8 @@ export class FieldFx {
       audio.startEva();
       this.musicStarted = true;
     }
+    this.footsteps(mine.x, mine.y, mine.status === 'active');
+    audio.setStorm(snap.weather.storm ? 1 : 0);
     const low = mine.o2 / mine.o2Max < O2.lowFrac && mine.status === 'active';
     if (low) audio.loop('heartbeat_loop');
     else audio.stop('heartbeat_loop');
