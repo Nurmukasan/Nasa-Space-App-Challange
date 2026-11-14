@@ -13,7 +13,6 @@ import { SITES } from '../catalog';
 import { buildSchedule } from './schedule';
 import { generateSites } from '../terrain';
 import { initDiscovery } from './discovery';
-import { initSignal } from './signal';
 import { buildObjectives } from './objectives';
 import type {
   Astronaut,
@@ -42,8 +41,6 @@ export interface ScheduledEvent {
   fireballShown?: boolean;
   /** The operator's pick was scored (locate statistics). */
   pickScored?: boolean;
-  /** RED SIGNAL pulse: own signature, no rockfall, locate only. */
-  signal?: boolean;
 }
 
 /** Server-only state: never serialized into snapshots. */
@@ -74,12 +71,8 @@ export interface DirectorState {
   /** Next director event time, next RED SIGNAL pulse time. */
   nextAt: number;
   nextPulseAt: number;
-  /** Third-act crisis decided on the first director tick, and when it strikes. */
+  /** Third-act crisis decided at launch. */
   crisis: 'storm' | 'flare' | null;
-  crisisAt: number;
-  crisisDone: boolean;
-  /** Director decisions so far: seeds a fresh RNG stream per decision. */
-  decisions: number;
   /** Beats already run (indices into the scenario beat list). */
   beatsDone: number;
   /** Events spawned per kind in the current act. */
@@ -273,9 +266,6 @@ export function createSim(params: MissionParams, astronautIds: string[]): Sim {
         nextAt: 0,
         nextPulseAt: 0,
         crisis: null,
-        crisisAt: 0,
-        crisisDone: false,
-        decisions: 0,
         beatsDone: 0,
         spawned: {},
         windowWarned: false,
@@ -286,8 +276,6 @@ export function createSim(params: MissionParams, astronautIds: string[]): Sim {
     salt: SITES[params.site].terrainSalt,
   };
   initDiscovery(sim);
-  // After discovery: the source is appended to the hidden sites.
-  initSignal(sim);
   return sim;
 }
 
