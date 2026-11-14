@@ -17,6 +17,7 @@ import { initSignal } from './signal';
 import { buildObjectives } from './objectives';
 import type {
   Astronaut,
+  CrewStats,
   EvaState,
   EventKind,
   FlareState,
@@ -312,4 +313,9 @@ export function findAstronaut(sim: Sim, id: string): Astronaut | undefined {
 
 export function dist(ax: number, ay: number, bx: number, by: number): number {
   return Math.hypot(ax - bx, ay - by);
+}
+
+/** Per-astronaut report counters (docs/product-logic.md 8.4). */
+export function crewStatsOf(sim: Sim, id: string): CrewStats | undefined {
+  return sim.hidden.stats.crewStats.find((c) => c.id === id);
 }

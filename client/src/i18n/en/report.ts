@@ -40,6 +40,23 @@ export default {
   'insight.lean_design':
     'The team completed the mission with {pct}% of the budget unused ({saved}). Extra equipment was not necessary.',
   'insight.all_aboard': 'All {count} crew returned aboard before liftoff.',
+  'insight.bad_pick':
+    '{count} epicentre picks missed by {meters} m on average, so warnings reached the wrong crew.',
+  'insight.no_kits':
+    '{count} seismometer kits stayed packed. Every quake was located with a single station.',
+  'insight.fault_downtime':
+    'Lander systems were broken for {seconds}s. Send someone to the service port early.',
+  'insight.flare_dose':
+    'A crew member took {dose} radiation dose, above the limit of {limit}. Shelter in the hull before the flare.',
+  'insight.sand_trap':
+    'The crew spent {seconds}s in soft sand and dust devils, burning extra oxygen. Mission Control can see the dunes.',
+  'insight.signal_missed':
+    'The RED SIGNAL source was located {meters} m out, but no sample came back.',
+  'insight.blind_scouting':
+    'Only {count} hidden sites were found. Without ground radar the crew searched blind.',
+  'insight.good_pick':
+    '{count} accurate epicentre picks: Mission Control read the station rings like a seismologist.',
+  'insight.signal_found': 'The RED SIGNAL sample reached the lander. The mystery is solved.',
   'insight.twin_insight':
     'InSight — your seismic network echoes a mission that listened to the interior of Mars.',
   'insight.twin_perseverance':

@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { PRESETS, checkDesign, deriveParams } from '../src';
+import { MODULES, PRESETS, REPORT, checkDesign, deriveParams } from '../src';
 import type { MissionDesign, PresetId } from '../src';
 import { createSim } from '../src/sim/sim';
 import { buildInsights, scoreMission } from '../src/sim/scoring';
@@ -181,4 +181,104 @@ it('awards teamwork for each oxygen rescue, rather than only the first', () => {
   const v = setup();
   v.sim.hidden.stats.o2Shared = 30;
   expect(scoreMission(v.sim.hidden.stats, v.sim.params, checkDesign(v.design)).teamwork).toBe(30);
+});
+
+// ----- A9: v2 findings, REDESIGN hints, timeline -------------------------------------------
+function setupV2(design: MissionDesign = PRESETS.budget) {
+  const sim = createSim(deriveParams(design, 1, 'signal'), ['a', 'b']);
+  sim.hidden.stats.o2StoreLeft = sim.params.o2StoreInit;
+  sim.hidden.stats.deepDeposited = sim.params.deepQuota;
+  return { sim, design };
+}
+type V2 = ReturnType<typeof setupV2>;
+const v2Rules: Array<[string, (v: V2) => void, MissionDesign?]> = [
+  [
+    'bad_pick',
+    ({ sim }) => Object.assign(sim.hidden.stats, { locatePicks: 2, locateErrorSum: 400 }),
+  ],
+  ['no_kits', () => {}, PRESETS.balanced],
+  ['fault_downtime', ({ sim }) => void (sim.hidden.stats.faultSeconds = 61)],
+  ['flare_dose', ({ sim }) => void (sim.hidden.stats.doseMax = 51)],
+  ['sand_trap', ({ sim }) => void (sim.hidden.stats.sandSeconds = 41)],
+  ['signal_missed', ({ sim }) => void (sim.pub.signal.located = true)],
+  ['blind_scouting', () => {}],
+  ['good_pick', ({ sim }) => void (sim.hidden.stats.locateGood = 2)],
+  ['signal_found', ({ sim }) => void (sim.hidden.stats.signalRetrieved = true)],
+];
+// Rules whose condition already holds at mission start are switched off first.
+const v2Off: Record<string, (v: V2) => void> = {
+  no_kits: ({ sim }) => void (sim.hidden.stats.stationsDeployed = 1),
+  blind_scouting: ({ sim }) => void (sim.hidden.stats.discoveries = 2),
+};
+for (const [code, trigger, design] of v2Rules)
+  it(`v2 insight ${code} triggers only on its condition, never in free`, () => {
+    const v = setupV2(design);
+    const on = v2Off[code];
+    if (on) {
+      on(v);
+      expect(buildInsights(v.sim, v.design).some((i) => i.code === code)).toBe(false);
+      const fresh = setupV2(design);
+      expect(buildInsights(fresh.sim, fresh.design).some((i) => i.code === code)).toBe(true);
+    } else {
+      expect(buildInsights(v.sim, v.design).some((i) => i.code === code)).toBe(false);
+      trigger(v);
+      expect(buildInsights(v.sim, v.design).some((i) => i.code === code)).toBe(true);
+    }
+    const free = setup(design ?? PRESETS.budget);
+    trigger(free as unknown as V2);
+    Object.assign(free.sim.hidden.stats, {
+      locatePicks: 2,
+      locateErrorSum: 400,
+      locateGood: 2,
+      faultSeconds: 61,
+      doseMax: 51,
+      sandSeconds: 41,
+      signalRetrieved: true,
+    });
+    expect(buildInsights(free.sim, free.design).some((i) => i.code === code)).toBe(false);
+  });
+
+it('blind scouting needs no GPR and at least three anomalies', () => {
+  const gpr = setupV2({ ...PRESETS.budget, modules: [...PRESETS.budget.modules, 'gpr'] });
+  expect(buildInsights(gpr.sim, gpr.design).some((i) => i.code === 'blind_scouting')).toBe(false);
+});
+
+it('every REDESIGN hint names an existing module the design does not carry', () => {
+  const v = setupV2();
+  for (const [, trigger] of v2Rules) trigger(v);
+  for (const [, trigger] of rules) trigger(v as never);
+  const all = [...buildInsights(v.sim, v.design)];
+  const old = setup();
+  for (const [, trigger] of rules) trigger(old);
+  all.push(...buildInsights(old.sim, old.design));
+  const fixes = all.filter((i) => i.fix);
+  expect(fixes.length).toBeGreaterThan(0);
+  for (const i of fixes) {
+    expect(Object.prototype.hasOwnProperty.call(MODULES, i.fix!.module!)).toBe(true);
+    expect(PRESETS.budget.modules).not.toContain(i.fix!.module);
+    expect(i.tone).toBe('bad');
+  }
+  expect(all.find((i) => i.code === 'no_drill_deep')?.fix).toEqual({ module: 'drill' });
+});
+
+it('bad picks suggest the seismometer network only when stations are short', () => {
+  const v = setupV2(PRESETS.balanced);
+  Object.assign(v.sim.hidden.stats, { locatePicks: 2, locateErrorSum: 400 });
+  const pick = buildInsights(v.sim, v.design).find((i) => i.code === 'bad_pick')!;
+  expect(pick.fix).toBeUndefined();
+});
+
+it('the report timeline is bounded and in time order', async () => {
+  const { buildReport } = await import('../src/sim/scoring');
+  const { pushFx } = await import('../src/sim/sim');
+  const v = setupV2();
+  for (let i = 0; i < REPORT.timelineMax + 20; i++) {
+    v.sim.pub.t = i;
+    pushFx(v.sim, { type: i % 2 ? 'deposit' : 'discovery' });
+    pushFx(v.sim, { type: 'ping' });
+  }
+  const r = buildReport(v.sim, v.design, checkDesign(v.design, 'signal'));
+  expect(r.timeline).toHaveLength(REPORT.timelineMax);
+  expect(r.timeline.every((e, i) => i === 0 || r.timeline[i - 1]!.t <= e.t)).toBe(true);
+  expect(r.timeline.some((e) => e.type === 'ping')).toBe(false);
 });

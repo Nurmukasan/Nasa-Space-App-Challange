@@ -1,7 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import { command as send } from '../actions';
 import { t } from '../../i18n';
-export function Commands({ target, crew }: { target: string | null; crew: string[] }) {
+export function Commands({
+  target,
+  crew,
+  outside,
+}: {
+  target: string | null;
+  crew: string[];
+  /** Names of crew not inside the lander: they are lost at liftoff (PL 7.21). */
+  outside: string[];
+}) {
   const [all, setAll] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [holding, setHolding] = useState(false);
@@ -58,6 +67,11 @@ export function Commands({ target, crew }: { target: string | null; crew: string
       >
         {t(holding ? 'console.confirming' : 'console.liftoff')}
       </button>
+      <span className={outside.length ? 'err liftoff-list' : 'ok liftoff-list'}>
+        {outside.length
+          ? t('console.liftoffOutside', { names: outside.join(', ') })
+          : t('console.liftoffAllIn')}
+      </span>
     </div>
   );
 }

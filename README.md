@@ -71,6 +71,9 @@ and they are used in the mission design screen.
 Claude Code also drew the pixel-art Mars backdrop of the menu screens and restyled the menu UI.
 Claude Code also assisted with the v2 game design and work plan
 (`docs/phases.md`, `docs/product-logic.md`, `docs/architecture.md`, `docs/assets.md`) and the asset validator.
+Claude Code also assisted with v2 engine and Mission Control work: epicentre location, event director,
+RED SIGNAL, lander faults, solar flare, crew awards and report findings, the mission forecast and the
+"what's ahead" console feed.
 The built-in fallback sprites and sounds are procedural; NASA audio is not bundled.
 Additional asset contributions must be credited by their authors before submission.
 
