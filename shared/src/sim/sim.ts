@@ -71,8 +71,12 @@ export interface DirectorState {
   /** Next director event time, next RED SIGNAL pulse time. */
   nextAt: number;
   nextPulseAt: number;
-  /** Third-act crisis decided at launch. */
+  /** Third-act crisis decided on the first director tick, and when it strikes. */
   crisis: 'storm' | 'flare' | null;
+  crisisAt: number;
+  crisisDone: boolean;
+  /** Director decisions so far: seeds a fresh RNG stream per decision. */
+  decisions: number;
   /** Beats already run (indices into the scenario beat list). */
   beatsDone: number;
   /** Events spawned per kind in the current act. */
@@ -266,6 +270,9 @@ export function createSim(params: MissionParams, astronautIds: string[]): Sim {
         nextAt: 0,
         nextPulseAt: 0,
         crisis: null,
+        crisisAt: 0,
+        crisisDone: false,
+        decisions: 0,
         beatsDone: 0,
         spawned: {},
         windowWarned: false,
