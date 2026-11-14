@@ -1,5 +1,5 @@
 // "Sol 47: Red Signal" — the main 8-minute mission (docs/product-logic.md 5.3, 7.17).
-// Story beats below; director acts with event pools arrive in task A5.
+// Story beats and director acts (pool weight = max events of that kind in the act).
 import type { ScenarioDef } from './types';
 
 export const SIGNAL_MISSION: ScenarioDef = {
@@ -24,7 +24,11 @@ export const SIGNAL_MISSION: ScenarioDef = {
     { at: 420, action: { kind: 'radio', from: 'tulpar', key: 'story.signal.window' } },
     { at: 420, action: { kind: 'window' } },
   ],
-  acts: [],
+  acts: [
+    { from: 0, gapS: [40, 60], pool: { devil: 1 } },
+    { from: 150, gapS: [30, 45], pool: { quake: 2, impact: 1, devil: 2, wind: 1, fault: 1 } },
+    { from: 330, gapS: [25, 40], pool: { quake: 1, devil: 1, fault: 1 } },
+  ],
   objectives: [
     { kind: 'deliver', primary: true, target: 'quota', minus: 1, min: 3 },
     { kind: 'retrieve_signal', primary: true, target: 1 },
