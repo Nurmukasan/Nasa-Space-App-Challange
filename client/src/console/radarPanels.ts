@@ -1,4 +1,4 @@
-import { O2 } from '@rs/shared';
+import { DIG, O2 } from '@rs/shared';
 import type { SeismicEvent } from '@rs/shared';
 import { RADAR } from './radarDraw';
 
@@ -69,4 +69,10 @@ export function drawStormBar(
   ctx.fillRect(x, y + 2, w * Math.min(1, Math.max(0, frac)), 4);
   ctx.strokeStyle = RADAR.grid;
   ctx.strokeRect(x, y + 2, w, 4);
+}
+
+/** How many sample tiers a site can still give: impact ice has one, ground sites up to three. */
+export function tiersTotal(kind: string, maxDepth: number): number {
+  if (kind === 'impact') return 1;
+  return [DIG.surfaceDepth, DIG.deepDepth, DIG.coreDepth].filter((d) => d <= maxDepth).length;
 }
