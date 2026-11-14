@@ -231,8 +231,19 @@ export const DEVIL = {
   turnRate: 0.6,
 };
 
+/** Cosmetic field dressing; no collision or simulation effects. */
+export const PROPS = {
+  rockMin: 40,
+  rockMax: 60,
+  boulderMin: 4,
+  boulderMax: 6,
+  clearance: 24,
+  attempts: 200,
+  debrisMinRadius: 65,
+  debrisMaxRadius: 100,
+};
 /** Point of no return: walk cost home × margin + reserve. */
-export const RETURN = { margin: 1.15, reserve: 5 };
+export const RETURN = { margin: 1.15, reserve: 5, warningUnits: 10 };
 
 // ----- owner: A --------------------------------------------------------------
 

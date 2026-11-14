@@ -10,7 +10,8 @@ export type FieldState =
   | 'lost'
   | 'countdown'
   | 'no_signal'
-  | 'breach';
+  | 'breach'
+  | 'return';
 export const FIELD_STATES: FieldState[] = [
   'active',
   'low',
@@ -22,6 +23,7 @@ export const FIELD_STATES: FieldState[] = [
   'countdown',
   'no_signal',
   'breach',
+  'return',
 ];
 export function fieldFixture(state: FieldState = 'active'): {
   snap: EvaState;
@@ -57,6 +59,11 @@ export function fieldFixture(state: FieldState = 'active'): {
   if (state === 'lost') a.status = 'lost';
   if (state === 'countdown') snap.t = -4;
   if (state === 'no_signal') a.linked = false;
+  if (state === 'return') {
+    a.x = 1450;
+    a.y = 1400;
+    a.o2 = 25;
+  }
   if (state === 'breach') a.leak = true;
   return { snap, params, playerId: player.playerId, room: structuredClone(room.state) };
 }

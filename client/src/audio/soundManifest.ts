@@ -68,3 +68,9 @@ export const MUSIC_NAMES = [
   'amb_mars_wind',
 ] as const;
 export type MusicName = (typeof MUSIC_NAMES)[number];
+
+/** Gallery entries share the authoritative name lists above. */
+export const SOUND_MANIFEST = [
+  ...SFX_NAMES.map((name) => ({ name, folder: 'sfx' as const })),
+  ...MUSIC_NAMES.map((name) => ({ name, folder: 'music' as const })),
+];
