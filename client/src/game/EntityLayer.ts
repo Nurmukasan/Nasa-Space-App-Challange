@@ -6,6 +6,7 @@ import { snaps } from '../state/snapshots';
 import { store } from '../state/store';
 import { evaText } from '../i18n/en/eva';
 import { FIELD } from './style';
+import { skinKey } from './skins';
 import { worldLabels } from './WorldLabels';
 import type { WorldLabels } from './WorldLabels';
 import { RemoteInterpolator } from './interpolation';
@@ -83,7 +84,11 @@ export class EntityLayer {
       if (!v) {
         const color = PLAYER_COLORS[roster.find((p) => p.id === a.id)?.colorIdx ?? 0] ?? FIELD.cyan;
         v = {
-          body: this.scene.add.sprite(a.x, a.y, 'astronaut'),
+          body: this.scene.add.sprite(
+            a.x,
+            a.y,
+            a.id === myId ? skinKey(prefs.getState().skin) : 'astronaut',
+          ),
           stripe: this.scene.add.sprite(a.x, a.y, 'astronaut_stripe').setTint(color),
         };
         this.crew.set(a.id, v);

@@ -4,6 +4,7 @@ import { t } from '../i18n';
 import { endSession, send, startSession } from '../net/session';
 import { me, useApp } from '../state/store';
 import { ScenarioCards } from './lobby/ScenarioCards';
+import { SkinPicker } from './lobby/SkinPicker';
 import { startSoloLobby } from './lobby/solo';
 import '../ui/menu.css';
 
@@ -126,6 +127,7 @@ export function LobbyScreen() {
           </button>
         ))}
       </div>
+      <SkinPicker />
       <ScenarioCards selected={room.scenario} isHost={self.isHost} />
       {self.isHost && (
         <div className="row">
