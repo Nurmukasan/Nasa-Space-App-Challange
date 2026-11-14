@@ -32,7 +32,8 @@ export function handleSimMsg(
       const running = msg.running === true;
       const last = sim.hidden.lastMoveT[playerId] ?? t - TICK_DT;
       const elapsed = Math.min(0.5, Math.max(TICK_DT, t - last));
-      const maxStep = fieldSpeed(sim.params, sim.pub, a.x, a.y, running) * elapsed * MOVE.slack;
+      const maxStep =
+        fieldSpeed(sim.params, sim.pub, a.x, a.y, running, a.crewClass) * elapsed * MOVE.slack;
       let nx = clampToWorld(msg.x);
       let ny = clampToWorld(msg.y);
       const d = dist(a.x, a.y, nx, ny);
