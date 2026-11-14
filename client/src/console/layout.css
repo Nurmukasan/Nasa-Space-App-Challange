@@ -1,0 +1,47 @@
+.console-screen {
+  display: grid;
+  grid-template-columns: minmax(320px, 640px) minmax(280px, 420px);
+  gap: 12px;
+  padding: 16px;
+  margin: auto;
+  max-width: 1120px;
+  color: #afffcb;
+}
+.console-map {
+  width: 100%;
+  border: 1px solid #387455;
+  cursor: crosshair;
+}
+.console-side {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+.console-footer {
+  grid-column: 1 / -1;
+}
+.console-screen .panel {
+  margin: 0;
+}
+.console-screen h2 {
+  font-size: 1.2rem;
+  margin: 0 0 8px;
+}
+.radio-log {
+  max-height: 160px;
+  overflow: auto;
+}
+@media (max-width: 760px) {
+  .console-screen {
+    grid-template-columns: 1fr;
+  }
+}
+
+.console-side label {
+  display: block;
+  margin: 8px 0;
+}
+.console-side input[type='range'] {
+  display: block;
+  width: 100%;
+}

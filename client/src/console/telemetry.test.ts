@@ -1,0 +1,43 @@
+import { describe, expect, it } from 'vitest';
+import { createSim, deriveParams, PRESETS } from '@rs/shared';
+import { Telemetry } from './telemetry';
+describe('mission control telemetry', () => {
+  it('freezes lost position, oxygen and waypoint until the link returns', () => {
+    const snap = createSim(deriveParams(PRESETS.balanced, 42), ['pilot']).pub;
+    const cache = new Telemetry();
+    cache.observe(snap);
+    const old = structuredClone(cache.contacts.get('pilot')!);
+    const a = snap.astronauts[0]!;
+    a.linked = false;
+    a.x += 100;
+    a.o2 = 1;
+    a.waypoint = { x: 10, y: 10 };
+    snap.tick++;
+    snap.t++;
+    cache.observe(snap);
+    expect(cache.contacts.get('pilot')).toEqual(old);
+    a.linked = true;
+    snap.tick++;
+    snap.t++;
+    cache.observe(snap);
+    expect(cache.contacts.get('pilot')?.crew.o2).toBe(1);
+    expect(cache.contacts.get('pilot')?.seenAt).toBe(snap.t);
+  });
+  it('does not reveal never-seen crew and clears contacts on a new mission', () => {
+    const snap = createSim(deriveParams(PRESETS.balanced, 42), ['pilot']).pub;
+    const cache = new Telemetry();
+    snap.astronauts[0]!.linked = false;
+    cache.observe(snap);
+    expect(cache.contacts.size).toBe(0);
+    snap.tick++;
+    snap.t = 10;
+    snap.astronauts[0]!.linked = true;
+    cache.observe(snap);
+    expect(cache.contacts.size).toBe(1);
+    snap.tick = 0;
+    snap.t = -5;
+    snap.astronauts[0]!.linked = false;
+    cache.observe(snap);
+    expect(cache.contacts.size).toBe(0);
+  });
+});
