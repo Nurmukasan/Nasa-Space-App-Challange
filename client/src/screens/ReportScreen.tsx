@@ -5,6 +5,7 @@ import { send } from '../net/session';
 import { me, useApp } from '../state/store';
 import { t } from '../i18n';
 import { GradeSeal } from './report/GradeSeal';
+import { InkFilter } from './report/InkFilter';
 import { ScoreRow } from './report/ScoreRow';
 import { Stamp } from './report/Stamp';
 import { REPORT_TIMING, SCORE_ROWS } from './report/constants';
@@ -27,6 +28,7 @@ export function ReportScreen() {
     REPORT_TIMING.findingsGapMs;
   return (
     <main className="screen report-screen">
+      <InkFilter />
       <div className="report-body">
         <div className="report-kicker">{t('report.debrief')}</div>
         <div className="report-where">

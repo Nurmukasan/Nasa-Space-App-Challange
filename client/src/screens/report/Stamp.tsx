@@ -8,7 +8,11 @@ export function Stamp({ success }: { success: boolean }) {
       className={`stamp ${success ? 'good' : 'bad'}`}
       style={{ '--dur': `${REPORT_TIMING.stampMs}ms` } as React.CSSProperties}
     >
-      <span>{t(success ? 'report.success' : 'report.failed')}</span>
+      <div className="stamp-ink">
+        <small>{t('report.stampTop')}</small>
+        <span>{t(success ? 'report.success' : 'report.failed')}</span>
+        <small>{t('report.stampBottom')}</small>
+      </div>
     </div>
   );
 }

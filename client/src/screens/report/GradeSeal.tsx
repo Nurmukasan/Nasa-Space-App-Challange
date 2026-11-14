@@ -32,8 +32,10 @@ export function GradeSeal({ grade, total }: Props) {
         style={{ '--grade': GRADE_COLORS[grade], '--delay': `${sealAt}ms` } as CSSProperties}
         aria-label={`${t('report.grade')} ${grade}`}
       >
-        <small>{t('report.grade')}</small>
-        <b>{grade}</b>
+        <div className="seal-ink">
+          <small>{t('report.grade')}</small>
+          <b>{grade}</b>
+        </div>
       </div>
     </div>
   );
