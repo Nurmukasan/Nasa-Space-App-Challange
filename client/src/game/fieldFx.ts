@@ -7,6 +7,7 @@ import { fxBus } from '../fx/FxBus';
 import { prefs } from '../state/prefs';
 import { evaText as t } from '../i18n/en/eva';
 import { FIELD } from './style';
+import { worldLabels } from './WorldLabels';
 
 const SOUNDS: Partial<Record<FxType, SfxName>> = {
   tremor: 'tremor_loop',
@@ -91,25 +92,8 @@ export class FieldFx {
     }
   }
   private float(x: number, y: number, text: string, color: string, reduce: boolean): void {
-    const label = this.scene.add
-      .text(x, y - 20, text, {
-        fontFamily: 'monospace',
-        fontSize: '10px',
-        color,
-        stroke: '#1c0d0c',
-        strokeThickness: 2,
-      })
-      .setOrigin(0.5)
-      .setDepth(1350);
-    if (reduce) this.scene.time.delayedCall(FIELD.fxDurationMs, () => label.destroy());
-    else
-      this.scene.tweens.add({
-        targets: label,
-        y: y - 40,
-        alpha: 0,
-        duration: FIELD.fxDurationMs,
-        onComplete: () => label.destroy(),
-      });
+    worldLabels(this.scene).float(x, y - 20, text, color);
+    void reduce;
   }
   update(snap: EvaState, myId: string): void {
     this.snap = snap;

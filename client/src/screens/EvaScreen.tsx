@@ -1,19 +1,33 @@
 import { useEffect, useRef } from 'react';
+import type Phaser from 'phaser';
 import { createGame } from '../game/createGame';
 import { HelmetHud } from './eva/HelmetHud';
 import '../ui/hud.css';
 import { useApp } from '../state/store';
+import { send } from '../net/session';
 
-export function EvaScreen() {
+export function EvaScreen({ active = true }: { active?: boolean }) {
   const host = useRef<HTMLDivElement>(null);
   const hud = useApp((s) => s.hud);
   const myId = useApp((s) => s.playerId);
+  const gameRef = useRef<Phaser.Game | null>(null);
 
   useEffect(() => {
     if (!host.current) return;
     const game = createGame(host.current);
+    gameRef.current = game;
     return () => game.destroy(true);
   }, []);
+
+  useEffect(() => {
+    const kb = gameRef.current?.input.keyboard;
+    if (!kb) return;
+    kb.enabled = active;
+    if (!active) {
+      gameRef.current?.scene.scenes[0]?.input.keyboard?.resetKeys();
+      send({ t: 'eva:dig', on: false });
+    }
+  }, [active]);
 
   const params = useApp((s) => s.room?.params);
   return (

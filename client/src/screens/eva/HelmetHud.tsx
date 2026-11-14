@@ -48,7 +48,7 @@ export function HelmetHud({
       : '';
   return (
     <div
-      className={`helmet-hud ${low ? 'low-oxygen' : ''} ${a.leak ? 'suit-breach' : ''} ${reduce ? 'reduce-motion' : ''}`}
+      className={`helmet-hud ${low ? 'low-oxygen' : ''} ${a.leak ? 'suit-breach' : ''} ${active ? 'storm-on' : ''} ${tremor ? 'quake' : ''} ${reduce ? 'reduce-motion' : ''}`}
       data-status={a.status}
     >
       <div className="visor-frame" aria-hidden="true" />

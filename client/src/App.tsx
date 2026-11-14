@@ -34,7 +34,20 @@ export function App() {
   else if (phase === 'report') screen = <ReportScreen />;
   else if (phase === 'eva') {
     const showConsole = role === 'mc' || (role === 'solo' && soloConsole);
-    screen = showConsole ? <ConsoleScreen /> : <EvaScreen />;
+    // Solo keeps the field running behind the console so Tab never reloads the world.
+    screen =
+      role === 'solo' ? (
+        <>
+          <div className={`eva-layer ${showConsole ? 'eva-layer-hidden' : ''}`}>
+            <EvaScreen active={!showConsole} />
+          </div>
+          {showConsole && <ConsoleScreen />}
+        </>
+      ) : showConsole ? (
+        <ConsoleScreen />
+      ) : (
+        <EvaScreen />
+      );
   }
   return (
     <>

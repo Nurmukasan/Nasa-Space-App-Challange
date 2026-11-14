@@ -285,3 +285,227 @@
     font-size: 10px;
   }
 }
+
+/* ---- world labels (DOM over the canvas, so text stays sharp) ---- */
+.world-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  font-family: 'Share Tech Mono', monospace;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+}
+.wl {
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  will-change: transform;
+}
+.wl.name {
+  color: #ffeedd;
+  text-shadow:
+    0 0 3px #000,
+    0 1px 2px #000,
+    0 0 6px #1c0d0c;
+}
+.wl.hint,
+.wl.arrow {
+  padding: 3px 9px;
+  background: #1c0d0ce6;
+  border: 1px solid #c8683e88;
+  border-left: 3px solid #ffb030;
+  text-transform: uppercase;
+}
+.wl.hint {
+  color: #ffdfaa;
+}
+.wl.arrow {
+  color: #ffb030;
+}
+.wl-float {
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap;
+  font-size: 16px;
+  text-shadow:
+    0 0 3px #000,
+    0 1px 2px #000;
+}
+.wl-float span {
+  display: block;
+  animation: wl-rise 0.9s ease-out both;
+}
+@keyframes wl-rise {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-22px);
+    opacity: 0;
+  }
+}
+
+.eva-layer {
+  position: fixed;
+  inset: 0;
+}
+.eva-layer-hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* ---- immersion: breathing, glass dust, glare, storm and quake reactions ---- */
+.visor-frame {
+  animation: visor-breathe 5.5s ease-in-out infinite;
+}
+.visor-frame::before,
+.visor-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+/* dust and scratches on the glass */
+.visor-frame::before {
+  background:
+    radial-gradient(circle at 12% 78%, #ffd8a826 0 2px, transparent 3px),
+    radial-gradient(circle at 83% 22%, #ffd8a81f 0 3px, transparent 4px),
+    radial-gradient(circle at 64% 88%, #ffd8a81a 0 2px, transparent 3px),
+    radial-gradient(circle at 28% 14%, #ffd8a81f 0 2px, transparent 3px),
+    radial-gradient(circle at 92% 64%, #ffd8a81a 0 3px, transparent 4px),
+    linear-gradient(115deg, transparent 38%, #ffffff0a 40%, transparent 44%);
+}
+/* a slow reflection that drifts across the visor */
+.visor-frame::after {
+  background: linear-gradient(105deg, transparent 42%, #ffffff12 50%, transparent 58%);
+  background-size: 260% 100%;
+  animation: visor-glare 14s linear infinite;
+}
+.storm-on .visor-frame {
+  box-shadow:
+    inset 0 0 0 7px #1c0d0c55,
+    inset 0 0 140px #c8683eaa;
+}
+.storm-on .visor-frame::before {
+  background:
+    radial-gradient(circle at 12% 78%, #ffd8a85c 0 2px, transparent 3px),
+    radial-gradient(circle at 83% 22%, #ffd8a850 0 3px, transparent 4px),
+    radial-gradient(circle at 64% 88%, #ffd8a84a 0 2px, transparent 3px),
+    radial-gradient(circle at 28% 14%, #ffd8a850 0 2px, transparent 3px),
+    radial-gradient(circle at 92% 64%, #ffd8a84a 0 3px, transparent 4px),
+    radial-gradient(ellipse at center, transparent 40%, #7a3a1c66 100%);
+}
+.low-oxygen .visor-frame {
+  box-shadow:
+    inset 0 0 0 7px #1c0d0c55,
+    inset 0 0 160px #e33a3499;
+}
+.quake .helmet-top,
+.quake .helmet-bottom,
+.quake .helmet-banners {
+  animation: hud-quake 0.12s linear infinite;
+}
+.link-block.helmet-warning,
+.helmet-banner.critical {
+  animation: hud-flicker 1.4s steps(1, end) infinite;
+}
+.oxygen-segments .filled:last-of-type {
+  filter: brightness(1.3);
+}
+@keyframes visor-breathe {
+  50% {
+    transform: scale(1.006);
+  }
+}
+@keyframes visor-glare {
+  from {
+    background-position: 160% 0;
+  }
+  to {
+    background-position: -60% 0;
+  }
+}
+@keyframes hud-quake {
+  25% {
+    transform: translate(2px, -2px);
+  }
+  50% {
+    transform: translate(-2px, 1px);
+  }
+  75% {
+    transform: translate(1px, 2px);
+  }
+}
+@keyframes hud-flicker {
+  0%,
+  92% {
+    opacity: 1;
+  }
+  94% {
+    opacity: 0.55;
+  }
+  96% {
+    opacity: 1;
+  }
+  97% {
+    opacity: 0.7;
+  }
+}
+
+/* ---- collapse: when the suit runs dry and the astronaut goes down ---- */
+.stage canvas {
+  transition:
+    filter 1.6s ease-out,
+    opacity 1.6s ease-out;
+}
+.stage:has([data-status='down']) canvas {
+  filter: grayscale(0.85) blur(1.6px) brightness(0.7);
+}
+.helmet-hud[data-status='down']::after {
+  content: '';
+  position: absolute;
+  inset: -60%;
+  background: radial-gradient(circle at center, transparent 0 9%, #05020280 16%, #050202f2 34%);
+  animation: iris-close 1.8s cubic-bezier(0.3, 0, 0.2, 1) both;
+}
+.helmet-hud[data-status='down'] .visor-frame {
+  box-shadow:
+    inset 0 0 0 7px #1c0d0c55,
+    inset 0 0 200px #e33a34cc;
+  animation: faint-pulse 1.5s ease-in-out infinite;
+}
+.helmet-hud[data-status='down'] .helmet-banner.critical {
+  animation: faint-text 1.2s steps(1, end) infinite;
+  letter-spacing: 0.18em;
+}
+@keyframes iris-close {
+  from {
+    transform: scale(2.6);
+    opacity: 0.2;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes faint-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+@keyframes faint-text {
+  0%,
+  70% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.35;
+  }
+}
