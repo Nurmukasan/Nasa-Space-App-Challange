@@ -3,7 +3,6 @@ import { HelmetHud } from '../../screens/eva/HelmetHud';
 import { evaText as t } from '../../i18n/en/eva';
 import { FIELD_STATES, fieldFixture } from '../fixtures/field';
 import { prefs } from '../../state/prefs';
-import '../../ui/hud.css';
 export const name = 'field-hud';
 export function render() {
   return <HudPlayground />;

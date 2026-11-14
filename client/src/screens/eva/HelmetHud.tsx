@@ -1,3 +1,4 @@
+import '../../ui/hud.css';
 import { useEffect, useRef } from 'react';
 import { FLARE, O2, RETURN, SITES, returnCost } from '@rs/shared';
 import type { EvaState, MissionParams } from '@rs/shared';
