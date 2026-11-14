@@ -60,7 +60,7 @@ with sync_playwright() as p:
         control.get_by_role('button',name='5. Review',exact=True).click()
         control.get_by_role('button',name=re.compile('^drill')).click()
         crew.wait_for_function('window.rs.store.getState().room.design.modules.includes("drill")')
-        control.get_by_label('Launch vehicle',exact=True).select_option('medium')
+        control.get_by_label('Launch vehicle',exact=False).select_option('medium')
         expect(control.get_by_role('button',name='LAUNCH',exact=True)).to_be_disabled()
         control.get_by_role('button',name=re.compile('^drill')).click()
         expect(control.get_by_role('button',name='LAUNCH',exact=True)).to_be_enabled()
@@ -85,7 +85,7 @@ with sync_playwright() as p:
         running=crew.evaluate(get_a)
         assert walking['o2']<first['o2'] and running['o2']<walking['o2']
         assert running['x']-walking['x'] > (walking['x']-first['x'])*1.2
-        site=crew.evaluate('window.rs.snaps.curr.sites.reduce((best,s)=>Math.hypot(s.x-768,s.y-768)<Math.hypot(best.x-768,best.y-768)?s:best)')
+        site=crew.evaluate('''()=>{const snap=window.rs.snaps.curr,id=window.rs.store.getState().playerId;const others=snap.astronauts.filter(a=>a.id!==id&&a.status==='active');const candidates=snap.sites.filter(s=>s.depth===0&&others.every(a=>Math.hypot(a.x-s.x,a.y-s.y)>250));if(!candidates.length)throw Error('no unoccupied digging site');return candidates.reduce((best,s)=>Math.hypot(s.x-768,s.y-768)<Math.hypot(best.x-768,best.y-768)?s:best)}''')
         walk_to(crew,site['x'],site['y'])
         crew.keyboard.down('Space');crew.wait_for_timeout(4600);crew.keyboard.up('Space')
         assert crew.evaluate(get_a+'.carrying.length')>=1

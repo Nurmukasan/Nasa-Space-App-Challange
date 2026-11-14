@@ -1,0 +1,37 @@
+{
+  "status": "passed",
+  "elapsed_s": 605.0,
+  "stats": {
+    "samplesDeposited": 15,
+    "deepDeposited": 7,
+    "scienceRaw": 435,
+    "refills": 9,
+    "o2Dispensed": 435.40666666666914,
+    "o2Shared": 0,
+    "breaches": 0,
+    "downs": 0,
+    "lost": 0,
+    "crew": 3,
+    "classifyCorrect": 3,
+    "classifyWrong": 3,
+    "classifyMissed": 0,
+    "falseAlarms": 3,
+    "distanceWalked": 7588.3720000001495,
+    "distanceRun": 0,
+    "secondsOutside": 354.399999999985,
+    "endedAtS": 600.000000000046,
+    "allAboard": true,
+    "o2StoreLeft": 60.2018666667129
+  },
+  "score": {
+    "science": 400,
+    "safety": 250,
+    "efficiency": 77,
+    "teamwork": 60,
+    "total": 787,
+    "grade": "A",
+    "success": true
+  },
+  "page_errors": [],
+  "scope": "Automated local production server: three CLI EVA bots plus browser MC. Not a human/public/two-network playtest."
+}

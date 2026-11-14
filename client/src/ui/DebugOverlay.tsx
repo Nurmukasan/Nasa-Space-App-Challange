@@ -44,8 +44,8 @@ export function DebugOverlay() {
           ping: diagnostics.pingMs,
           bytes: diagnostics.snapshotBytes,
           tick: snaps.curr?.tick ?? 0,
-          objects: frameStats.scriptMs === null ? 0 : frameStats.objects,
-          particles: frameStats.scriptMs === null ? 0 : frameStats.particles,
+          objects: samples === 0 || frameStats.scriptMs === null ? 0 : frameStats.objects,
+          particles: samples === 0 || frameStats.scriptMs === null ? 0 : frameStats.particles,
         });
         count = 0;
         start = now;

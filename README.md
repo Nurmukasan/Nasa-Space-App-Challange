@@ -49,7 +49,11 @@ Production disables debug commands. Health check: `/healthz`.
 For another Node host, use `npm ci --include=dev && npm run build`, then `NODE_ENV=production npm start`
 with Node 22 and WebSocket support. Free services may sleep: warm the service before a demo.
 
-For an offline-only fallback, build and upload `client/dist` to a static host. Relative asset paths
+GitHub Pages publishes the static solo build through `.github/workflows/pages.yml` after each main
+push, or via its manual workflow dispatch. Pages serves solo play; online rooms need the Node host.
+The workflow checks the build and verifies the deployed HTML and JavaScript.
+
+For another offline-only fallback, build and upload `client/dist` to a static host. Relative asset paths
 support subdirectories. Online rooms need the Node service; the static build supports solo only.
 
 Deployment configuration is prepared; no public service URL is claimed until a live deployment

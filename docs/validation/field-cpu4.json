@@ -1,0 +1,15 @@
+{
+  "seconds": 60.1,
+  "cpu_throttle": 4,
+  "renderer": "Chromium software GL",
+  "frames": 2348,
+  "fps": 39.1,
+  "render_js_mean_ms": 2.524,
+  "render_js_p95_ms": 6.3,
+  "frame_p95_ms": 50,
+  "terrain_ms": 256.4,
+  "max_particles": 24,
+  "max_objects": 28,
+  "page_errors": [],
+  "scope": "B6 minute in Chromium software GL, CPU x4; terrain bake occurred before throttling. Not a real weak-laptop measurement."
+}

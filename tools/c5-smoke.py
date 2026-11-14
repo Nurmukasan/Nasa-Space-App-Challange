@@ -29,6 +29,10 @@ with sync_playwright() as p:
             mc.wait_for_function('document.querySelector(".debug-overlay")?.textContent.match(/renderer JS [0-9.]+ms.*ping [0-9]+ms/)')
             text=mc.locator('.debug-overlay').inner_text();assert 'snapshot 0B' not in text and 'tick 0 ' not in text,text
             mc.keyboard.press('F3');expect(mc.locator('.debug-overlay')).to_have_count(0);mc.keyboard.press('F3');expect(mc.locator('.debug-overlay')).to_have_count(1)
+            mc.evaluate("async()=>{const {endSession}=await import('/src/net/session.ts');endSession()}")
+            mc.get_by_role('button',name='Create room',exact=True).wait_for()
+            mc.wait_for_function('document.querySelector(".debug-overlay")?.textContent.includes("objects 0 · particles 0")')
+            checks.append('idle renderer counters clear after leaving a session')
             checks+=['settings persist and use the B audio preference contract','Escape closes settings; reduced-motion flag applies','live measured script/ping/snapshot/tick diagnostics','F3 toggles diagnostics']
         assert not errors,errors
         print(json.dumps({'status':'passed','scope':'core only' if args.core_only else 'full C5','checks':checks,'page_errors':errors}))
