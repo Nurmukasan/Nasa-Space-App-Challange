@@ -24,7 +24,7 @@
   display: block;
   width: 100%;
   cursor: crosshair;
-  background: #03100b;
+  background: #100808;
   border: 2px solid var(--s-line);
   box-shadow:
     4px 4px 0 var(--s-shadow),
@@ -78,7 +78,7 @@
   padding: 8px 10px;
   font-size: 13px;
   color: #8dffb8;
-  background: #03100b;
+  background: #100808;
   border: 1px solid #1b4a35;
 }
 .radio-log div + div {
@@ -181,8 +181,8 @@
 .seismo-canvas {
   display: block;
   width: 100%;
-  background: #03100b;
-  border: 1px solid #1b4a35;
+  background: #100808;
+  border: 1px solid #5a3524;
 }
 .seismic-event {
   margin-bottom: 12px;
