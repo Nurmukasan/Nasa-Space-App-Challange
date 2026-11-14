@@ -206,7 +206,7 @@ export function HelmetHud({
         )}
         <div className="helmet-instructions">
           <b>{t(hint.key, hintParams)}</b>
-          {lesson && <span>{t(lesson)}</span>}
+          {lesson && t(lesson) !== t(hint.key, hint.params) && <span>{t(lesson)}</span>}
           {snap.t < CONTROLS_SHOWN_S && (
             <small className="controls-hint">{t('eva.controls')}</small>
           )}
