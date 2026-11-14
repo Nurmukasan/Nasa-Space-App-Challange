@@ -1,22 +1,13 @@
 import Phaser from 'phaser';
-import {
-  LANDER_POS,
-  SITES,
-  TICK_HZ,
-  TILE,
-  WORLD_PX,
-  WORLD_TILES,
-  levelAt,
-  moveSpeed,
-} from '@rs/shared';
+import { LANDER_POS, SITES, TICK_HZ, WORLD_PX, moveSpeed } from '@rs/shared';
 import { send } from '../net/session';
 import { snaps } from '../state/snapshots';
 import { store } from '../state/store';
+import { terrainTexture } from './terrainTexture';
 import { EntityLayer } from './EntityLayer';
 import { preloadAssets, ensureAssets } from './assets';
 import { Lighting, makeLightTexture } from './Lighting';
 
-const LEVEL_COLORS = [0x6c2a2e, 0x8a362a, 0xa84a2e, 0xc6643a, 0xe28650];
 const SNAP_BACK_PX = 24;
 
 /** Walking-skeleton field view: coarse terrain, rectangles for crew, local movement. */
@@ -43,17 +34,7 @@ export class FieldScene extends Phaser.Scene {
     ensureAssets(this);
     const room = store.getState().room;
     const salt = SITES[room?.params?.site ?? 'jezero'].terrainSalt;
-    const g = this.add.graphics();
-    for (let ty = 0; ty < WORLD_TILES; ty++) {
-      for (let tx = 0; tx < WORLD_TILES; tx++) {
-        const level = levelAt(tx * TILE + TILE / 2, ty * TILE + TILE / 2, salt);
-        g.fillStyle(LEVEL_COLORS[level] ?? LEVEL_COLORS[0]!, 1);
-        g.fillRect(tx * TILE, ty * TILE, TILE, TILE);
-      }
-    }
-    g.generateTexture('terrain', WORLD_PX, WORLD_PX);
-    g.destroy();
-    this.add.image(0, 0, 'terrain').setOrigin(0, 0);
+    terrainTexture(this, salt);
     this.entities = new EntityLayer(this);
 
     makeLightTexture(this, 'light56', 56);
