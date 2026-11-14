@@ -3,6 +3,8 @@ import { LANDER_POS, SITES, TICK_HZ, WORLD_PX, generateSites, fieldSpeed } from 
 import { send } from '../net/session';
 import { snaps } from '../state/snapshots';
 import { store } from '../state/store';
+import { HazardLayer } from './HazardLayer';
+import { PortLayer } from './PortLayer';
 import { PropLayer } from './PropLayer';
 import { FieldJuice } from './FieldJuice';
 import { FieldFx } from './fieldFx';
@@ -23,6 +25,8 @@ export class FieldScene extends Phaser.Scene {
     { x: LANDER_POS.x, y: LANDER_POS.y, key: 'light-ship', r: FIELD.landerRadius },
   ];
   private crewLights = new Map<string, Light>();
+  private hazards!: HazardLayer;
+  private ports!: PortLayer;
   private juice!: FieldJuice;
   private effects!: FieldFx;
   private entities!: EntityLayer;
@@ -47,10 +51,12 @@ export class FieldScene extends Phaser.Scene {
     ensureAssets(this);
     const room = store.getState().room;
     const salt = SITES[room?.params?.site ?? 'jezero'].terrainSalt;
-    terrainTexture(this, salt);
+    terrainTexture(this, salt, room?.params?.scenario !== 'free');
     if (room?.params) new PropLayer(this, salt, generateSites(room.params));
     this.entities = new EntityLayer(this);
     this.effects = new FieldFx(this);
+    this.hazards = new HazardLayer(this);
+    this.ports = new PortLayer(this);
     this.juice = new FieldJuice(this);
 
     this.lighting = new Lighting(this);
@@ -107,6 +113,8 @@ export class FieldScene extends Phaser.Scene {
       }
     }
 
+    this.hazards.update(snap, _time);
+    this.ports.update(snap, myId, st.room?.players.find((p) => p.id === myId)?.role === 'solo');
     this.juice.update(snap, myId, this.meX, this.meY, _time);
     if (mine) this.cameras.main.centerOn(this.meX, this.meY);
 

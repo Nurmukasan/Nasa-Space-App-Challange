@@ -1,16 +1,21 @@
 import type Phaser from 'phaser';
-import { WORLD_PX, levelAt } from '@rs/shared';
+import { WORLD_PX, levelAt, sandAt } from '@rs/shared';
 import { terrainPaint } from '../render/terrainPaint';
 import { FIELD } from './style';
 
-export function terrainTexture(scene: Phaser.Scene, salt: number): number {
+export function terrainTexture(scene: Phaser.Scene, salt: number, showSand = false): number {
   const start = performance.now();
   const draw = (scale: number) => {
     const size = WORLD_PX / scale,
-      levels = new Uint8Array(size * size);
+      levels = new Uint8Array(size * size),
+      sand = showSand ? new Uint8Array(size * size) : undefined;
     for (let y = 0; y < size; y++)
-      for (let x = 0; x < size; x++) levels[y * size + x] = levelAt(x * scale, y * scale, salt);
-    const pixels = terrainPaint(levels, size, size);
+      for (let x = 0; x < size; x++) {
+        const i = y * size + x;
+        levels[i] = levelAt(x * scale, y * scale, salt);
+        if (sand && levels[i] === 0) sand[i] = sandAt(x * scale, y * scale, salt) ? 1 : 0;
+      }
+    const pixels = terrainPaint(levels, size, size, sand);
     const canvas = document.createElement('canvas');
     canvas.width = size;
     canvas.height = size;

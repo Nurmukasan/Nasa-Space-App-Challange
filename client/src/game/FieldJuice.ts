@@ -31,8 +31,8 @@ export class FieldJuice {
         angle: { min: 200, max: 340 },
         scale: { start: 0.4, end: 0 },
         alpha: { start: 0.45, end: 0 },
-        maxParticles: FIELD.maxParticles / 2,
-        maxAliveParticles: FIELD.maxParticles / 2,
+        maxParticles: FIELD.juiceParticles / 2,
+        maxAliveParticles: FIELD.juiceParticles / 2,
       })
       .setDepth(700);
     this.spark = scene.add
@@ -43,8 +43,8 @@ export class FieldJuice {
         scale: { start: 0.6, end: 0 },
         alpha: { start: 1, end: 0 },
         tint: FIELD.gold,
-        maxParticles: FIELD.maxParticles / 2,
-        maxAliveParticles: FIELD.maxParticles / 2,
+        maxParticles: FIELD.juiceParticles / 2,
+        maxAliveParticles: FIELD.juiceParticles / 2,
       })
       .setDepth(1400);
     this.ring = scene.add.graphics().setDepth(850);
