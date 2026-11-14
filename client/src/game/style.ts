@@ -1,12 +1,12 @@
 /** Visual budgets and palette; gameplay tuning stays in @rs/shared. */
 export const FIELD = {
   interpolationMs: 100,
-  /** Crew class sprites are 64x64 files drawn at 32 px. */
-  crewScale: 0.5,
+  /** Crew class sprites (game/crewArt.ts) are drawn 1:1, 24x24 frames. */
+  crewScale: 1,
   /** Vertical origin of the crew sprite: boots sit a few pixels below the astronaut point. */
-  crewOriginY: 0.78,
+  crewOriginY: 0.7,
   /** Name label offset above the astronaut point, px. */
-  crewLabelDy: 27,
+  crewLabelDy: 20,
   /** Horizontal movement (px) needed before the sprite turns to face it. */
   crewTurnPx: 0.3,
   /** Snapshots kept for remote interpolation (~0.4 s at 15 Hz). */

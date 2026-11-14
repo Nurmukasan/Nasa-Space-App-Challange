@@ -15,6 +15,7 @@ import { SampleFx } from './SampleFx';
 import { terrainTexture } from './terrainTexture';
 import { EntityLayer } from './EntityLayer';
 import { preloadAssets, ensureAssets } from './assets';
+import { ensureCrewTextures } from './crewTextures';
 import { FIELD } from './style';
 import { Lighting } from './Lighting';
 import type { Light } from './Lighting';
@@ -56,6 +57,7 @@ export class FieldScene extends Phaser.Scene {
 
   create(): void {
     ensureAssets(this);
+    ensureCrewTextures(this.textures);
     const room = store.getState().room;
     const salt = SITES[room?.params?.site ?? 'jezero'].terrainSalt;
     terrainTexture(this, salt, room?.params?.scenario !== 'free', snaps.curr?.sites ?? []);

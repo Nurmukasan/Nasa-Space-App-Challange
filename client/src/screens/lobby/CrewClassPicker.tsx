@@ -1,12 +1,13 @@
 import type { CSSProperties } from 'react';
 import { CREW, CREW_CLASS_IDS } from '@rs/shared';
 import type { CrewClassId } from '@rs/shared';
-import { spriteFiles } from '../../game/assets';
+import { CREW_FRAMES } from '../../game/crewArt';
+import { crewCanvas } from '../../game/crewTextures';
 import { t } from '../../i18n';
 import { send } from '../../net/session';
 
+/** Portrait: frame 0 at 4x. */
 const PREVIEW = 96;
-const FRAMES = 9;
 
 /** Perk as a signed percentage, read from balance.ts so the card never lies. */
 function perk(id: CrewClassId): string {
@@ -20,13 +21,12 @@ function perk(id: CrewClassId): string {
   return t(key, { n: Math.round((CREW[table][id] - 1) * 100) });
 }
 
-function preview(id: CrewClassId): CSSProperties | undefined {
-  if (!spriteFiles[`/public/assets/sprites/crew_${id}.png`]) return undefined;
+function preview(id: CrewClassId): CSSProperties {
   return {
     width: PREVIEW,
     height: PREVIEW,
-    backgroundImage: `url(${import.meta.env.BASE_URL}assets/sprites/crew_${id}.png)`,
-    backgroundSize: `${PREVIEW * FRAMES}px ${PREVIEW}px`,
+    backgroundImage: `url(${crewCanvas(id).toDataURL()})`,
+    backgroundSize: `${PREVIEW * CREW_FRAMES}px ${PREVIEW}px`,
   };
 }
 
