@@ -96,7 +96,7 @@ export class FieldFx {
         fontFamily: 'monospace',
         fontSize: '10px',
         color,
-        stroke: '#161222',
+        stroke: '#1c0d0c',
         strokeThickness: 2,
       })
       .setOrigin(0.5)

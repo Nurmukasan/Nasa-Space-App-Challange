@@ -35,22 +35,7 @@ export function HelmetHud({
   const danger = a.linked && snap.t < a.dangerUntil;
   const storm = snap.weather.storm;
   const active = storm && snap.t >= storm.tStart && snap.t < storm.tEnd;
-  const nearbyDown = snap.astronauts.some(
-    (b) =>
-      b.id !== a.id && b.status === 'down' && Math.hypot(a.x - b.x, a.y - b.y) <= O2.shareRange,
-  );
-  const atLander = Math.hypot(a.x - snap.lander.x, a.y - snap.lander.y) <= O2.airlockRadius;
   const log = snap.log.at(-1);
-  const hint =
-    a.status === 'inside'
-      ? 'eva.exit'
-      : a.status !== 'active'
-        ? ''
-        : nearbyDown
-          ? 'eva.rescue'
-          : atLander
-            ? 'eva.airlock'
-            : '';
   const lesson =
     snap.t >= 0 && snap.t < 60
       ? !first.moved
@@ -146,7 +131,6 @@ export function HelmetHud({
           </div>
         )}
         <div className="helmet-instructions">
-          {hint && <b>{t(hint)}</b>}
           {lesson && <span>{t(lesson)}</span>}
           <small>{t('eva.controls')}</small>
         </div>

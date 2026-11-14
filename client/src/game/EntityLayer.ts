@@ -38,8 +38,8 @@ export class EntityLayer {
       .text(0, 0, '', {
         fontFamily: 'monospace',
         fontSize: '10px',
-        color: '#50e6f0',
-        backgroundColor: '#101a28',
+        color: '#ffb030',
+        backgroundColor: '#1c0d0c',
       })
       .setOrigin(0.5)
       .setScrollFactor(0)
@@ -48,8 +48,8 @@ export class EntityLayer {
       .text(0, 0, '', {
         fontFamily: 'monospace',
         fontSize: '8px',
-        color: '#e2ecff',
-        backgroundColor: '#101a28',
+        color: '#ffdfaa',
+        backgroundColor: '#1c0d0c',
       })
       .setOrigin(0.5)
       .setDepth(1250);
@@ -81,8 +81,8 @@ export class EntityLayer {
             .text(a.x, a.y - 13, roster.find((p) => p.id === a.id)?.name ?? a.id, {
               fontFamily: 'monospace',
               fontSize: '7px',
-              color: '#e2ecff',
-              stroke: '#171526',
+              color: '#ffeedd',
+              stroke: '#1c0d0c',
               strokeThickness: 2,
             })
             .setOrigin(0.5),
