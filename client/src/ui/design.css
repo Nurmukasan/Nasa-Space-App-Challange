@@ -1,0 +1,21 @@
+.design-screen {
+  max-width: 1100px;
+  margin: auto;
+}
+.design-indicators {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+  width: 100%;
+}
+.design-indicators h2 {
+  font-size: 1rem;
+  margin: 0 0 6px;
+}
+.design-screen button small,
+.design-screen button span {
+  display: block;
+}
+.design-screen select {
+  display: block;
+}
