@@ -18,7 +18,7 @@ import {
   pulseRing,
   sweepAngle,
 } from './radarDraw';
-import { drawPending, drawStormBar, mmss, returnBudget } from './radarPanels';
+import { drawPending, drawStormBar, mmss, returnBudget, tiersTotal } from './radarPanels';
 export const MAP_SIZE = 640;
 const SCALE = MAP_SIZE / WORLD_PX;
 const RINGS = [50, 100, 150];
@@ -117,18 +117,25 @@ export class TacticalMap {
       ctx.setLineDash([]);
     }
     drawLander(ctx, cx, cy);
-    for (const site of s.sites)
+    for (const site of s.sites) {
+      const total = tiersTotal(site.kind, params?.maxDepth ?? 3);
+      // Once every tier is in somebody's hands there is nothing left to find here.
+      if (site.taken.length >= total) continue;
       if (site.known && (site.expiresAt === null || site.expiresAt > s.t)) {
         ctx.globalAlpha = blip(site.x, site.y);
         ctx.fillStyle = RADAR.site;
         drawDiamond(ctx, px(site.x), px(site.y), 5);
+        const left = `${total - site.taken.length}/${total}`;
         ctx.fillText(
-          params?.hasGpr ? `${t(`site.${site.kind}`)} ${'★'.repeat(site.richness)}` : site.id,
+          params?.hasGpr
+            ? `${t(`site.${site.kind}`)} ${'★'.repeat(site.richness)} ${left}`
+            : `${site.id} ${left}`,
           px(site.x) + 8,
           px(site.y) + 4,
         );
         ctx.globalAlpha = 1;
       }
+    }
     for (let i = 0; i < s.stations.length; i++) {
       const p = s.stations[i]!;
       ctx.strokeStyle = ctx.fillStyle = RADAR.station;
