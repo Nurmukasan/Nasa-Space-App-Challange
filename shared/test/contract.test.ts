@@ -38,7 +38,7 @@ it('createSim fills every v2 field', () => {
   const pub = sim.pub;
   expect(pub.scenario).toBe('signal');
   expect(pub.act).toBe(1);
-  expect(pub.anomalies).toEqual([]);
+  expect(pub.anomalies).toHaveLength(5); // B1 replaces the phase-0 all-known stub.
   expect(pub.devils).toEqual([]);
   expect(pub.flare).toBeNull();
   expect(pub.signal).toEqual({

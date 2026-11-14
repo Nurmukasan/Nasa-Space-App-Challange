@@ -37,6 +37,7 @@ const en: Record<string, string> = {
   'eva.unknown_radio': 'RADIO MESSAGE',
   'eva.cleared': 'NO ACTIVE ALERTS',
   'log.sample_collected': 'Sample secured: {tier} +{value}',
+  'log.discovery': '{id} found: {kind} · richness {richness}',
   'log.down': 'Crew {id} needs rescue',
   'log.lost': 'Crew {id} lost',
   'ping.ok': 'CREW: OK',
