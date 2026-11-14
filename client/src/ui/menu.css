@@ -2,16 +2,30 @@
    helmet HUD and the wrist console keep their own styles. */
 
 .screen {
+  --s-panel: #2a1210ec;
+  --s-inset: #160a0c;
+  --s-line: #a84a2e;
+  --s-line-hi: #e28650;
+  --s-accent: #ffb030;
+  --s-text: #ffeedd;
+  --s-dim: #dcae92;
+  --s-shadow: #0a0406;
   position: relative;
   isolation: isolate;
   background: #05060f;
+  color: var(--s-text);
 }
 .screen::before {
   content: '';
   position: fixed;
   inset: 0;
   z-index: -2;
-  background: url('./menu_backdrop.png') center bottom / cover no-repeat;
+  background:
+    url('./menu_backdrop.png') center bottom / cover no-repeat,
+    linear-gradient(90deg, transparent, #f0a06a30 45%, transparent) 0 62% / 600px 3px repeat-x,
+    linear-gradient(90deg, transparent, #f0a06a26 50%, transparent) 0 71% / 900px 2px repeat-x,
+    linear-gradient(90deg, transparent, #f0a06a30 40%, transparent) 0 83% / 1800px 3px repeat-x;
+  animation: dust-drift 90s linear infinite;
   image-rendering: pixelated;
 }
 /* Darkens the middle of the picture so text stays readable, and adds scanlines. */
@@ -23,7 +37,18 @@
   pointer-events: none;
   background:
     repeating-linear-gradient(transparent 0 3px, #00000026 3px 4px),
-    radial-gradient(ellipse at 50% 40%, #05060fb0 0%, #05060f55 55%, transparent 80%);
+    radial-gradient(ellipse at 50% 40%, #05060fb0 0%, #05060f55 55%, transparent 80%),
+    linear-gradient(to top, #e2865038, transparent 38%);
+}
+
+@keyframes dust-drift {
+  to {
+    background-position:
+      center bottom,
+      1800px 62%,
+      1800px 71%,
+      1800px 83%;
+  }
 }
 
 /* ---- Title ---- */
@@ -44,7 +69,7 @@
     0 0 24px #f0463c88;
 }
 .logo-tag {
-  color: var(--dim);
+  color: var(--s-dim);
   letter-spacing: 3px;
   font-size: 12px;
   text-transform: uppercase;
@@ -67,10 +92,10 @@
 /* ---- Panels ---- */
 .screen .panel {
   position: relative;
-  background: #0b183ae6;
-  border: 2px solid var(--line);
+  background: var(--s-panel);
+  border: 2px solid var(--s-line);
   box-shadow:
-    4px 4px 0 #04070f,
+    4px 4px 0 var(--s-shadow),
     inset 0 0 0 1px #ffffff10;
 }
 .screen .panel::before,
@@ -84,50 +109,50 @@
 .screen .panel::before {
   left: -2px;
   top: -2px;
-  border-left: 2px solid var(--cyan);
-  border-top: 2px solid var(--cyan);
+  border-left: 2px solid var(--s-line-hi);
+  border-top: 2px solid var(--s-line-hi);
 }
 .screen .panel::after {
   right: -2px;
   bottom: -2px;
-  border-right: 2px solid var(--cyan);
-  border-bottom: 2px solid var(--cyan);
+  border-right: 2px solid var(--s-line-hi);
+  border-bottom: 2px solid var(--s-line-hi);
 }
 .panel-title {
   margin: 0 0 8px;
   font-size: 12px;
   letter-spacing: 2px;
-  color: var(--cyan);
+  color: var(--s-accent);
   text-transform: uppercase;
 }
 
 /* ---- Buttons and fields ---- */
 .screen button {
-  background: linear-gradient(#18336e, #0b183a);
-  border: 2px solid var(--line);
+  background: linear-gradient(#6a2c1c, #2f1210);
+  border: 2px solid var(--s-line);
   box-shadow:
-    0 3px 0 #04070f,
+    0 3px 0 var(--s-shadow),
     inset 0 1px 0 #ffffff22;
   text-transform: uppercase;
   letter-spacing: 1px;
   transition: transform 60ms steps(2);
 }
 .screen button:hover:not(:disabled) {
-  border-color: var(--cyan);
+  border-color: var(--s-accent);
   box-shadow:
-    0 3px 0 #04070f,
-    0 0 12px #50e6f066,
+    0 3px 0 var(--s-shadow),
+    0 0 12px #ffb03066,
     inset 0 1px 0 #ffffff33;
   transform: translateY(-1px);
 }
 .screen button:active:not(:disabled) {
   transform: translateY(2px);
-  box-shadow: 0 1px 0 #04070f;
+  box-shadow: 0 1px 0 var(--s-shadow);
 }
 .screen button.on {
-  background: linear-gradient(#7cf2f8, #2fc4d0);
-  color: #06111f;
-  border-color: #b8fbff;
+  background: linear-gradient(#ffd27a, #e8962c);
+  color: #2a1006;
+  border-color: #fff0c8;
 }
 .screen button:focus-visible,
 .screen select:focus-visible,
@@ -135,10 +160,13 @@
   outline: 2px solid var(--amber);
   outline-offset: 2px;
 }
+.screen .dim {
+  color: var(--s-dim);
+}
 .screen input,
 .screen select {
-  background: #06102a;
-  border: 2px solid var(--line);
+  background: var(--s-inset);
+  border: 2px solid var(--s-line);
   box-shadow: inset 0 2px 0 #00000066;
 }
 .btn-main {
@@ -163,7 +191,7 @@
 @keyframes launch-pulse {
   50% {
     box-shadow:
-      0 3px 0 #04070f,
+      0 3px 0 var(--s-shadow),
       0 0 22px #ff7a4acc;
   }
 }
@@ -188,13 +216,13 @@
   gap: 8px;
   font-size: 11px;
   letter-spacing: 2px;
-  color: var(--dim);
+  color: var(--s-dim);
   text-transform: uppercase;
 }
 .status-dot {
   width: 8px;
   height: 8px;
-  background: var(--dim);
+  background: var(--s-dim);
 }
 .status-dot.online {
   background: var(--green);
@@ -215,8 +243,8 @@
   align-items: center;
   gap: 10px;
   padding: 6px 8px;
-  background: #06102a;
-  border-left: 4px solid var(--line);
+  background: var(--s-inset);
+  border-left: 4px solid var(--s-line);
 }
 .roster-row.host {
   border-left-color: var(--amber);
@@ -238,8 +266,8 @@
   font-size: 11px;
   letter-spacing: 1px;
   padding: 2px 6px;
-  border: 1px solid var(--line);
-  color: var(--dim);
+  border: 1px solid var(--s-line);
+  color: var(--s-dim);
 }
 .tag.ok {
   border-color: var(--green);
@@ -248,4 +276,13 @@
 .tag.err {
   border-color: var(--red);
   color: var(--red);
+}
+
+/* ---- Readable text: pixel terminal font in sentence case for anything longer than a label ---- */
+.readable {
+  font-family: var(--font-crt);
+  font-size: 19px;
+  line-height: 1.15;
+  letter-spacing: 0;
+  text-transform: none;
 }

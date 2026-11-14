@@ -26,14 +26,14 @@
   place-items: center;
   width: 20px;
   height: 20px;
-  background: #06102a;
-  border: 2px solid var(--line);
+  background: var(--s-inset);
+  border: 2px solid var(--s-line);
   font-size: 11px;
 }
 .stepper button.on .step-num {
   background: #06111f;
-  border-color: #06111f;
-  color: var(--cyan);
+  border-color: #2a1006;
+  color: var(--s-accent);
 }
 
 /* ---- Resource gauges ---- */
@@ -50,19 +50,22 @@
   margin: 0 0 4px;
   font-size: 11px;
   letter-spacing: 2px;
-  color: var(--dim);
+  color: var(--s-dim);
   text-transform: uppercase;
 }
 .gauge output {
   display: block;
-  font-size: 14px;
+  font-family: var(--font-crt);
+  font-size: 24px;
+  line-height: 1;
   margin-bottom: 6px;
 }
 .gauge-bar {
   --fill: 0%;
   --tone: var(--cyan);
   height: 10px;
-  background: linear-gradient(90deg, var(--tone) var(--fill), transparent var(--fill)), #06102a;
+  background:
+    linear-gradient(90deg, var(--tone) var(--fill), transparent var(--fill)), var(--s-inset);
   -webkit-mask: repeating-linear-gradient(90deg, #000 0 6px, transparent 6px 8px);
   mask: repeating-linear-gradient(90deg, #000 0 6px, transparent 6px 8px);
 }
@@ -85,7 +88,7 @@
 @keyframes gauge-alert {
   50% {
     box-shadow:
-      4px 4px 0 #04070f,
+      4px 4px 0 var(--s-shadow),
       0 0 14px #f0463c88;
   }
 }
@@ -111,16 +114,19 @@
 .field-label {
   font-size: 11px;
   letter-spacing: 2px;
-  color: var(--cyan);
+  color: var(--s-accent);
   text-transform: uppercase;
 }
 .field select {
   width: 100%;
 }
 .field-desc {
-  font-size: 11px;
-  color: var(--dim);
-  line-height: 1.5;
+  font-family: var(--font-crt);
+  font-size: 19px;
+  color: var(--s-dim);
+  line-height: 1.1;
+  text-transform: none;
+  letter-spacing: 0;
 }
 .field .px-icon {
   margin: 0;
@@ -135,7 +141,7 @@
   width: 100%;
 }
 .module-card {
-  --accent: var(--line);
+  --accent: var(--s-line);
   position: relative;
   display: grid;
   justify-items: center;
@@ -167,13 +173,16 @@
   letter-spacing: 1px;
 }
 .module-card small {
-  font-size: 11px;
-  line-height: 1.45;
-  color: var(--dim);
-  min-height: 3.2em;
+  font-family: var(--font-crt);
+  font-size: 19px;
+  line-height: 1.1;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--s-dim);
+  min-height: 3.4em;
 }
 .module-card.on small {
-  color: #0b2a44;
+  color: #4a1e0a;
 }
 .module-stats {
   display: flex;
@@ -183,10 +192,12 @@
 }
 .chip {
   padding: 1px 5px;
-  font-size: 11px;
-  background: #06102a;
-  border: 1px solid var(--line);
-  color: var(--text);
+  font-family: var(--font-crt);
+  font-size: 18px;
+  line-height: 1.1;
+  background: var(--s-inset);
+  border: 1px solid var(--s-line);
+  color: var(--s-text);
 }
 .chip.plus {
   color: var(--green);
@@ -195,7 +206,7 @@
   color: var(--amber);
 }
 .module-card.on .chip {
-  background: #06111f;
+  background: #2a1006;
 }
 .module-card .badge {
   position: absolute;
@@ -204,8 +215,8 @@
   font-size: 10px;
   letter-spacing: 1px;
   padding: 1px 4px;
-  background: #06111f;
-  color: var(--cyan);
+  background: #2a1006;
+  color: var(--s-accent);
 }
 
 /* ---- Bays ---- */
@@ -224,12 +235,12 @@
 .bay-pip {
   width: 16px;
   height: 16px;
-  border: 2px solid var(--line);
-  background: #06102a;
+  border: 2px solid var(--s-line);
+  background: var(--s-inset);
 }
 .bay-pip.used {
-  background: var(--cyan);
-  border-color: #b8fbff;
+  background: var(--s-accent);
+  border-color: #fff0c8;
 }
 .bay-pip.over {
   background: var(--red);
@@ -241,8 +252,9 @@
   margin: 4px 0;
   padding-left: 10px;
   border-left: 4px solid currentColor;
-  font-size: 12px;
-  line-height: 1.5;
+  font-family: var(--font-crt);
+  font-size: 20px;
+  line-height: 1.1;
 }
 .all-clear {
   color: var(--green);
@@ -261,11 +273,13 @@
   justify-content: space-between;
   gap: 8px;
   padding: 4px 0;
-  border-bottom: 1px dashed var(--line);
-  font-size: 12px;
+  border-bottom: 1px dashed var(--s-line);
+  font-family: var(--font-crt);
+  font-size: 20px;
+  line-height: 1.1;
 }
 .forecast-item output {
-  color: var(--cyan);
+  color: var(--s-accent);
 }
 
 /* ---- Crew and launch ---- */
