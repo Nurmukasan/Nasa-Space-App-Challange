@@ -1,0 +1,15 @@
+{
+  "seconds": 60.2,
+  "cpu_throttle": 1.0,
+  "renderer": "Chromium software GL",
+  "frames": 3018,
+  "fps": 50.3,
+  "render_js_mean_ms": 0.772,
+  "render_js_p95_ms": 0.7,
+  "frame_p95_ms": 33.4,
+  "terrain_ms": 410.2,
+  "max_particles": 24,
+  "max_objects": 28,
+  "page_errors": [],
+  "scope": "Final local Chromium software GL at CPU x1; not a real target laptop/GPU."
+}
