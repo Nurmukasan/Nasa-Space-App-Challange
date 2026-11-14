@@ -40,7 +40,20 @@ Add `?debug=1` to the URL to get `window.rs` (send, store, snaps) in the browser
 
 ## Deploy
 
-Any Node host. Build command `npm ci && npm run build`, start command `npm start`, port from `PORT`.
+Use the included `render.yaml` Blueprint on Render: connect this GitHub repository, review the
+service, and deploy it. A Render account and repository connection are required; no credentials
+belong in the repository or chat. The build installs development tools intentionally because Vite
+and tsx are needed. `npm start` serves both the client and Socket.IO on the provider's `PORT`.
+Production disables debug commands. Health check: `/healthz`.
+
+For another Node host, use `npm ci --include=dev && npm run build`, then `NODE_ENV=production npm start`
+with Node 22 and WebSocket support. Free services may sleep: warm the service before a demo.
+
+For an offline-only fallback, build and upload `client/dist` to a static host. Relative asset paths
+support subdirectories. Online rooms need the Node service; the static build supports solo only.
+
+Deployment configuration is prepared; no public service URL is claimed until a live deployment
+has been checked from two different networks.
 
 ## Use of AI
 
