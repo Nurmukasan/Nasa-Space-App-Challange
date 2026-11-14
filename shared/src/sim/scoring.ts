@@ -2,13 +2,14 @@ import { SCORE } from '../balance';
 import type {
   DesignCheck,
   Grade,
-  Insight,
   MissionDesign,
   MissionParams,
   MissionReport,
   MissionStats,
   ScoreBreakdown,
 } from '../types';
+import { buildInsights } from './insights';
+export { buildInsights } from './insights';
 import type { Sim } from './sim';
 
 function clamp(v: number, lo: number, hi: number): number {
@@ -21,7 +22,15 @@ export function scoreMission(
   check: DesignCheck,
 ): ScoreBreakdown {
   const science = clamp(
-    Math.round((stats.scienceRaw * params.dataFactor * SCORE.scienceMax) / SCORE.scienceFull),
+    Math.round(
+      ((stats.scienceRaw +
+        (params.objective === 'geophysics'
+          ? stats.classifyCorrect * SCORE.geoClassifyScience
+          : 0)) *
+        params.dataFactor *
+        SCORE.scienceMax) /
+        SCORE.scienceFull,
+    ),
     0,
     SCORE.scienceMax,
   );
@@ -66,11 +75,6 @@ export function scoreMission(
   else if (total >= SCORE.grades.C) grade = 'C';
   if (!success && (grade === 'S' || grade === 'A' || grade === 'B')) grade = 'C';
   return { science, safety, efficiency, teamwork, total, grade, success };
-}
-
-/** TODO (start-phase A7): rule-based "why it happened" insights. */
-export function buildInsights(_sim: Sim, _design: MissionDesign): Insight[] {
-  return [];
 }
 
 export function buildReport(sim: Sim, design: MissionDesign, check: DesignCheck): MissionReport {

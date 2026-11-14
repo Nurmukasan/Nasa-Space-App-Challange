@@ -147,6 +147,7 @@ export const WEATHER = {
 };
 
 export const SCORE = {
+  geoClassifyScience: 12,
   scienceMax: 400,
   /** Raw science that maps to scienceMax. */
   scienceFull: 220,
@@ -167,4 +168,16 @@ export const SIGNALS = {
   quake: { riseS: 3.5, decayS: 14, freqHz: 1.2, noise: 0.08, pressureDip: 0 },
   impact: { riseS: 0.25, decayS: 2.5, freqHz: 4, noise: 0.08, pressureDip: 0 },
   wind: { riseS: 1.5, decayS: 4, freqHz: 2.2, noise: 0.35, pressureDip: 0.8 },
+};
+
+/** Thresholds for causal report findings. */
+export const INSIGHTS = {
+  maxCausal: 5,
+  frequentRefills: 3,
+  fewRefills: 2,
+  lowStoreFrac: 0.2,
+  runFrac: 0.35,
+  dataFrac: 0.8,
+  netCorrect: 2,
+  leanBudgetFrac: 0.25,
 };
