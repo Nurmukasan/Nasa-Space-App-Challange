@@ -1,4 +1,4 @@
-import { O2 } from '@rs/shared';
+import { O2, moveSpeed } from '@rs/shared';
 import type { EvaState, MissionParams, PlayerInfo } from '@rs/shared';
 import { send } from '../../net/session';
 import { t } from '../../i18n';
@@ -20,7 +20,8 @@ export function CrewPanel({
       <h2>{t('console.crew')}</h2>
       {snap.astronauts.map((a) => {
         const seconds =
-          Math.hypot(a.x - snap.lander.x, a.y - snap.lander.y) / (params?.walkSpeed ?? 1);
+          Math.hypot(a.x - snap.lander.x, a.y - snap.lander.y) /
+          (params ? moveSpeed(params, snap.weather, false) : 1);
         const remaining = a.o2 / (O2.walk + (a.leak ? O2.leakExtra : 0));
         const verdict =
           a.status === 'inside' || remaining >= seconds * 1.25

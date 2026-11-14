@@ -1,4 +1,13 @@
-import { COMMS, METERS_PER_PX, PLAYER_COLORS, SITES, WORLD_PX, levelAt } from '@rs/shared';
+import {
+  SEISMIC,
+  WEATHER,
+  COMMS,
+  METERS_PER_PX,
+  PLAYER_COLORS,
+  SITES,
+  WORLD_PX,
+  levelAt,
+} from '@rs/shared';
 import { snaps } from '../state/snapshots';
 import { store } from '../state/store';
 import { t } from '../i18n';
@@ -56,10 +65,13 @@ export class TacticalMap {
       circle(s.lander.x, s.lander.y, m / METERS_PER_PX, '#244c38');
       ctx.fillText(`${m}m`, (s.lander.x + m / METERS_PER_PX) * scale, s.lander.y * scale);
     }
+    const inStorm =
+      s.weather.storm !== null && s.t >= s.weather.storm.tStart && s.t < s.weather.storm.tEnd;
     const range =
       (params?.commsRange ?? 0) *
+      (inStorm ? WEATHER.stormComms : 1) *
       (COMMS.minEffMul + (1 - COMMS.minEffMul) * s.lander.power.eff.comms);
-    circle(s.lander.x, s.lander.y, range, '#63a888');
+    if (!s.relay.open) circle(s.lander.x, s.lander.y, range, '#63a888');
     ctx.fillRect(s.lander.x * scale - 5, s.lander.y * scale - 5, 10, 10);
     for (const site of s.sites)
       if (site.known && (site.expiresAt === null || site.expiresAt > s.t)) {
@@ -76,7 +88,7 @@ export class TacticalMap {
       ctx.fillText(`△ ${i + 1}`, p.x * scale, p.y * scale);
     });
     for (const event of s.seismic)
-      if (event.estimate && s.t < event.deadline + 9)
+      if (event.estimate && s.t < event.deadline + SEISMIC.rockfallDelayS)
         circle(event.estimate.x, event.estimate.y, event.estimate.r, '#ffc66a');
     for (const h of s.hazards)
       if (s.t <= h.tHit) {

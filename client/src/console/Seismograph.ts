@@ -52,9 +52,12 @@ export class Seismograph {
       for (let x = 0; x < width; x++) {
         const time = s.t - 20 + (x / width) * 20;
         let value = 0;
-        for (const e of s.seismic.filter((event) => !this.eventId || event.id === this.eventId))
+        for (const e of s.seismic)
           for (const signal of e.signals)
-            if (signal.stationIdx === (pressure ? 0 : row)) {
+            if (
+              (!this.eventId || e.id === this.eventId) &&
+              signal.stationIdx === (pressure ? 0 : row)
+            ) {
               const tau = time - e.t0 - signal.delayS;
               value += pressure
                 ? tau < 0
