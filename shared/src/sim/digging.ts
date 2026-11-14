@@ -31,7 +31,7 @@ export const diggingSystem: System = (sim, dt) => {
       if (site.kind === 'impact' && tier !== 'surface') continue;
       if (depth + Number.EPSILON < threshold || site.taken.includes(tier)) continue;
       if (a.carrying.length >= sim.params.carryCap) {
-        site.depth = threshold - 0.001;
+        site.depth = threshold - DIG.thresholdEpsilon;
         a.digging = false;
         break;
       }

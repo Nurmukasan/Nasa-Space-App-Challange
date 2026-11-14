@@ -74,7 +74,7 @@ export function handleSimMsg(
           t < b.downUntil &&
           dist(a.x, a.y, b.x, b.y) <= O2.shareRange,
       );
-      if (down && a.o2 > O2.shareAmount + 5) {
+      if (down && a.o2 > O2.shareAmount + O2.shareReserve) {
         a.o2 -= O2.shareAmount;
         down.o2 = O2.shareAmount;
         down.status = 'active';

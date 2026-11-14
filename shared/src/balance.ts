@@ -43,6 +43,7 @@ export const O2 = {
   lowFrac: 0.25,
   downSeconds: 20,
   shareAmount: 15,
+  shareReserve: 5,
   shareRange: 20,
   /** Units per second while refilling at the airlock. */
   refillRate: 30,
@@ -56,6 +57,7 @@ export const DIG = {
   deepDepth: 1.0,
   coreDepth: 2.0,
   reach: 14,
+  thresholdEpsilon: 0.001,
 };
 
 export const SAMPLE = {
