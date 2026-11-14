@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react';
 import type Phaser from 'phaser';
 import { createGame } from '../game/createGame';
 import { HelmetHud } from './eva/HelmetHud';
-import '../ui/hud.css';
 import { useApp } from '../state/store';
 import { send } from '../net/session';
 import { me } from '../state/store';
