@@ -1,4 +1,4 @@
-import { COMMS, METERS_PER_PX, PLAYER_COLORS, SITES, WEATHER, WORLD_PX, levelAt } from '@rs/shared';
+import { COMMS, METERS_PER_PX, PLAYER_COLORS, SITES, WEATHER, WORLD_PX } from '@rs/shared';
 import { snaps } from '../state/snapshots';
 import { store } from '../state/store';
 import { t } from '../i18n';
@@ -7,17 +7,17 @@ import { prefs } from '../state/prefs';
 import { Telemetry } from './telemetry';
 import {
   RADAR,
-  blipAlpha,
   drawCompass,
   drawCrewMark,
-  drawDiamond,
   drawLander,
   drawNoise,
-  drawSweep,
+  drawPing,
   drawTriangle,
   pulseRing,
-  sweepAngle,
 } from './radarDraw';
+import { buildBasemap } from './radarBase';
+import { drawGhostZone, drawReturnRing, drawScaleBar, drawTether } from './radarCrew';
+import { drawSite } from './radarSites';
 import { drawPending, drawStormBar, mmss, returnBudget, tiersTotal } from './radarPanels';
 import { drawAnomalies, drawLocate } from './locateOverlay';
 export const MAP_SIZE = 640;
@@ -26,7 +26,7 @@ const RINGS = [50, 100, 150];
 const px = (value: number) => Math.round(value * SCALE);
 export class TacticalMap {
   private frame = 0;
-  private terrain = document.createElement('canvas');
+  private terrain: HTMLCanvasElement;
   private telemetry = new Telemetry();
   private trails = new Map<string, { x: number; y: number }[]>();
   private roster = store.getState().room?.players ?? [];
@@ -36,18 +36,8 @@ export class TacticalMap {
     private selected: () => string | null,
     private locating: () => string | null = () => null,
   ) {
-    this.terrain.width = this.terrain.height = MAP_SIZE;
-    const ctx = this.terrain.getContext('2d')!;
-    ctx.fillStyle = RADAR.bg;
-    ctx.fillRect(0, 0, MAP_SIZE, MAP_SIZE);
     const salt = SITES[store.getState().room?.params?.site ?? 'jezero'].terrainSalt;
-    ctx.fillStyle = '#1f5a40';
-    for (let y = 0; y < WORLD_PX; y += 4)
-      for (let x = 0; x < WORLD_PX; x += 4) {
-        const level = levelAt(x, y, salt);
-        if (level !== levelAt(x + 4, y, salt) || level !== levelAt(x, y + 4, salt))
-          ctx.fillRect(px(x), px(y), 1, 1);
-      }
+    this.terrain = buildBasemap(MAP_SIZE, salt);
     this.draw();
   }
   destroy(): void {
@@ -90,15 +80,13 @@ export class TacticalMap {
     this.telemetry.observe(s);
     const still = prefs.getState().reduceMotion;
     const now = still ? 0 : performance.now();
-    const angle = sweepAngle(now);
     const cx = px(s.lander.x),
       cy = px(s.lander.y);
-    const blip = (x: number, y: number) => (still ? 1 : blipAlpha(angle, cx, cy, px(x), px(y)));
     ctx.drawImage(this.terrain, 0, 0);
     const room = store.getState().room;
     const params = room?.params;
     if (room) this.roster = room.players;
-    ctx.font = '13px monospace';
+    ctx.font = RADAR.font;
     ctx.lineWidth = 1;
     for (const m of RINGS) {
       this.circle(ctx, s.lander.x, s.lander.y, m / METERS_PER_PX, RADAR.grid);
@@ -106,7 +94,7 @@ export class TacticalMap {
       ctx.fillText(`${m}m`, px(s.lander.x + m / METERS_PER_PX) + 3, cy - 3);
     }
     drawCompass(ctx, cx, cy, px(RINGS[RINGS.length - 1]! / METERS_PER_PX));
-    if (!still) drawSweep(ctx, cx, cy, MAP_SIZE, angle);
+    if (!still) drawPing(ctx, cx, cy, px(RINGS[RINGS.length - 1]! / METERS_PER_PX), now);
     const storm = s.weather.storm;
     const active = storm !== null && s.t >= storm.tStart && s.t < storm.tEnd;
     const range =
@@ -123,20 +111,16 @@ export class TacticalMap {
       const total = tiersTotal(site.kind, params?.maxDepth ?? 3);
       // Once every tier is in somebody's hands there is nothing left to find here.
       if (site.taken.length >= total) continue;
-      if (site.known && (site.expiresAt === null || site.expiresAt > s.t)) {
-        ctx.globalAlpha = blip(site.x, site.y);
-        ctx.fillStyle = RADAR.site;
-        drawDiamond(ctx, px(site.x), px(site.y), 5);
-        const left = `${total - site.taken.length}/${total}`;
-        ctx.fillText(
-          params?.hasGpr
-            ? `${t(`site.${site.kind}`)} ${'★'.repeat(site.richness)} ${left}`
-            : `${site.id} ${left}`,
-          px(site.x) + 8,
-          px(site.y) + 4,
+      if (site.known && (site.expiresAt === null || site.expiresAt > s.t))
+        drawSite(
+          ctx,
+          px(site.x),
+          px(site.y),
+          site.richness,
+          total - site.taken.length,
+          total,
+          params?.hasGpr ? `${site.id} ${t(`site.${site.kind}`)}` : site.id,
         );
-        ctx.globalAlpha = 1;
-      }
     }
     drawAnomalies(ctx, s, SCALE);
     for (let i = 0; i < s.stations.length; i++) {
@@ -166,52 +150,80 @@ export class TacticalMap {
         px(h.y) - 4,
       );
     }
-    for (const player of this.roster) {
+    const walkSpeed = params?.walkSpeed ?? 40,
+      speedMul = active ? WEATHER.stormSpeed : 1;
+    const rows = this.roster.flatMap((player, slot) => {
       const contact = this.telemetry.contacts.get(player.id);
-      if (!contact) continue;
+      if (!contact) return [];
       const a = contact.crew;
-      let linked = false;
-      for (const live of s.astronauts)
-        if (live.id === a.id) {
-          linked = live.linked;
-          break;
-        }
+      const live = s.astronauts.find((c) => c.id === a.id);
+      const linked = !!live?.linked;
       const color = this.colors[player.colorIdx] ?? '#ffffff';
+      const budget = returnBudget(
+        a.o2,
+        Math.hypot(a.x - s.lander.x, a.y - s.lander.y),
+        walkSpeed,
+        speedMul,
+      );
+      return [{ player, slot, a, linked, color, budget, seen: contact.seenAt }];
+    });
+    // Layer 1: air limits and tethers sit under the markers.
+    for (const r of rows) {
+      const selected = this.selected() === r.a.id;
+      if (r.linked)
+        drawReturnRing(
+          ctx,
+          cx,
+          cy,
+          px(r.budget.o2S * walkSpeed * speedMul),
+          r.color,
+          selected,
+          t('console.radar.limit', { name: r.player.name }),
+          r.slot,
+        );
+      const text =
+        r.budget.level === 'lost'
+          ? t('console.radar.noReturn', { air: mmss(r.budget.o2S) })
+          : t('console.radar.home', { home: mmss(r.budget.homeS), air: mmss(r.budget.o2S) });
+      if (r.linked)
+        drawTether(
+          ctx,
+          px(r.a.x),
+          px(r.a.y),
+          cx,
+          cy,
+          r.budget.level,
+          selected || r.budget.level !== 'ok' ? text : null,
+        );
+      else if (r.a.status === 'active') {
+        const age = Math.max(0, s.t - r.seen);
+        drawGhostZone(
+          ctx,
+          px(r.a.x),
+          px(r.a.y),
+          Math.min(px(age * walkSpeed), MAP_SIZE / 3),
+          r.color,
+        );
+      }
+    }
+    // Layer 2: the crew themselves.
+    for (const { player, a, linked, color, seen } of rows) {
       const trail = this.trail(a.id, a.x, a.y);
       ctx.fillStyle = color;
       for (let i = 0; i < trail.length; i++) {
         ctx.globalAlpha = ((i + 1) / trail.length) * 0.35;
         ctx.fillRect(px(trail[i]!.x) - 1, px(trail[i]!.y) - 1, 2, 2);
       }
-      ctx.globalAlpha = linked ? 1 : 0.4;
+      ctx.globalAlpha = linked ? 1 : 0.5;
       drawCrewMark(ctx, px(a.x), px(a.y), a.facing, color);
       ctx.strokeStyle = color;
       ctx.beginPath();
       ctx.arc(px(a.x), px(a.y), 11, -Math.PI / 2, -Math.PI / 2 + (Math.PI * 2 * a.o2) / a.o2Max);
       ctx.stroke();
       if (this.selected() === a.id) this.circle(ctx, a.x, a.y, 35, '#ffffff');
-      const seconds = Math.max(0, Math.floor(s.t - contact.seenAt));
-      const budget = returnBudget(
-        a.o2,
-        Math.hypot(a.x - s.lander.x, a.y - s.lander.y),
-        params?.walkSpeed ?? 40,
-        active ? WEATHER.stormSpeed : 1,
-      );
-      if (linked && budget.level !== 'ok') {
-        ctx.fillStyle = budget.level === 'lost' ? RADAR.danger : RADAR.amber;
-        ctx.fillText(
-          budget.level === 'lost' ? 'NO RETURN' : `HOME NOW · +${mmss(budget.marginS)}`,
-          px(a.x) + 14,
-          px(a.y) + 18,
-        );
-        ctx.fillStyle = color;
-      }
+      const seconds = Math.max(0, Math.floor(s.t - seen));
       ctx.fillText(
-        linked
-          ? player.name
-          : t('console.lost', {
-              time: `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`,
-            }),
+        linked ? player.name : t('console.lost', { time: mmss(seconds) }),
         px(a.x) + 14,
         px(a.y) + 4,
       );
@@ -223,6 +235,13 @@ export class TacticalMap {
         ctx.fillText(player.name, px(a.waypoint.x) + 8, px(a.waypoint.y));
       }
     }
+    drawScaleBar(
+      ctx,
+      14,
+      MAP_SIZE - 14,
+      (100 / METERS_PER_PX) * SCALE,
+      t('console.radar.scale', { m: 100 }),
+    );
     drawPending(ctx, MAP_SIZE, s.seismic, s.t);
     if (
       storm &&

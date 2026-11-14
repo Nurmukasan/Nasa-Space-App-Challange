@@ -1,13 +1,5 @@
 import Phaser from 'phaser';
-import {
-  DIG,
-  LANDER_POS,
-  SITES,
-  TICK_HZ,
-  WORLD_PX,
-  generateSites,
-  moveSpeed,
-} from '@rs/shared';
+import { DIG, LANDER_POS, SITES, TICK_HZ, WORLD_PX, generateSites, moveSpeed } from '@rs/shared';
 import { send } from '../net/session';
 import { snaps } from '../state/snapshots';
 import { store } from '../state/store';

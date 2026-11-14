@@ -204,7 +204,9 @@ export function HelmetHud({
         <div className="helmet-instructions">
           <b>{t(hint.key, hint.params)}</b>
           {lesson && <span>{t(lesson)}</span>}
-          {snap.t < CONTROLS_SHOWN_S && <small className="controls-hint">{t('eva.controls')}</small>}
+          {snap.t < CONTROLS_SHOWN_S && (
+            <small className="controls-hint">{t('eva.controls')}</small>
+          )}
         </div>
         {log && a.linked && <RadioLine entry={log} />}
       </footer>
