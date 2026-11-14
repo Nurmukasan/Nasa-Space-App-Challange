@@ -1,0 +1,37 @@
+.scenario-picker {
+  display: grid;
+  gap: 10px;
+  width: min(780px, 96vw);
+}
+.scenario-picker h2 {
+  font-size: 14px;
+  margin: 0;
+  text-align: center;
+}
+.scenario-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+}
+.scenario-cards button {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px 12px;
+  padding: 16px;
+  text-align: left;
+  border: 2px solid var(--line);
+}
+.scenario-cards small {
+  grid-column: 2;
+  font-family: var(--font-crt);
+  font-size: 20px;
+  line-height: 1.2;
+}
+.scenario-icon {
+  grid-row: 1/4;
+  font-size: 28px;
+  align-self: center;
+}
+.scenario-cards button:disabled {
+  opacity: 0.8;
+}
