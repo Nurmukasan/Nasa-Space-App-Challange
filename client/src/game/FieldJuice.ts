@@ -20,9 +20,9 @@ export class FieldJuice {
     this.tracks = scene.add.renderTexture(0, 0, WORLD_PX, WORLD_PX).setOrigin(0).setDepth(-50);
     this.stamp = scene.make
       .image({ key: 'fx_dust', add: false })
-      .setTint(0x29151c)
-      .setAlpha(0.35)
-      .setScale(0.35, 0.18);
+      .setTint(0x1a0c10)
+      .setAlpha(0.6)
+      .setScale(0.42, 0.22);
     this.dust = scene.add
       .particles(0, 0, 'fx_dust', {
         emitting: false,
@@ -75,8 +75,14 @@ export class FieldJuice {
           this.tracks.clear();
           this.trackCount = 0;
         }
+        // Alternate left and right foot, offset sideways from the walking direction.
+        const side = (this.trackCount & 1 ? 1 : -1) * FIELD.footOffsetPx;
         this.stamp.setRotation(a.facing);
-        this.tracks.draw(this.stamp, Math.round(ax), Math.round(ay + 5));
+        this.tracks.draw(
+          this.stamp,
+          Math.round(ax - Math.sin(a.facing) * side),
+          Math.round(ay + 5 + Math.cos(a.facing) * side),
+        );
       }
       if (a.digging && !reduce && time - (this.lastDig.get(a.id) ?? 0) >= FIELD.digParticleMs) {
         this.lastDig.set(a.id, time);

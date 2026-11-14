@@ -25,10 +25,35 @@ const EVENT_FX = {
     scorchAlpha: 0.55,
     scorchMs: 20000,
     shockPx: 70,
+    pillarW: 7,
+    pillarH: 150,
+    pillarMs: 240,
+    secondRingDelayMs: 130,
+    craterPx: 20,
+    craterMs: 9000,
+    craterPulses: 10,
+    column: 22,
+    columnDelayMs: 140,
   },
-  fireball: { fromX: -200, fromY: -130, ms: 750, trailEveryMs: 28, trailCount: 2 },
-  rockfall: { rocks: 7, spreadPx: 14, heightPx: 60, fallMs: 320, dust: 10 },
-  tremor: { puffs: 14, viewPx: 220, ms: 1200 },
+  fireball: { fromX: -200, fromY: -130, ms: 750, trailEveryMs: 24, trailCount: 3, headPx: 6 },
+  rockfall: {
+    rocks: 11,
+    spreadPx: 26,
+    heightPx: 90,
+    fallMs: 360,
+    dust: 14,
+    ringPx: 8,
+    ringScale: 7,
+  },
+  tremor: {
+    puffs: 18,
+    viewPx: 220,
+    ms: 1300,
+    cracks: 6,
+    crackSegs: 5,
+    crackStepPx: 22,
+    crackMs: 1600,
+  },
   colors: { hot: 0xfff0c8, orange: 0xff8a30, rock: 0x5b3a34, rockLight: 0x9a6a56, dust: 0xe8b890 },
 };
 
@@ -151,8 +176,48 @@ export class EventFx {
       ease: 'Cubic.easeOut',
       onComplete: () => ring.destroy(),
     });
+    const pillar = this.scene.add
+      .rectangle(x, y - cfg.pillarH / 2, cfg.pillarW, cfg.pillarH, EVENT_FX.colors.hot, 0.9)
+      .setDepth(EVENT_FX.depth)
+      .setBlendMode(Phaser.BlendModes.ADD);
+    this.scene.tweens.add({
+      targets: pillar,
+      scaleX: 0.2,
+      alpha: 0,
+      duration: cfg.pillarMs,
+      onComplete: () => pillar.destroy(),
+    });
+    this.scene.time.delayedCall(cfg.secondRingDelayMs, () => {
+      const ring2 = this.scene.add
+        .circle(x, y, cfg.ringStartPx)
+        .setStrokeStyle(2, EVENT_FX.colors.orange, 0.9)
+        .setDepth(EVENT_FX.depth);
+      this.scene.tweens.add({
+        targets: ring2,
+        scale: cfg.ringEndScale * 1.4,
+        alpha: 0,
+        duration: cfg.ringMs * 1.2,
+        ease: 'Cubic.easeOut',
+        onComplete: () => ring2.destroy(),
+      });
+    });
+    const crater = this.scene.add
+      .circle(x, y, cfg.craterPx, EVENT_FX.colors.orange, 0.5)
+      .setDepth(-39)
+      .setBlendMode(Phaser.BlendModes.ADD);
+    this.scene.tweens.add({
+      targets: crater,
+      alpha: 0.12,
+      yoyo: true,
+      repeat: cfg.craterPulses,
+      duration: cfg.craterMs / (cfg.craterPulses * 2 + 2),
+      onComplete: () => crater.destroy(),
+    });
     this.debris.emitParticleAt(x, y, cfg.debris);
     this.puffs.emitParticleAt(x, y, cfg.debris / 2);
+    this.scene.time.delayedCall(cfg.columnDelayMs, () =>
+      this.puffs.emitParticleAt(x, y - 6, cfg.column),
+    );
     this.scene.cameras.main.flash(160, 255, 240, 200, false);
   }
 
@@ -162,16 +227,23 @@ export class EventFx {
     const cfg = EVENT_FX.fireball;
     const head = { x: x + cfg.fromX, y: y + cfg.fromY };
     let lastTrail = 0;
+    const glow = this.scene.add
+      .circle(head.x, head.y, cfg.headPx, EVENT_FX.colors.hot, 1)
+      .setDepth(EVENT_FX.depth)
+      .setBlendMode(Phaser.BlendModes.ADD);
     this.scene.tweens.add({
       targets: head,
       x,
       y,
       duration: cfg.ms,
+      onComplete: () => glow.destroy(),
       onUpdate: (tween) => {
+        glow.setPosition(head.x, head.y);
         const now = tween.elapsed;
         if (now - lastTrail < cfg.trailEveryMs) return;
         lastTrail = now;
         this.debris.emitParticleAt(head.x, head.y, cfg.trailCount);
+        this.puffs.emitParticleAt(head.x, head.y, 1);
       },
     });
   }
@@ -185,7 +257,7 @@ export class EventFx {
     }
     for (let i = 0; i < cfg.rocks; i++) {
       const rx = x + Phaser.Math.Between(-cfg.spreadPx, cfg.spreadPx);
-      const size = Phaser.Math.Between(2, 4);
+      const size = Phaser.Math.Between(3, 6);
       const rock = this.scene.add
         .rectangle(
           rx,
@@ -208,6 +280,20 @@ export class EventFx {
       });
     }
     this.puffs.emitParticleAt(x, y, cfg.dust);
+    this.scene.time.delayedCall(cfg.fallMs + cfg.rocks * 20, () => {
+      const ring = this.scene.add
+        .circle(x, y, cfg.ringPx)
+        .setStrokeStyle(2, EVENT_FX.colors.dust, 0.9)
+        .setDepth(EVENT_FX.depth);
+      this.scene.tweens.add({
+        targets: ring,
+        scale: cfg.ringScale,
+        alpha: 0,
+        duration: 520,
+        ease: 'Cubic.easeOut',
+        onComplete: () => ring.destroy(),
+      });
+    });
   }
 
   /** The tremor has no position for the viewer, so dust lifts from the ground all around. */
@@ -217,6 +303,28 @@ export class EventFx {
     const cam = this.scene.cameras.main;
     const cx = cam.scrollX + cam.width / 2,
       cy = cam.scrollY + cam.height / 2;
+    const cracks = this.scene.add.graphics().setDepth(EVENT_FX.depth - 2);
+    cracks.lineStyle(2, 0x1c0d0c, 0.85);
+    for (let c = 0; c < cfg.cracks; c++) {
+      let px = cx + Phaser.Math.Between(-cfg.viewPx, cfg.viewPx);
+      let py = cy + Phaser.Math.Between(-cfg.viewPx / 2, cfg.viewPx / 2);
+      let dir = Phaser.Math.FloatBetween(0, Math.PI * 2);
+      cracks.beginPath();
+      cracks.moveTo(px, py);
+      for (let k = 0; k < cfg.crackSegs; k++) {
+        dir += Phaser.Math.FloatBetween(-0.7, 0.7);
+        px += Math.cos(dir) * cfg.crackStepPx;
+        py += Math.sin(dir) * cfg.crackStepPx;
+        cracks.lineTo(px, py);
+      }
+      cracks.strokePath();
+    }
+    this.scene.tweens.add({
+      targets: cracks,
+      alpha: 0,
+      duration: cfg.crackMs,
+      onComplete: () => cracks.destroy(),
+    });
     for (let i = 0; i < cfg.puffs; i++)
       this.scene.time.delayedCall((i / cfg.puffs) * cfg.ms, () =>
         this.puffs.emitParticleAt(
