@@ -191,6 +191,10 @@ describe('robustness', () => {
       { t: 'design:set', field: '__proto__', value: 'constructor' },
       { t: 'design:module', id: 'toString', on: true },
       { t: 'eva:ping', kind: { a: 1 } },
+      { t: 'mc:classify' },
+      { t: 'mc:classify', eventId: {}, kind: 'quake' },
+      { t: 'mc:classify', eventId: 'E1', kind: '__proto__' },
+      { t: 'mc:classify', eventId: 'E1', kind: null },
       { t: 'nope' },
     ];
     for (const j of junk) {

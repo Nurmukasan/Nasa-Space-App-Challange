@@ -125,6 +125,8 @@ export const SEISMIC = {
   fireballLeadS: 2,
   debugDelayS: 1,
   resolvedKeep: 3,
+  hazardKeepS: 2,
+  warningTailS: 1,
   minGapS: 55,
   lastEventS: 540,
 };
