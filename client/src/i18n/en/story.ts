@@ -11,6 +11,14 @@ const en: Record<string, string> = {
   'story.signal.seismo': 'Deploy the seismometer kits in a wide triangle around the site.',
   'story.signal.act2': 'The signal is real. Pin it down and bring us a sample of the source.',
   'story.signal.act3': 'Sunset. Power drops from here. Watch your oxygen.',
+  'story.signal.located': 'Zone confirmed. The source is inside the red circle. Go find it.',
+  'story.signal.retrieved': 'Signal sample aboard. Science team is ecstatic. Now come home.',
+  'reveal.jezero': 'Fresh cracks in the old delta sediments: the delta front is still settling.',
+  'reveal.elysium':
+    'A fresh fault scarp and crushed basalt: the fault is alive, like Cerberus Fossae.',
+  'reveal.arcadia': 'Ice in cracks under a fresh crater: impact-exposed ice is creaking.',
+  'reveal.partial': 'You pinned the source down but brought no sample. The mystery stays open.',
+  'reveal.note': 'In-game hypothesis inspired by real InSight findings.',
   'story.signal.window': 'Launch window closes in 60 seconds. Get the crew aboard.',
 };
 export default en;
