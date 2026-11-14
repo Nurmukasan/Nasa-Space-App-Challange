@@ -1,0 +1,17 @@
+export default {
+  'console.title': 'MISSION CONTROL',
+  'console.crew': 'Crew',
+  'console.seismic': 'Seismograph',
+  'console.power': 'Power',
+  'console.radio': 'Radio log',
+  'console.lost': 'LOST {time}',
+  'console.rockfall': 'ROCKFALL {seconds}s',
+  'console.relayOpen': 'RELAY OPEN · {seconds}s',
+  'console.relayClosed': 'RELAY CLOSED · {seconds}s',
+  'console.storm': 'STORM · {seconds}s',
+  'console.help': 'Select crew: click or 1–3. Click map: waypoint. Right click: clear.',
+  'site.delta': 'Delta',
+  'site.crater': 'Crater',
+  'site.basalt': 'Basalt',
+  'site.impact': 'Fresh impact',
+};

@@ -11,6 +11,7 @@ import type { JoinRequest, JoinResult, ServerMsg } from '@rs/shared';
 
 const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ';
 const MAX_ROOMS = 200;
+const MAX_MESSAGES_PER_SECOND = 60;
 const EMPTY_ROOM_TTL_MS = 5 * 60 * 1000;
 
 interface RoomEntry {
@@ -76,6 +77,9 @@ export function createGameServer(opts: { allowDebug?: boolean } = {}): GameServe
   }
 
   io.on('connection', (socket) => {
+    socket.on('latency', (ack: unknown) => {
+      if (typeof ack === 'function') ack();
+    });
     let bound: { code: string; playerId: string } | null = null;
 
     socket.on(EV_JOIN, (req: unknown, ack: unknown) => {
@@ -112,8 +116,15 @@ export function createGameServer(opts: { allowDebug?: boolean } = {}): GameServe
       reply(result);
     });
 
+    let windowStart = performance.now();
+    let messageCount = 0;
     socket.on(EV_MSG, (msg: unknown) => {
-      if (!bound) return;
+      const now = performance.now();
+      if (now - windowStart >= 1000) {
+        windowStart = now;
+        messageCount = 0;
+      }
+      if (++messageCount > MAX_MESSAGES_PER_SECOND || !bound) return;
       rooms.get(bound.code)?.room.handle(bound.playerId, msg);
     });
 

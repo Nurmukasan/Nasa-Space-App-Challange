@@ -1,3 +1,6 @@
+import { Settings } from './ui/Settings';
+import { DebugOverlay } from './ui/DebugOverlay';
+import { t } from './i18n';
 import { useEffect, useState } from 'react';
 import { ConsoleScreen } from './screens/ConsoleScreen';
 import { DesignScreen } from './screens/DesignScreen';
@@ -35,8 +38,10 @@ export function App() {
   }
   return (
     <>
-      {conn === 'reconnecting' && <div className="banner">RECONNECTING…</div>}
+      {conn === 'reconnecting' && <div className="banner">{t('app.reconnecting')}</div>}
       {screen}
+      <Settings />
+      <DebugOverlay />
       {SHOW_AI_ART_NOTICE && <div className="ai-note">{AI_ART_NOTICE_TEXT}</div>}
     </>
   );

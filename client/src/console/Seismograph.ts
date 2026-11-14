@@ -1,0 +1,72 @@
+import type { StationSignal } from '@rs/shared';
+import { snaps } from '../state/snapshots';
+import { store } from '../state/store';
+function hash(value: string): number {
+  let h = 2166136261;
+  for (const c of value) h = Math.imul(h ^ c.charCodeAt(0), 16777619);
+  return (h >>> 0) / 4294967296;
+}
+export function signalAt(id: string, s: StationSignal, tau: number): number {
+  if (tau < 0) return 0;
+  const env = s.amp * Math.min(1, tau / s.riseS) * Math.exp(-Math.max(0, tau - s.riseS) / s.decayS);
+  const phase = hash(`${id}:${s.stationIdx}`) * Math.PI * 2;
+  return (
+    env *
+      Math.sin(2 * Math.PI * s.freqHz * tau + phase) *
+      (0.7 + 0.3 * Math.sin(2 * Math.PI * 0.37 * s.freqHz * tau)) +
+    s.noise * (2 * hash(`${id}:${s.stationIdx}:${Math.floor(tau * 30)}`) - 1)
+  );
+}
+export class Seismograph {
+  private frame = 0;
+  constructor(
+    private canvas: HTMLCanvasElement,
+    private eventId?: string,
+  ) {
+    this.draw();
+  }
+  destroy(): void {
+    cancelAnimationFrame(this.frame);
+  }
+  private draw = (): void => {
+    this.frame = requestAnimationFrame(this.draw);
+    const ctx = this.canvas.getContext('2d'),
+      s = snaps.curr;
+    if (!ctx || !s) return;
+    const width = this.canvas.width,
+      height = this.canvas.height;
+    ctx.fillStyle = '#06140e';
+    ctx.fillRect(0, 0, width, height);
+    const rows = s.stations.length + (store.getState().room?.params?.hasWeather ? 1 : 0);
+    const rowHeight = height / Math.max(1, rows);
+    for (let row = 0; row < rows; row++) {
+      const pressure = row === s.stations.length;
+      const base = rowHeight * (row + 0.5);
+      ctx.strokeStyle = '#254937';
+      ctx.beginPath();
+      ctx.moveTo(0, base);
+      ctx.lineTo(width, base);
+      ctx.stroke();
+      ctx.strokeStyle = pressure ? '#77d9e5' : '#9dffb7';
+      ctx.beginPath();
+      for (let x = 0; x < width; x++) {
+        const time = s.t - 20 + (x / width) * 20;
+        let value = 0;
+        for (const e of s.seismic.filter((event) => !this.eventId || event.id === this.eventId))
+          for (const signal of e.signals)
+            if (signal.stationIdx === (pressure ? 0 : row)) {
+              const tau = time - e.t0 - signal.delayS;
+              value += pressure
+                ? tau < 0
+                  ? 0
+                  : -signal.pressureDip * Math.exp(-(((tau - 1.5) / 1.2) ** 2))
+                : signalAt(e.id, signal, tau);
+            }
+        const y = base - value * rowHeight * 0.35;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+  };
+}
