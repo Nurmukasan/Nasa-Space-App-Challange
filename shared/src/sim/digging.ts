@@ -14,6 +14,10 @@ export const diggingSystem: System = (sim, dt) => {
   if (sim.pub.t < 0) return;
   for (const a of sim.pub.astronauts) {
     if (a.status !== 'active' || !a.digging) continue;
+    if (a.carrying.length >= sim.params.carryCap) {
+      a.digging = false;
+      continue;
+    }
     const site = sim.pub.sites
       .filter(
         (s) =>
@@ -46,6 +50,12 @@ export const diggingSystem: System = (sim, dt) => {
       site.taken.push(tier);
       pushFx(sim, { type: 'sample', playerId: a.id, x: site.x, y: site.y, n: value });
       pushLog(sim, a.id, 'log.sample_collected', { tier, value });
+      // Do not spend the rest of this tick excavating with a full inventory.
+      if (a.carrying.length >= sim.params.carryCap) {
+        site.depth = threshold;
+        a.digging = false;
+        break;
+      }
     }
   }
 };
