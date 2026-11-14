@@ -9,4 +9,5 @@ export default {
   'skin.gold': 'Gold',
   'settings.leave': 'Leave to menu',
   'settings.resume': 'Resume',
+  'eva.lander_bearing': 'LANDER · {n} m',
 };
