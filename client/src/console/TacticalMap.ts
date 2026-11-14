@@ -2,6 +2,7 @@ import { COMMS, METERS_PER_PX, PLAYER_COLORS, SITES, WEATHER, WORLD_PX, levelAt 
 import { snaps } from '../state/snapshots';
 import { store } from '../state/store';
 import { t } from '../i18n';
+import { recordFrame } from '../state/frameStats';
 import { Telemetry } from './telemetry';
 export const MAP_SIZE = 640;
 const SCALE = MAP_SIZE / WORLD_PX;
@@ -57,6 +58,7 @@ export class TacticalMap {
     const ctx = this.canvas.getContext('2d'),
       s = snaps.curr;
     if (!ctx || !s) return;
+    const start = performance.now();
     this.telemetry.observe(s);
     ctx.drawImage(this.terrain, 0, 0);
     const room = store.getState().room;
@@ -164,5 +166,9 @@ export class TacticalMap {
         12,
         40,
       );
+    recordFrame(
+      performance.now() - start,
+      s.sites.length + s.stations.length + this.telemetry.contacts.size + 1,
+    );
   };
 }

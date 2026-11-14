@@ -15,6 +15,8 @@ interface CrewVisual {
 }
 
 export class EntityLayer {
+  private observed: EvaState | null = null;
+  private liveIds = new Set<string>();
   private crew = new Map<string, CrewVisual>();
   private sites = new Map<string, Phaser.GameObjects.Sprite>();
   private stations: Phaser.GameObjects.Image[] = [];
@@ -55,15 +57,19 @@ export class EntityLayer {
 
   update(snap: EvaState, myId: string, x: number, y: number, now: number): void {
     const roster = store.getState().room?.players ?? [];
-    const liveIds = new Set(snap.astronauts.map((a) => a.id));
-    for (const [id, v] of this.crew)
-      if (!liveIds.has(id)) {
-        v.body.destroy();
-        v.stripe.destroy();
-        v.name.destroy();
-        this.crew.delete(id);
-      }
-    this.remote.observe(snap, snaps.currAt);
+    if (this.observed !== snap) {
+      this.observed = snap;
+      this.liveIds.clear();
+      for (const a of snap.astronauts) this.liveIds.add(a.id);
+      for (const [id, v] of this.crew)
+        if (!this.liveIds.has(id)) {
+          v.body.destroy();
+          v.stripe.destroy();
+          v.name.destroy();
+          this.crew.delete(id);
+        }
+      this.remote.observe(snap, snaps.currAt);
+    }
     for (const a of snap.astronauts) {
       let v = this.crew.get(a.id);
       if (!v) {

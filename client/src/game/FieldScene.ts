@@ -3,17 +3,25 @@ import { LANDER_POS, SITES, TICK_HZ, WORLD_PX, moveSpeed } from '@rs/shared';
 import { send } from '../net/session';
 import { snaps } from '../state/snapshots';
 import { store } from '../state/store';
+import { FieldJuice } from './FieldJuice';
 import { FieldFx } from './fieldFx';
 import { terrainTexture } from './terrainTexture';
 import { EntityLayer } from './EntityLayer';
 import { preloadAssets, ensureAssets } from './assets';
 import { FIELD } from './style';
 import { Lighting } from './Lighting';
+import type { Light } from './Lighting';
+const CONE_KEYS = Array.from({ length: FIELD.coneDirections }, (_, index) => `light-cone-${index}`);
 
 const SNAP_BACK_PX = 24;
 
 /** Walking-skeleton field view: coarse terrain, rectangles for crew, local movement. */
 export class FieldScene extends Phaser.Scene {
+  private lightSources: Light[] = [
+    { x: LANDER_POS.x, y: LANDER_POS.y, key: 'light-ship', r: FIELD.landerRadius },
+  ];
+  private crewLights = new Map<string, Light>();
+  private juice!: FieldJuice;
   private effects!: FieldFx;
   private entities!: EntityLayer;
   private keys!: Record<'W' | 'A' | 'S' | 'D' | 'SHIFT' | 'E' | 'SPACE', Phaser.Input.Keyboard.Key>;
@@ -40,6 +48,7 @@ export class FieldScene extends Phaser.Scene {
     terrainTexture(this, salt);
     this.entities = new EntityLayer(this);
     this.effects = new FieldFx(this);
+    this.juice = new FieldJuice(this);
 
     this.lighting = new Lighting(this);
 
@@ -95,24 +104,34 @@ export class FieldScene extends Phaser.Scene {
       }
     }
 
+    this.juice.update(snap, myId, this.meX, this.meY, _time);
     if (mine) this.cameras.main.centerOn(this.meX, this.meY);
 
     this.entities.update(snap, myId, this.meX, this.meY, performance.now());
 
-    const lights = [{ x: LANDER_POS.x, y: LANDER_POS.y, key: 'light-ship', r: FIELD.landerRadius }];
+    this.lightSources.length = 1;
     for (const a of snap.astronauts) {
       if (a.status === 'inside' || a.status === 'lost') continue;
-      const own = a.id === myId;
-      const drawn = own ? undefined : (this.entities.drawnAt(a.id) ?? a);
-      lights.push({
-        x: drawn ? drawn.x : this.meX,
-        y: drawn ? drawn.y : this.meY,
-        key: own
-          ? `light-cone-${Math.round(((((this.facing % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2)) / (Math.PI * 2)) * FIELD.coneDirections) % FIELD.coneDirections}`
-          : 'light-friend',
-        r: own ? FIELD.helmetRadius : FIELD.companionRadius,
-      });
+      const own = a.id === myId,
+        drawn = own ? undefined : (this.entities.drawnAt(a.id) ?? a);
+      let light = this.crewLights.get(a.id);
+      if (!light) {
+        light = { x: 0, y: 0, key: 'light-friend', r: FIELD.companionRadius };
+        this.crewLights.set(a.id, light);
+      }
+      light.x = drawn ? drawn.x : this.meX;
+      light.y = drawn ? drawn.y : this.meY;
+      light.key = own
+        ? CONE_KEYS[
+            Math.round(
+              ((((this.facing % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2)) / (Math.PI * 2)) *
+                FIELD.coneDirections,
+            ) % FIELD.coneDirections
+          ]!
+        : 'light-friend';
+      light.r = own ? FIELD.helmetRadius : FIELD.companionRadius;
+      this.lightSources.push(light);
     }
-    this.lighting.render(snap, lights, this.cameras.main);
+    this.lighting.render(snap, this.lightSources, this.cameras.main);
   }
 }
