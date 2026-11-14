@@ -25,6 +25,7 @@ const SOUNDS: Partial<Record<FxType, SfxName>> = {
   impact: 'impact',
   alert: 'radio_in',
   storm_start: 'tremor_loop',
+  deploy: 'deploy',
 };
 
 /** All listeners are released with the scene; effect IDs are consumed by the session. */
@@ -67,6 +68,20 @@ export class FieldFx {
     const a = this.snap?.astronauts.find((a) => a.id === event.playerId);
     const x = event.x ?? a?.x ?? mine?.x ?? 0,
       y = event.y ?? a?.y ?? mine?.y ?? 0;
+    if (event.type === 'deploy') {
+      const kit = this.scene.add.image(x, y, 'station_kit').setDepth(y + 1);
+      if (reduce) this.scene.time.delayedCall(FIELD.fxDurationMs, () => kit.destroy());
+      else {
+        kit.setY(y - 12);
+        this.scene.tweens.add({
+          targets: kit,
+          y,
+          alpha: 0,
+          duration: FIELD.fxDurationMs,
+          onComplete: () => kit.destroy(),
+        });
+      }
+    }
     if (event.type === 'sample') {
       this.float(x, y, `+${event.n ?? 0}`, '#ffce72', reduce);
       if (!reduce) this.scene.cameras.main.flash(80, 255, 210, 110, false);

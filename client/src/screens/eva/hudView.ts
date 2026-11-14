@@ -1,4 +1,4 @@
-import { DIG, FAULTS, O2, RETURN, SAMPLE, STATIONS } from '@rs/shared';
+import { DIG, FAULTS, O2, RETURN, SAMPLE, SITES, STATIONS, sandAt } from '@rs/shared';
 import type { Astronaut, EvaState } from '@rs/shared';
 
 export function hudBanner(s: EvaState, a: Astronaut, needed: number) {
@@ -32,6 +32,7 @@ export function hudBanner(s: EvaState, a: Astronaut, needed: number) {
 export function actionHint(
   s: EvaState,
   a: Astronaut,
+  salt = SITES.jezero.terrainSalt,
 ): { key: string; params?: Record<string, string | number> } {
   const distance = (x: number, y: number) => Math.hypot(a.x - x, a.y - y);
   if (a.status === 'inside') return { key: 'eva.exit' };
@@ -73,6 +74,7 @@ export function actionHint(
       return { key: 'eva.deploy_lander' };
     if (s.stations.some((st) => distance(st.x, st.y) < STATIONS.minBetween))
       return { key: 'eva.deploy_station' };
+    if (sandAt(a.x, a.y, salt)) return { key: 'eva.deploy_sand' };
     return { key: 'eva.deploy' };
   }
   return { key: 'eva.explore' };

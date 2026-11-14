@@ -1,7 +1,7 @@
 // Deterministic terrain. Server uses it for gameplay (ledges = rockfall risk),
 // client uses the same functions to paint the world texture. Never send terrain
 // over the network: both sides compute it from (site, seed).
-import { LANDER_POS, WORLD_PX } from './balance';
+import { LANDER_POS, SAND, WORLD_PX } from './balance';
 import { SITES } from './catalog';
 import { createRng } from './rng';
 import type { MissionParams, SampleSite, SiteKind } from './types';
@@ -22,6 +22,14 @@ export function heightAt(x: number, y: number, salt: number): number {
 export function levelAt(x: number, y: number, salt: number): number {
   const l = Math.floor(heightAt(x, y, salt) * 5.2);
   return l < 0 ? 0 : l > TERRAIN_LEVELS - 1 ? TERRAIN_LEVELS - 1 : l;
+}
+
+/** Sand fills selected low terraces; rendering and gameplay share this exact mask. */
+export function sandAt(x: number, y: number, salt: number): boolean {
+  return (
+    levelAt(x, y, salt) === 0 &&
+    (Math.sin(x / SAND.waveX + salt) + Math.cos(y / SAND.waveY - salt)) / 2 > SAND.threshold
+  );
 }
 
 /** True if a terrace edge (ledge) lies within `dist` px of the point. */
