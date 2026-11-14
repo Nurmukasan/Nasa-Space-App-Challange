@@ -7,6 +7,13 @@ One line each: what, where it is used, link, license/credit. Required for the Sp
 
 | What | Used for | Link | Credit |
 | --- | --- | --- | --- |
+| InSight mission results | Seismic/wind/impact distinctions and the InSight mission twin, based on the supplied product specification | https://science.nasa.gov/mission/insight/science-highlights | NASA / JPL-Caltech |
+| InSight observed impact | Impact-crater and exposed-ice game concept, based on the supplied product specification | https://www.nasa.gov/missions/insight/nasas-insight-lander-detects-stunning-meteoroid-impact-on-mars/ | NASA / JPL-Caltech |
+
+The supplied `docs/product-logic.md` records the educational sources and deliberate simplifications.
+Current audio uses synthesized fallback tones; NASA audio recordings are not bundled.
+The report renders the engine's mission comparisons, not sourced numerical fact cards.
+External source pages and final scientific wording still need the science lead's verification.
 
 ## Fonts, libraries, tools
 

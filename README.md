@@ -46,8 +46,11 @@ Any Node host. Build command `npm ci && npm run build`, start command `npm start
 
 AI assistants were used to help write and review code and to create some of the art in this
 repository; screens that show AI-made art carry a visible "AI-GENERATED ART" label.
-OpenAI Codex assisted with the C0 client foundation recovery and its validation.
-Additional contributions and asset tools must be disclosed by their authors before submission.
+OpenAI Codex assisted with client foundation recovery, mission control, mission design, networking,
+scene lifecycle fixes, field effects, causal report UI, integration checks and deployment setup.
+Claude Code assisted with the remote-interpolation correction in PR #1.
+The built-in fallback sprites and sounds are procedural; NASA audio is not bundled.
+Additional asset contributions must be credited by their authors before submission.
 
 ## Data and references
 
