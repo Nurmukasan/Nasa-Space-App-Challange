@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { DIG, LANDER_POS, SITES, TICK_HZ, WORLD_PX, fieldSpeed, generateSites } from '@rs/shared';
 import { send } from '../net/session';
 import { snaps } from '../state/snapshots';
+import { prefs } from '../state/prefs';
 import { store } from '../state/store';
 import { HazardLayer } from './HazardLayer';
 import { PortLayer } from './PortLayer';
@@ -71,6 +72,14 @@ export class FieldScene extends Phaser.Scene {
     this.juice = new FieldJuice(this);
 
     this.lighting = new Lighting(this);
+    const stopMotion = prefs.subscribe((next, previous) => {
+      if (!next.reduceMotion || previous.reduceMotion) return;
+      this.cameras.main.shakeEffect.reset();
+      this.cameras.main.flashEffect.reset();
+      for (const tween of this.tweens.getTweens()) tween.complete();
+    });
+    this.events.once('shutdown', stopMotion);
+    this.events.once('destroy', stopMotion);
 
     this.cameras.main.setBounds(0, 0, WORLD_PX, WORLD_PX);
     this.cameras.main.centerOn(LANDER_POS.x, LANDER_POS.y);

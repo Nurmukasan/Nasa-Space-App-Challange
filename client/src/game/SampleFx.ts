@@ -5,6 +5,7 @@ import { fxBus } from '../fx/FxBus';
 import { prefs } from '../state/prefs';
 import { snaps } from '../state/snapshots';
 import { evaText as t } from '../i18n/en/eva';
+import { FIELD } from './style';
 import { worldLabels } from './WorldLabels';
 
 const SAMPLE_FX = {
@@ -66,7 +67,8 @@ export class SampleFx {
         scale: { start: 0.7, end: 0.2 },
         alpha: { start: 1, end: 0 },
         rotate: { min: 0, max: 360 },
-        maxAliveParticles: 60,
+        maxAliveParticles: FIELD.sampleChips,
+        maxParticles: FIELD.sampleChips,
       })
       .setDepth(SAMPLE_FX.depth - 1);
     this.sparks = scene.add
@@ -77,7 +79,8 @@ export class SampleFx {
         scale: { start: 0.7, end: 0 },
         alpha: { start: 1, end: 0 },
         blendMode: Phaser.BlendModes.ADD,
-        maxAliveParticles: 120,
+        maxAliveParticles: FIELD.sampleSparks,
+        maxParticles: FIELD.sampleSparks,
       })
       .setDepth(SAMPLE_FX.depth + 1);
     this.off.push(
@@ -98,6 +101,10 @@ export class SampleFx {
   }
 
   update(snap: EvaState, id: string, x: number, y: number, now: number, maxDepth: number): void {
+    if (this.still) {
+      this.chips.killAll();
+      this.sparks.killAll();
+    }
     this.own = { x, y, id };
     this.gauge.clear();
     const me = snap.astronauts.find((a) => a.id === id);
@@ -208,6 +215,12 @@ export class SampleFx {
     hex: string,
     color: number,
   ): void {
+    if (this.still) {
+      const dest = this.destination(playerId);
+      gem.destroy();
+      worldLabels(this.scene).float(dest.x, dest.y, label, hex);
+      return;
+    }
     const start = { x: gem.x, y: gem.y };
     const counter = this.scene.tweens.addCounter({
       from: 0,

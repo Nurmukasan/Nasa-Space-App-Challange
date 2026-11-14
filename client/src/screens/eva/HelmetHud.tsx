@@ -7,6 +7,8 @@ import { usePrefs } from '../../state/prefs';
 import { PixelIcon } from '../../ui/PixelIcon';
 import { MissionObjectives, ActTitle } from './MissionStatus';
 import { MissionFlow } from './MissionFlow';
+import { DepositCounter } from './DepositCounter';
+import '../../ui/feedback.css';
 import { Scanner } from './Scanner';
 import { RadioLine } from './RadioLine';
 import { actionHint, hudBanner } from './hudView';
@@ -78,6 +80,10 @@ export function HelmetHud({
       data-status={a.status}
       data-return-cost={needed.toFixed(2)}
     >
+      {frac < O2.lowFrac && a.status === 'active' && (
+        <div className="visor-fog" aria-hidden="true" />
+      )}
+      <DepositCounter total={snap.lander.cache.length} />
       <div className="visor-frame" aria-hidden="true" />
       <header className="helmet-top">
         <div className="helmet-block oxygen-block">

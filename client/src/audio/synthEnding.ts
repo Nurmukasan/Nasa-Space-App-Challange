@@ -1,6 +1,6 @@
 import type { SfxName } from './sounds';
-import { burst, tone } from './synth';
-import type { Burst, Tone } from './synth';
+import { burst, tone } from './synthNodes';
+import type { Burst, Tone } from './synthNodes';
 
 /** Debrief stamps and the death sting. Split from synth.ts to keep files small. */
 export function playEnding(ctx: AudioContext, out: AudioNode, name: SfxName, v: number): boolean {

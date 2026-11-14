@@ -2,6 +2,7 @@ import '@fontsource/silkscreen';
 import '@fontsource/vt323';
 import { createRoot } from 'react-dom/client';
 import { Playground } from './dev/Playground';
+import { installUiSounds } from './audio/ui';
 import { audio } from './audio';
 import { App } from './App';
 import { restoreSession, send } from './net/session';
@@ -15,6 +16,9 @@ if (dev === null) restoreSession();
 createRoot(document.getElementById('root')!).render(
   dev !== null ? <Playground name={dev} /> : <App />,
 );
+const stopUiSounds = installUiSounds();
+if (import.meta.hot) import.meta.hot.dispose(stopUiSounds);
+
 // Audio must unlock inside the first trusted user gesture, including lobby clicks.
 window.addEventListener('pointerdown', () => audio.unlock());
 window.addEventListener('keydown', () => audio.unlock());

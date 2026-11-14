@@ -1,0 +1,44 @@
+.visor-fog {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 38%, #c2e6ed20 72%, #c2e6ed66);
+  opacity: 0.65;
+  animation: suit-breath 2.4s ease-in-out infinite;
+}
+.deposit-counter {
+  position: absolute;
+  bottom: 205px;
+  left: 36px;
+  padding: 8px 12px;
+  background: #091724d9;
+  border: 1px solid #50e6f0;
+  color: #50e6f0;
+  font-size: 12px;
+  animation: deposit-pop 180ms ease-out;
+}
+@keyframes suit-breath {
+  50% {
+    opacity: 0.3;
+  }
+}
+@keyframes deposit-pop {
+  from {
+    transform: translateY(8px);
+    opacity: 0.4;
+  }
+}
+html[data-reduce-motion='true'] .world-labels *,
+html[data-reduce-motion='true'] .visor-fog,
+html[data-reduce-motion='true'] .deposit-counter {
+  animation: none !important;
+  transition: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .world-labels *,
+  .visor-fog,
+  .deposit-counter {
+    animation: none !important;
+    transition: none !important;
+  }
+}

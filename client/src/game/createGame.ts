@@ -26,11 +26,17 @@ export function createGame(parent: HTMLElement): Phaser.Game {
   });
   game.events.on(Phaser.Core.Events.POST_RENDER, () => {
     frameStats.terrainMs = game.registry.get('terrainMs') ?? 0;
-    recordFrame(
-      performance.now() - start,
-      game.scene.scenes[0]?.children.length ?? 0,
-      (game.registry.get('juiceParticles') ?? 0) + (game.registry.get('hazardParticles') ?? 0),
-    );
+    const scene = game.scene.scenes[0];
+    const particles =
+      scene?.children.list.reduce(
+        (total, object) =>
+          total +
+          (object instanceof Phaser.GameObjects.Particles.ParticleEmitter
+            ? object.getAliveParticleCount()
+            : 0),
+        0,
+      ) ?? 0;
+    recordFrame(performance.now() - start, game.scene.scenes[0]?.children.length ?? 0, particles);
   });
   const debug = window as unknown as { rsGame?: Phaser.Game };
   if (new URLSearchParams(location.search).has('debug')) debug.rsGame = game;

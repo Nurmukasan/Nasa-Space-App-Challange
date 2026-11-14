@@ -19,6 +19,8 @@ const en: Record<string, string> = {
   'eva.fault.antenna_drift': 'ANTENNA ALIGNMENT',
   'eva.fault.battery_fault': 'BATTERY',
   'eva.fault.panel_dust': 'DUSTY SOLAR PANELS',
+  'eva.discovery_found': 'SITE FOUND · {id}',
+  'eva.deposit_count': '+{n} SAMPLES DELIVERED',
   'eva.touchdown': 'TOUCHDOWN',
   'eva.window_closing': 'LAUNCH WINDOW CLOSING',
   'eva.returning_orbit': 'Returning to orbit · mission debrief next',
