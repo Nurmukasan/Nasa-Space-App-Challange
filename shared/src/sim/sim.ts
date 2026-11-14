@@ -1,6 +1,7 @@
 // Simulation container + helpers shared by all systems.
 import { LANDER_POS, LAUNCH_COUNTDOWN_S, POWER, SEISMIC } from '../balance';
 import { SITES } from '../catalog';
+import { buildSchedule } from './schedule';
 import { generateSites } from '../terrain';
 import type {
   Astronaut,
@@ -20,6 +21,7 @@ export interface ScheduledEvent {
   x: number;
   y: number;
   fired: boolean;
+  fireballShown?: boolean;
 }
 
 /** Server-only state: never serialized into snapshots. */
@@ -127,7 +129,13 @@ export function createSim(params: MissionParams, astronautIds: string[]): Sim {
   };
   return {
     pub,
-    hidden: { schedule: [], stats: emptyStats(n), nextFxId: 1, nextLogId: 1, lastMoveT: {} },
+    hidden: {
+      schedule: buildSchedule(params, SITES[params.site].terrainSalt),
+      stats: emptyStats(n),
+      nextFxId: 1,
+      nextLogId: 1,
+      lastMoveT: {},
+    },
     params,
     salt: SITES[params.site].terrainSalt,
   };
