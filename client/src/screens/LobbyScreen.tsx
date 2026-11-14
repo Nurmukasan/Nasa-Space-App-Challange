@@ -3,6 +3,8 @@ import type { Role } from '@rs/shared';
 import { t } from '../i18n';
 import { endSession, send, startSession } from '../net/session';
 import { me, useApp } from '../state/store';
+import { ScenarioCards } from './lobby/ScenarioCards';
+import { startSoloLobby } from './lobby/solo';
 
 const ROLES: Role[] = ['mc', 'eva', 'solo'];
 
@@ -11,6 +13,7 @@ export function LobbyScreen() {
   const self = useApp(me);
   const conn = useApp((s) => s.conn);
   const error = useApp((s) => s.error);
+  const local = useApp((s) => s.mode === 'local');
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const busy = conn === 'connecting';
@@ -68,7 +71,7 @@ export function LobbyScreen() {
         {health !== 'online' && (
           <p role="status">{t(health === 'checking' ? 'lobby.checking' : 'lobby.offline')}</p>
         )}
-        <button disabled={busy} onClick={() => void startSession('local', name)}>
+        <button disabled={busy} onClick={() => void startSoloLobby(name)}>
           {t('lobby.solo')}
         </button>
         {error && <div className="err">{error}</div>}
@@ -103,10 +106,16 @@ export function LobbyScreen() {
           </button>
         ))}
       </div>
+      <ScenarioCards selected={room.scenario} isHost={self.isHost} />
       {self.isHost && (
         <div className="row">
-          <button onClick={() => send({ t: 'lobby:start', quick: true })}>
-            {t('lobby.quick')}
+          <button
+            onClick={() => {
+              if (local) send({ t: 'lobby:scenario', id: 'training' });
+              send({ t: 'lobby:start', quick: true });
+            }}
+          >
+            {t(local ? 'lobby.quick_training' : 'lobby.quick')}
           </button>
           <button onClick={() => send({ t: 'lobby:start', quick: false })}>
             {t('lobby.design')}
