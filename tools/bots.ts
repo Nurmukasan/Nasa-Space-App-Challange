@@ -1,9 +1,12 @@
 // Headless test players. Usage:
 //   npm run bots -- --code ABCD --n 2            (join an existing room as EVA crew)
 //   npm run bots -- --n 3 --url http://localhost:3001   (create a room: 1 MC bot + 2 EVA bots, auto-start)
+//   npm run bots -- --n 3 --scenario signal             (scenario for a created room: free by default)
+// Decisions live in tools/botBrain.ts; tools/mission-soak.ts runs the same bots without a server.
 import { io } from 'socket.io-client';
-import { DIG, O2, EV_JOIN, EV_MSG, TICK_HZ, moveSpeed } from '@rs/shared';
-import type { ClientMsg, EvaState, JoinResult, RoomState, ServerMsg } from '@rs/shared';
+import { EV_JOIN, EV_MSG, SCENARIOS, TICK_HZ } from '@rs/shared';
+import type { ClientMsg, EvaState, JoinResult, RoomState, ScenarioId, ServerMsg } from '@rs/shared';
+import { EvaBrain, McBrain } from './botBrain';
 
 function arg(name: string, fallback: string): string {
   const i = process.argv.indexOf(`--${name}`);
@@ -14,6 +17,8 @@ const url = arg('url', 'http://localhost:3001');
 const n = Number(arg('n', '2'));
 if (!Number.isInteger(n) || n < 1 || n > 4) throw new Error('--n must be an integer from 1 to 4');
 let code = arg('code', '');
+const scenario = arg('scenario', 'free') as ScenarioId;
+if (!Object.prototype.hasOwnProperty.call(SCENARIOS, scenario)) throw new Error('bad --scenario');
 const createdRoom = code === '';
 
 async function spawn(index: number): Promise<void> {
@@ -53,19 +58,21 @@ async function spawn(index: number): Promise<void> {
   );
   let state: RoomState = join.state;
   let snap: EvaState | null = null;
-  let returning = false;
-  let restUntil = 0;
-  let refillNeeded = 0;
-  const answered = new Set<string>();
   socket.on(EV_MSG, (m: ServerMsg) => {
     if (m.t === 'state') state = m.state;
     if (m.t === 'snap') snap = m.snap;
   });
+  const solo = isMc && n === 1;
+  const mc = isMc ? new McBrain() : null;
+  const eva = !isMc || solo ? new EvaBrain(me, createdRoom ? Math.max(0, index - 1) : index) : null;
 
   const timer = setInterval(() => {
     if (state.phase === 'lobby' && isMc && state.hostId === me) {
       const ready = state.players.length === n && state.players.every((p) => p.role !== null);
-      if (ready) send({ t: 'lobby:start', quick: true });
+      if (ready) {
+        if (state.scenario !== scenario) send({ t: 'lobby:scenario', id: scenario });
+        else send({ t: 'lobby:start', quick: true });
+      }
     }
     if (state.phase === 'report') {
       console.log(`bot ${index}: report ${state.report?.score.grade}`);
@@ -73,89 +80,9 @@ async function spawn(index: number): Promise<void> {
       socket.close();
       return;
     }
-    if (state.phase !== 'eva' || !snap) return;
-    if (isMc && n !== 1) {
-      for (const event of snap.seismic)
-        if (
-          !answered.has(event.id) &&
-          event.guess === null &&
-          snap.t >= event.t0 &&
-          snap.t < event.deadline
-        ) {
-          answered.add(event.id);
-          const kinds = ['quake', 'impact', 'wind'] as const;
-          send({
-            t: 'mc:classify',
-            eventId: event.id,
-            kind: kinds[Math.floor(Math.random() * kinds.length)]!,
-          });
-        }
-      for (const a of snap.astronauts)
-        if (a.wantsRefill && !a.refillGranted) send({ t: 'mc:dispense', playerId: a.id });
-      return;
-    }
-    const a = snap.astronauts.find((x) => x.id === me);
-    if (!a || a.status === 'lost' || a.status === 'down' || snap.t < 0 || !state.params) return;
-    if (a.status === 'inside') {
-      if (
-        snap.t < snap.durationS - 45 &&
-        snap.t >= restUntil &&
-        snap.sites.some((s) => s.depth < state.params!.maxDepth)
-      )
-        send({ t: 'eva:interact' });
-      return;
-    }
-    if (
-      a.o2 < a.o2Max * 0.45 ||
-      a.carrying.length >= state.params.carryCap ||
-      snap.t > snap.durationS - 45
-    ) {
-      if (!returning) refillNeeded = a.o2Max - a.o2;
-      returning = true;
-    }
-    if (returning && Math.hypot(snap.lander.x - a.x, snap.lander.y - a.y) < O2.airlockRadius) {
-      send({ t: 'eva:dig', on: false });
-      send({ t: 'eva:move', x: a.x, y: a.y, facing: a.facing, moving: false, running: false });
-      if (a.o2 >= a.o2Max * 0.98 && a.carrying.length === 0) {
-        returning = false;
-        const rate = state.params.moxieRate * snap.lander.power.eff.moxie;
-        restUntil =
-          rate > 0 ? snap.t + (refillNeeded * snap.astronauts.length) / rate : snap.durationS;
-        send({ t: 'eva:interact' });
-      } else send({ t: 'eva:interact' });
-      return;
-    }
-    const sites = snap.sites.filter(
-      (s) => (s.expiresAt === null || s.expiresAt > snap!.t) && s.depth < state.params!.maxDepth,
-    );
-    const site = sites.reduce<(typeof sites)[number] | undefined>(
-      (best, s) =>
-        !best || Math.hypot(s.x - a.x, s.y - a.y) < Math.hypot(best.x - a.x, best.y - a.y)
-          ? s
-          : best,
-      undefined,
-    );
-    if (!site) {
-      returning = true;
-      refillNeeded = a.o2Max - a.o2;
-    }
-    const target = returning || !site ? snap.lander : site;
-    const distance = Math.hypot(target.x - a.x, target.y - a.y);
-    if (!returning && site && distance < DIG.reach) {
-      send({ t: 'eva:move', x: a.x, y: a.y, facing: a.facing, moving: false, running: false });
-      send({ t: 'eva:dig', on: true });
-      return;
-    }
-    const ang = Math.atan2(target.y - a.y, target.x - a.x);
-    const step = Math.min(distance, moveSpeed(state.params, snap.weather, false) / TICK_HZ);
-    send({
-      t: 'eva:move',
-      x: a.x + Math.cos(ang) * step,
-      y: a.y + Math.sin(ang) * step,
-      facing: ang,
-      moving: step > 0,
-      running: false,
-    });
+    if (state.phase !== 'eva' || !snap || !state.params) return;
+    for (const m of mc?.decide(snap, state.params) ?? []) send(m);
+    for (const m of eva?.decide(snap, state.params) ?? []) send(m);
   }, 1000 / TICK_HZ);
 }
 
