@@ -54,3 +54,22 @@
   display: block;
   width: 100%;
 }
+
+/* v2: voices in the radio log, scenario header, RED SIGNAL label */
+.voice-earth {
+  color: #ffd98a;
+}
+.voice-tulpar {
+  color: #7bd9e5;
+}
+.voice-crew {
+  color: #e2ecff;
+}
+.console-scenario {
+  font-size: 0.9rem;
+  color: #ffc66a;
+}
+.signal-label {
+  color: #ff3d6e;
+  margin-right: 8px;
+}

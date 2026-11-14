@@ -6,6 +6,16 @@ function hash(value: string): number {
   for (const c of value) h = Math.imul(h ^ c.charCodeAt(0), 16777619);
   return (h >>> 0) / 4294967296;
 }
+/** Noise samples per second; values between samples are blended so the trace is not a square wave. */
+const NOISE_HZ = 30;
+function noiseAt(key: string, x: number): number {
+  const i = Math.floor(x),
+    f = x - i,
+    w = f * f * (3 - 2 * f);
+  const a = 2 * hash(`${key}:${i}`) - 1,
+    b = 2 * hash(`${key}:${i + 1}`) - 1;
+  return a + (b - a) * w;
+}
 export function signalAt(id: string, s: StationSignal, tau: number): number {
   if (tau < 0) return 0;
   const env = s.amp * Math.min(1, tau / s.riseS) * Math.exp(-Math.max(0, tau - s.riseS) / s.decayS);
@@ -14,7 +24,7 @@ export function signalAt(id: string, s: StationSignal, tau: number): number {
     env *
       Math.sin(2 * Math.PI * s.freqHz * tau + phase) *
       (0.7 + 0.3 * Math.sin(2 * Math.PI * 0.37 * s.freqHz * tau)) +
-    s.noise * (2 * hash(`${id}:${s.stationIdx}:${Math.floor(tau * 30)}`) - 1)
+    s.noise * noiseAt(`${id}:${s.stationIdx}`, tau * NOISE_HZ)
   );
 }
 export function pressureAt(signals: StationSignal[], time: number, t0: number): number {

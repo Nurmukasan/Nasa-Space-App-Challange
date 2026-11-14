@@ -4,6 +4,7 @@ import { store } from '../state/store';
 import { t } from '../i18n';
 import { recordFrame } from '../state/frameStats';
 import { Telemetry } from './telemetry';
+import { drawAnomalies, drawLocate } from './locateOverlay';
 export const MAP_SIZE = 640;
 const SCALE = MAP_SIZE / WORLD_PX;
 const RINGS = [50, 100, 150];
@@ -17,6 +18,7 @@ export class TacticalMap {
   constructor(
     private canvas: HTMLCanvasElement,
     private selected: () => string | null,
+    private locating: () => string | null = () => null,
   ) {
     this.terrain.width = this.terrain.height = MAP_SIZE;
     const ctx = this.terrain.getContext('2d')!;
@@ -88,6 +90,7 @@ export class TacticalMap {
           px(site.y),
         );
       }
+    drawAnomalies(ctx, s, SCALE);
     for (let i = 0; i < s.stations.length; i++) {
       const p = s.stations[i]!;
       ctx.fillStyle = '#7bd9e5';
@@ -95,6 +98,7 @@ export class TacticalMap {
     }
     for (const e of s.seismic)
       if (e.estimate) this.circle(ctx, e.estimate.x, e.estimate.y, e.estimate.r, '#ffc66a');
+    drawLocate(ctx, s, SCALE, this.locating());
     for (const h of s.hazards) {
       this.circle(ctx, h.x, h.y, h.r, '#ff7766');
       ctx.fillStyle = '#ff7766';
