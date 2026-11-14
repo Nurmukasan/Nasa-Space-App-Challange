@@ -104,8 +104,7 @@ it('free success with objectives equals the v1 quota rule', () => {
 
 it('each done secondary objective except all aboard adds teamwork', () => {
   const s = sim('training');
-  s.hidden.stats.stationsDeployed = 1;
-  s.hidden.stats.classifyCorrect = 0;
+  s.hidden.stats.classifyCorrect = 2;
   for (const a of s.pub.astronauts) a.status = 'inside';
   endMission(s);
   const check = checkDesign(PRESETS.balanced, 'training');
