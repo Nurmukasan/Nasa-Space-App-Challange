@@ -1,6 +1,6 @@
 // A2: mission objectives (docs/phases.md, task A2; docs/product-logic.md 7.18).
 import { expect, it } from 'vitest';
-import { OBJECTIVE, PRESETS, checkDesign, deriveParams } from '../src';
+import { OBJECTIVE, PRESETS, TEAMWORK_V2, checkDesign, deriveParams } from '../src';
 import type { ScenarioId } from '../src';
 import { createSim } from '../src/sim/sim';
 import { endMission } from '../src/sim/endcheck';
@@ -110,5 +110,6 @@ it('each done secondary objective except all aboard adds teamwork', () => {
   const check = checkDesign(PRESETS.balanced, 'training');
   const score = scoreMission(s.hidden.stats, s.params, check, s.pub.objectives);
   const base = scoreMission(s.hidden.stats, s.params, check);
-  expect(score.teamwork - base.teamwork).toBe(OBJECTIVE.secondaryBonus);
+  // Training uses the v2 teamwork bonus (balance soak, A12).
+  expect(score.teamwork - base.teamwork).toBe(TEAMWORK_V2.secondaryBonus);
 });

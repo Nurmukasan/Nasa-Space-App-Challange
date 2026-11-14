@@ -1,5 +1,5 @@
 // Applies client messages to the sim. Every value from the client is validated here.
-import { MOVE, O2, TICK_DT } from '../balance';
+import { AIRLOCK, MOVE, O2, TICK_DT } from '../balance';
 import type { ClientMsg } from '../protocol';
 import { clampToWorld } from '../terrain';
 import { endMission } from './endcheck';
@@ -111,7 +111,9 @@ export function handleSimMsg(
         pushFx(sim, { type: 'deposit', playerId, n: a.carrying.length });
         a.carrying = [];
       }
-      if (a.o2 < a.o2Max * 0.98) {
+      // v2: an empty store cannot refill anyone, so the airlock lets the suit in as it is.
+      const storeEmpty = sim.params.scenario !== 'free' && lander.o2Store < AIRLOCK.emptyStore;
+      if (a.o2 < a.o2Max * 0.98 && !storeEmpty) {
         if (!a.wantsRefill) sim.hidden.stats.refills++;
         a.wantsRefill = true;
       } else {
