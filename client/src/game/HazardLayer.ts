@@ -50,11 +50,6 @@ export class HazardLayer {
         .setRotation(reduce ? 0 : Math.sin(snap.t * 2) * 0.08)
         .setAlpha(0.7);
     }
-    for (const h of snap.hazards)
-      if (h.warned && snap.t <= h.tHit) {
-        this.zones.lineStyle(1, FIELD.danger, reduce ? 0.7 : 0.55 + Math.sin(snap.t * 6) * 0.2);
-        this.zones.strokeCircle(h.x, h.y, h.r);
-      }
     const ice = snap.sites.filter(
       (s) => s.kind === 'impact' && (s.expiresAt === null || snap.t < s.expiresAt),
     );

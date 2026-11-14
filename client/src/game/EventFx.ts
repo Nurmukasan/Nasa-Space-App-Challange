@@ -35,7 +35,8 @@ export class EventFx {
       .setScrollFactor(0)
       .setDepth(EVENT_FX.stormDepth);
     this.debris = scene.add
-      .particles(0, 0, 'fx_spark', {
+      .particles(0, 0, 'fx_debris', {
+        frame: [0, 1, 2, 3],
         emitting: false,
         lifespan: { min: 700, max: 1700 },
         speed: { min: 40, max: 170 },
