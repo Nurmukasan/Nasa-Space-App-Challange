@@ -149,7 +149,7 @@ export function HelmetHud({
           <span className="home-arrow" style={{ transform: `rotate(${homeAngle}rad)` }}>
             ➤
           </span>
-          <span>LANDER · {Math.round(homeDist * HUD.metresPerPx)} m</span>
+          <span>{t('eva.lander_bearing', { n: Math.round(homeDist * HUD.metresPerPx) })}</span>
         </div>
       )}
       <ActTitle snap={snap} />
