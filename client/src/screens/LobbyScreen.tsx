@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Role } from '@rs/shared';
 import { t } from '../i18n';
 import { endSession, send, startSession } from '../net/session';
@@ -14,37 +14,60 @@ export function LobbyScreen() {
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const busy = conn === 'connecting';
+  const [health, setHealth] = useState<'checking' | 'online' | 'offline'>('checking');
+  useEffect(() => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 3000);
+    void fetch('/healthz', { signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok || (await response.json()).ok !== true) throw Error('offline');
+        setHealth('online');
+      })
+      .catch(() => setHealth('offline'))
+      .finally(() => clearTimeout(timer));
+    return () => {
+      controller.abort();
+      clearTimeout(timer);
+    };
+  }, []);
 
   if (!room || !self) {
     return (
       <div className="screen">
         <h1>{t('app.title')}</h1>
         <div className="dim">{t('app.tagline')}</div>
-        <div className="panel row">
-          <input
-            placeholder={t('lobby.name')}
-            maxLength={12}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-          <button disabled={busy} onClick={() => void startSession('online', name)}>
-            {t('lobby.create')}
-          </button>
-        </div>
-        <div className="panel row">
-          <input
-            placeholder={t('lobby.code')}
-            maxLength={4}
-            value={code}
-            onChange={(e) => setCode(e.target.value.toUpperCase())}
-          />
-          <button
-            disabled={busy || code.length !== 4}
-            onClick={() => void startSession('online', name, code)}
-          >
-            {t('lobby.join')}
-          </button>
-        </div>
+        {health === 'online' && (
+          <div className="panel row">
+            <input
+              placeholder={t('lobby.name')}
+              maxLength={12}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+            <button disabled={busy} onClick={() => void startSession('online', name)}>
+              {t('lobby.create')}
+            </button>
+          </div>
+        )}
+        {health === 'online' && (
+          <div className="panel row">
+            <input
+              placeholder={t('lobby.code')}
+              maxLength={4}
+              value={code}
+              onChange={(e) => setCode(e.target.value.toUpperCase())}
+            />
+            <button
+              disabled={busy || code.length !== 4}
+              onClick={() => void startSession('online', name, code)}
+            >
+              {t('lobby.join')}
+            </button>
+          </div>
+        )}
+        {health !== 'online' && (
+          <p role="status">{t(health === 'checking' ? 'lobby.checking' : 'lobby.offline')}</p>
+        )}
         <button disabled={busy} onClick={() => void startSession('local', name)}>
           {t('lobby.solo')}
         </button>
@@ -65,7 +88,7 @@ export function LobbyScreen() {
             <span>{p.isHost ? '★' : '·'}</span>
             <span>{p.name}</span>
             <span className="dim">{p.role ? t(`role.${p.role}`) : '—'}</span>
-            {!p.connected && <span className="err">offline</span>}
+            {!p.connected && <span className="err">{t('lobby.offlinePlayer')}</span>}
           </div>
         ))}
       </div>
@@ -91,7 +114,7 @@ export function LobbyScreen() {
         </div>
       )}
       {error && <div className="err">{error}</div>}
-      <button onClick={() => endSession()}>Leave</button>
+      <button onClick={() => endSession()}>{t('lobby.leave')}</button>
     </div>
   );
 }

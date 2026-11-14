@@ -1,3 +1,4 @@
+import { diagnostics } from '../state/diagnostics';
 import { io } from 'socket.io-client';
 import type { Socket } from 'socket.io-client';
 import { EV_JOIN, EV_MSG } from '@rs/shared';
@@ -10,6 +11,7 @@ export class SocketTransport implements Transport {
   private socket: Socket;
   private msgHandlers = new Set<(m: ServerMsg) => void>();
   private statusHandlers = new Set<(s: ConnStatus) => void>();
+  private heartbeat: ReturnType<typeof setInterval> | null = null;
   private rejoin: JoinRequest | null = null;
 
   constructor(url?: string) {
@@ -17,11 +19,29 @@ export class SocketTransport implements Transport {
     this.socket.on(EV_MSG, (m: ServerMsg) => {
       for (const h of this.msgHandlers) h(m);
     });
-    this.socket.on('disconnect', () => this.status('reconnecting'));
+    this.socket.on('disconnect', () => {
+      if (this.heartbeat) clearInterval(this.heartbeat);
+      this.heartbeat = null;
+      diagnostics.pingMs = null;
+      this.status('reconnecting');
+    });
     this.socket.on('connect', () => {
-      this.status('online');
+      this.heartbeat = setInterval(() => {
+        const start = performance.now();
+        this.socket.timeout(2000).emit('latency', (error: Error | null) => {
+          diagnostics.pingMs = error ? null : performance.now() - start;
+        });
+      }, 2000);
       // After a dropped connection, take our slot back using the token.
-      if (this.rejoin) this.socket.emit(EV_JOIN, this.rejoin, () => undefined);
+      if (this.rejoin)
+        this.socket.emit(EV_JOIN, this.rejoin, (r: JoinResult) => {
+          if (r.ok) {
+            for (const h of this.msgHandlers) h({ t: 'state', state: r.state });
+            this.status('online');
+          } else {
+            this.status('offline');
+          }
+        });
     });
   }
 
@@ -34,7 +54,10 @@ export class SocketTransport implements Transport {
       const go = (): void => {
         this.socket.emit(EV_JOIN, req, (r: JoinResult) => {
           clearTimeout(timer);
-          if (r.ok) this.rejoin = { name: req.name, code: r.code, token: r.token };
+          if (r.ok) {
+            this.rejoin = { name: req.name, code: r.code, token: r.token };
+            this.status('online');
+          }
           resolve(r);
         });
       };
@@ -61,6 +84,8 @@ export class SocketTransport implements Transport {
   }
 
   close(): void {
+    if (this.heartbeat) clearInterval(this.heartbeat);
+    this.heartbeat = null;
     this.rejoin = null;
     this.socket.close();
   }
