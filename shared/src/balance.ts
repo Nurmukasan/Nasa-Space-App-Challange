@@ -108,6 +108,23 @@ export const SEISMIC = {
   uncertainty1: 320,
   uncertainty3: 40,
   firstEventMinS: 75,
+  firstEventMaxS: 95,
+  secondEventMinS: 150,
+  secondEventMaxS: 190,
+  maxGapS: 85,
+  quakeMinDist: 250,
+  quakeMaxDist: 600,
+  impactMinDist: 450,
+  impactMaxDist: 700,
+  impactSiteClearance: 120,
+  epicentreAttempts: 20,
+  epicentreLedgeDist: 40,
+  ampFalloff: 1400,
+  minAmp: 0.25,
+  noisePenalty: 2,
+  fireballLeadS: 2,
+  debugDelayS: 1,
+  resolvedKeep: 3,
   minGapS: 55,
   lastEventS: 540,
 };
@@ -138,4 +155,11 @@ export const SCORE = {
   shareBonus: 15,
   allAboardBonus: 30,
   grades: { S: 850, A: 700, B: 550, C: 400 },
+};
+
+/** Stylized station signatures, never included as event labels before resolution. */
+export const SIGNALS = {
+  quake: { riseS: 3.5, decayS: 14, freqHz: 1.2, noise: 0.08, pressureDip: 0 },
+  impact: { riseS: 0.25, decayS: 2.5, freqHz: 4, noise: 0.08, pressureDip: 0 },
+  wind: { riseS: 1.5, decayS: 4, freqHz: 2.2, noise: 0.35, pressureDip: 0.8 },
 };

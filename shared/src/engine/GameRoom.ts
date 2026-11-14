@@ -1,7 +1,7 @@
 // One game room: players, phases, design, and the running simulation.
 // Pure logic, no network and no timers: the server (Socket.IO) and the client
 // (LocalTransport for solo/offline play) both drive this same class.
-import { MAX_EVA, MAX_PLAYERS } from '../balance';
+import { MAX_EVA, MAX_PLAYERS, SEISMIC } from '../balance';
 import { PRESETS } from '../catalog';
 import {
   checkDesign,
@@ -242,6 +242,26 @@ export class GameRoom {
           this.finishMission();
         } else if (msg.cmd === 'set_time' && typeof msg.n === 'number' && Number.isFinite(msg.n)) {
           this.sim.pub.t = Math.max(0, Math.min(this.sim.pub.durationS - 1, msg.n));
+        } else if (
+          msg.cmd === 'event_quake' ||
+          msg.cmd === 'event_impact' ||
+          msg.cmd === 'event_wind'
+        ) {
+          const a = this.sim.pub.astronauts[0];
+          if (a)
+            this.sim.hidden.schedule.push({
+              id: `debug-${this.sim.hidden.schedule.length}`,
+              kind:
+                msg.cmd === 'event_quake'
+                  ? 'quake'
+                  : msg.cmd === 'event_impact'
+                    ? 'impact'
+                    : 'wind',
+              t0: this.sim.pub.t + SEISMIC.debugDelayS,
+              x: a.x,
+              y: a.y,
+              fired: false,
+            });
         } else if (msg.cmd === 'drain_o2') {
           for (const a of this.sim.pub.astronauts) a.o2 = Math.min(a.o2, a.o2Max * 0.15);
         }
