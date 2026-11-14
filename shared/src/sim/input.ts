@@ -4,7 +4,7 @@ import type { ClientMsg } from '../protocol';
 import { clampToWorld } from '../terrain';
 import { endMission } from './endcheck';
 import { placePick, resolveEvent } from './seismic';
-import { moveSpeed } from './movement';
+import { fieldSpeed } from './movement';
 import { dist, findAstronaut, pushFx, pushLog } from './sim';
 import { tryStartRepair } from './faults';
 import { tryDeployKit } from './stations';
@@ -32,7 +32,7 @@ export function handleSimMsg(
       const running = msg.running === true;
       const last = sim.hidden.lastMoveT[playerId] ?? t - TICK_DT;
       const elapsed = Math.min(0.5, Math.max(TICK_DT, t - last));
-      const maxStep = moveSpeed(sim.params, sim.pub.weather, running) * elapsed * MOVE.slack;
+      const maxStep = fieldSpeed(sim.params, sim.pub, a.x, a.y, running) * elapsed * MOVE.slack;
       let nx = clampToWorld(msg.x);
       let ny = clampToWorld(msg.y);
       const d = dist(a.x, a.y, nx, ny);

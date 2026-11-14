@@ -29,7 +29,7 @@ export function createGame(parent: HTMLElement): Phaser.Game {
     recordFrame(
       performance.now() - start,
       game.scene.scenes[0]?.children.length ?? 0,
-      game.registry.get('juiceParticles') ?? 0,
+      (game.registry.get('juiceParticles') ?? 0) + (game.registry.get('hazardParticles') ?? 0),
     );
   });
   const debug = window as unknown as { rsGame?: Phaser.Game };

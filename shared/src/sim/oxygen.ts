@@ -1,4 +1,5 @@
 import { O2, TICK_DT } from '../balance';
+import { terrainMul } from './devils';
 import { pushFx, pushLog } from './sim';
 import type { System } from './sim';
 
@@ -14,9 +15,22 @@ export const oxygenSystem: System = (sim, dt) => {
         a.moving = false;
         a.running = false;
       }
-      let rate = a.digging ? O2.dig : a.moving ? (a.running ? O2.run : O2.walk) : O2.idle;
+      let rate =
+        a.digging || a.repairing ? O2.dig : a.moving ? (a.running ? O2.run : O2.walk) : O2.idle;
       if (a.leak) rate += O2.leakExtra;
-      a.o2 = Math.max(0, a.o2 - rate * dt);
+      const environment = terrainMul(sim.pub, sim.salt, a.x, a.y);
+      rate = rate * environment.o2 + environment.o2Extra;
+      const spent = Math.min(a.o2, rate * dt);
+      a.o2 = Math.max(0, a.o2 - spent);
+      if (sim.params.scenario !== 'free') {
+        if (environment.o2 > 1) sim.hidden.stats.sandSeconds += dt;
+        if (environment.o2Extra > 0) sim.hidden.stats.devilSeconds += dt;
+        const crew = sim.hidden.stats.crewStats.find((s) => s.id === a.id);
+        if (crew) {
+          crew.o2Used += spent;
+          crew.secondsOutside += dt;
+        }
+      }
       sim.hidden.stats.secondsOutside += dt;
       if (a.o2 <= 0) {
         a.status = 'down';

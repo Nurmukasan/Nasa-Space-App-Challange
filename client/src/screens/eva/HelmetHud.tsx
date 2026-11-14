@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { FLARE, O2, RETURN, returnCost } from '@rs/shared';
+import { FLARE, O2, RETURN, SITES, returnCost } from '@rs/shared';
 import type { EvaState, MissionParams } from '@rs/shared';
 import { audio } from '../../audio';
 import { t } from '../../i18n';
@@ -51,7 +51,10 @@ export function HelmetHud({
   first.returned ||= snap.lander.cache.length > 0;
   const frac = a.o2 / a.o2Max;
   const banner = hudBanner(snap, a, needed);
-  const hint = actionHint(snap, a);
+  const hint = actionHint(snap, a, SITES[params.site].terrainSalt);
+  const hintParams = hint.params?.fault
+    ? { ...hint.params, fault: t(`eva.fault.${hint.params.fault}`) }
+    : hint.params;
   const lesson =
     snap.t >= 0 && snap.t < 60
       ? !first.moved
@@ -202,9 +205,11 @@ export function HelmetHud({
           </div>
         )}
         <div className="helmet-instructions">
-          <b>{t(hint.key, hint.params)}</b>
+          <b>{t(hint.key, hintParams)}</b>
           {lesson && <span>{t(lesson)}</span>}
-          {snap.t < CONTROLS_SHOWN_S && <small className="controls-hint">{t('eva.controls')}</small>}
+          {snap.t < CONTROLS_SHOWN_S && (
+            <small className="controls-hint">{t('eva.controls')}</small>
+          )}
         </div>
         {log && a.linked && <RadioLine entry={log} />}
       </footer>

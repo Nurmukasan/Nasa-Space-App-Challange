@@ -33,6 +33,44 @@ export function placeholderSheet(a: AssetDef): HTMLCanvasElement {
         ctx.fillStyle = '#b0b6c4';
         ctx.fillRect(2, 10, 12, 5);
       }
+    } else if (a.key === 'devil') {
+      for (let band = 0; band < 5; band++) {
+        const y = 27 - band * 5,
+          width = 5 + band * 2;
+        const x = 16 + Math.sin(frame + band) * 3;
+        ctx.fillStyle = band % 2 ? '#b78365' : '#d2a37c';
+        ctx.beginPath();
+        ctx.ellipse(x, y, width, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else if (a.key === 'port') {
+      ctx.fillStyle = '#202d42';
+      ctx.fillRect(0, 0, 8, 8);
+      ctx.strokeStyle = frame ? '#ffce72' : '#8cabb6';
+      ctx.strokeRect(1, 1, 6, 6);
+      ctx.fillStyle = frame ? '#ffce72' : '#50e6f0';
+      ctx.fillRect(3, 3, 2, 2);
+    } else if (a.key === 'site_signal') {
+      ctx.fillStyle = '#4e233d';
+      ctx.fillRect(3, 4, 10, 9);
+      ctx.strokeStyle = '#ff5782';
+      ctx.strokeRect(2, 3, 12, 10);
+      ctx.fillStyle = frame ? '#211923' : '#ff9d9d';
+      ctx.fillRect(6, 6, 4, 5);
+    } else if (a.key === 'crater_decal') {
+      ctx.fillStyle = '#331e29';
+      ctx.beginPath();
+      ctx.ellipse(16, 17, 15, 10, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#9ac8ca';
+      ctx.beginPath();
+      ctx.ellipse(16, 16, 14, 9, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (a.key === 'fx_debris') {
+      ctx.fillStyle = '#bd8b71';
+      ctx.fillRect(2, 2, 5, 4);
+      ctx.fillStyle = '#51383b';
+      ctx.fillRect(1, 5, 5, 2);
     } else if (a.key === 'lander') {
       ctx.fillStyle = '#252c45';
       ctx.fillRect(8, 10, 48, 30);
@@ -57,7 +95,7 @@ export function placeholderSheet(a: AssetDef): HTMLCanvasElement {
       ctx.strokeRect(3 - (frame % 2), 3 - (frame % 2), 10 + (frame % 2) * 2, 10 + (frame % 2) * 2);
       ctx.fillStyle = '#e2ecff';
       ctx.fillRect(7, 5, 2, 6);
-    } else if (a.key === 'station') {
+    } else if (a.key === 'station' || a.key === 'station_kit') {
       ctx.fillStyle = '#c9d8e8';
       ctx.fillRect(3, 8, 10, 5);
       ctx.fillStyle = '#50e6f0';

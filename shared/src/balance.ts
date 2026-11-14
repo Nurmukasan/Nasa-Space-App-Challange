@@ -211,7 +211,7 @@ export const STATIONS = {
   minBetween: 120,
 };
 
-export const SAND = { threshold: 0.35, speedMul: 0.6, o2Mul: 1.3 };
+export const SAND = { threshold: 0.35, speedMul: 0.6, o2Mul: 1.3, waveX: 73, waveY: 91 };
 
 export const DEVIL = {
   rMin: 18,

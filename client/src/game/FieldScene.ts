@@ -1,16 +1,10 @@
 import Phaser from 'phaser';
-import {
-  DIG,
-  LANDER_POS,
-  SITES,
-  TICK_HZ,
-  WORLD_PX,
-  generateSites,
-  moveSpeed,
-} from '@rs/shared';
+import { DIG, LANDER_POS, SITES, TICK_HZ, WORLD_PX, fieldSpeed, generateSites } from '@rs/shared';
 import { send } from '../net/session';
 import { snaps } from '../state/snapshots';
 import { store } from '../state/store';
+import { HazardLayer } from './HazardLayer';
+import { PortLayer } from './PortLayer';
 import { PropLayer } from './PropLayer';
 import { FieldJuice } from './FieldJuice';
 import { FieldFx } from './fieldFx';
@@ -34,6 +28,8 @@ export class FieldScene extends Phaser.Scene {
     { x: LANDER_POS.x, y: LANDER_POS.y, key: 'light-ship', r: FIELD.landerRadius },
   ];
   private crewLights = new Map<string, Light>();
+  private hazards!: HazardLayer;
+  private ports!: PortLayer;
   private juice!: FieldJuice;
   private effects!: FieldFx;
   private eventFx!: EventFx;
@@ -61,13 +57,15 @@ export class FieldScene extends Phaser.Scene {
     ensureAssets(this);
     const room = store.getState().room;
     const salt = SITES[room?.params?.site ?? 'jezero'].terrainSalt;
-    terrainTexture(this, salt, snaps.curr?.sites ?? []);
+    terrainTexture(this, salt, room?.params?.scenario !== 'free', snaps.curr?.sites ?? []);
     if (room?.params) new PropLayer(this, salt, generateSites(room.params));
     this.entities = new EntityLayer(this);
     this.effects = new FieldFx(this);
     this.eventFx = new EventFx(this);
     this.hazardFx = new HazardFx(this);
     this.sampleFx = new SampleFx(this);
+    this.hazards = new HazardLayer(this);
+    this.ports = new PortLayer(this);
     this.juice = new FieldJuice(this);
 
     this.lighting = new Lighting(this);
@@ -110,7 +108,7 @@ export class FieldScene extends Phaser.Scene {
           const len = Math.hypot(dx, dy);
           dx /= len;
           dy /= len;
-          const speed = moveSpeed(params, snap.weather, running);
+          const speed = fieldSpeed(params, snap, this.meX, this.meY, running);
           this.meX = Phaser.Math.Clamp(this.meX + dx * speed * dt, 8, WORLD_PX - 8);
           this.meY = Phaser.Math.Clamp(this.meY + dy * speed * dt, 8, WORLD_PX - 8);
           this.facing = Math.atan2(dy, dx);
@@ -134,6 +132,8 @@ export class FieldScene extends Phaser.Scene {
       performance.now(),
       store.getState().room?.params?.maxDepth ?? DIG.coreDepth,
     );
+    this.hazards.update(snap, _time);
+    this.ports.update(snap, myId, st.room?.players.find((p) => p.id === myId)?.role === 'solo');
     this.juice.update(snap, myId, this.meX, this.meY, _time);
     if (mine) this.cameras.main.centerOn(this.meX, this.meY);
 

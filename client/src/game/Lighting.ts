@@ -50,6 +50,7 @@ export class Lighting {
   private brush: Phaser.GameObjects.Image;
   private tint: Phaser.GameObjects.Rectangle;
   private glow: Phaser.GameObjects.Image;
+  private aurora: Phaser.GameObjects.Graphics;
   private haze: Phaser.GameObjects.TileSprite;
   constructor(scene: Phaser.Scene) {
     makeLightTexture(scene, 'light-ship', FIELD.landerRadius);
@@ -99,6 +100,7 @@ export class Lighting {
       .setScrollFactor(0)
       .setDepth(910)
       .setAlpha(0);
+    this.aurora = scene.add.graphics().setScrollFactor(0).setDepth(906);
     const cleanup = () => {
       scene.events.off('shutdown', cleanup);
       scene.events.off('destroy', cleanup);
@@ -115,8 +117,28 @@ export class Lighting {
       0.94,
       FIELD.darkFloor + (1 - ambient) * FIELD.darkRange + (active ? 0.12 : 0),
     );
+    const flare = snap.flare && snap.t >= snap.flare.tStart && snap.t < snap.flare.tEnd;
+    const reduce = prefs.getState().reduceMotion;
+    const own = lights.find((l) => l.key.startsWith('light-cone-'));
+    const inDevil = own && snap.devils.some((d) => Math.hypot(own.x - d.x, own.y - d.y) <= d.r);
+    this.aurora.clear();
+    if (flare && ambient < 0.5) {
+      this.aurora.lineStyle(3, 0x8bff9c, 0.13);
+      for (let band = 0; band < 3; band++) {
+        this.aurora.beginPath();
+        for (let x = 0; x <= VIEW_W; x += 8) {
+          const y = 18 + band * 11 + Math.sin(x / 40 + (reduce ? 0 : snap.t * 0.15) + band) * 6;
+          if (x === 0) this.aurora.moveTo(x, y);
+          else this.aurora.lineTo(x, y);
+        }
+        this.aurora.strokePath();
+      }
+    }
     this.rt.clear();
-    this.tint.setFillStyle(ambient > 0.5 ? 0xffb36a : 0x283b88, ambient > 0.5 ? 0.035 : 0.07);
+    this.tint.setFillStyle(
+      flare ? 0x80c291 : ambient > 0.5 ? 0xffb36a : 0x283b88,
+      flare ? 0.1 : ambient > 0.5 ? 0.035 : 0.07,
+    );
     this.glow.setAlpha(dark * 0.12);
     if (dark > 0.02) {
       this.rt.fill(FIELD.night, dark);
@@ -128,8 +150,8 @@ export class Lighting {
         this.rt.erase(this.brush);
       }
     }
-    this.haze.setAlpha(active ? 0.24 : 0);
-    if (active && !prefs.getState().reduceMotion) {
+    this.haze.setAlpha(inDevil ? 0.6 : active ? 0.24 : 0);
+    if ((active || inDevil) && !reduce) {
       this.haze.tilePositionX = snap.t * 9;
       this.haze.tilePositionY = snap.t * 2;
     }

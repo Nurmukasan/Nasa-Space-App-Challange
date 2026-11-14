@@ -3,6 +3,8 @@ import type { Role } from '@rs/shared';
 import { t } from '../i18n';
 import { endSession, send, startSession } from '../net/session';
 import { me, useApp } from '../state/store';
+import { ScenarioCards } from './lobby/ScenarioCards';
+import { startSoloLobby } from './lobby/solo';
 import '../ui/menu.css';
 
 const ROLES: Role[] = ['mc', 'eva', 'solo'];
@@ -12,6 +14,7 @@ export function LobbyScreen() {
   const self = useApp(me);
   const conn = useApp((s) => s.conn);
   const error = useApp((s) => s.error);
+  const local = useApp((s) => s.mode === 'local');
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const busy = conn === 'connecting';
@@ -81,11 +84,7 @@ export function LobbyScreen() {
               </button>
             </div>
           )}
-          <button
-            className="btn-main"
-            disabled={busy}
-            onClick={() => void startSession('local', name)}
-          >
+          <button className="btn-main" disabled={busy} onClick={() => void startSoloLobby(name)}>
             {t('lobby.solo')}
           </button>
           <div className="status-line" role="status">
@@ -127,10 +126,17 @@ export function LobbyScreen() {
           </button>
         ))}
       </div>
+      <ScenarioCards selected={room.scenario} isHost={self.isHost} />
       {self.isHost && (
         <div className="row">
-          <button className="btn-main" onClick={() => send({ t: 'lobby:start', quick: true })}>
-            {t('lobby.quick')}
+          <button
+            className="btn-main"
+            onClick={() => {
+              if (local) send({ t: 'lobby:scenario', id: 'training' });
+              send({ t: 'lobby:start', quick: true });
+            }}
+          >
+            {t(local ? 'lobby.quick_training' : 'lobby.quick')}
           </button>
           <button className="btn-main" onClick={() => send({ t: 'lobby:start', quick: false })}>
             {t('lobby.design')}
