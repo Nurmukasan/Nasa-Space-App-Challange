@@ -226,21 +226,10 @@ export function crossed(prev: number, cur: number, bearing: number): boolean {
 }
 
 /** Fills the strips left and right of the square world with a dim grid, and frames the world. */
-export function drawBackdrop(
-  ctx: CanvasRenderingContext2D,
-  w: number,
-  h: number,
-  ox: number,
-  terrain: CanvasImageSource,
-) {
+export function drawBackdrop(ctx: CanvasRenderingContext2D, w: number, h: number, ox: number) {
   ctx.fillStyle = RADAR.bg;
   ctx.fillRect(0, 0, w, h);
   if (ox <= 0) return;
-  // Past the edge of the world the relief just carries on, dimmed.
-  ctx.globalAlpha = 0.4;
-  for (let x = ox - h; x > -h; x -= h) ctx.drawImage(terrain, x, 0);
-  for (let x = ox + h; x < w; x += h) ctx.drawImage(terrain, x, 0);
-  ctx.globalAlpha = 1;
   ctx.strokeStyle = RADAR.grid;
   ctx.globalAlpha = 0.25;
   ctx.lineWidth = 1;

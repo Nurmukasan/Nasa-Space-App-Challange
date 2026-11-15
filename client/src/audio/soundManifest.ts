@@ -34,6 +34,8 @@ export const SFX_WIRED = [
   'stamp_fail',
   'death',
   'radar_ping',
+  'storm_gust',
+  'storm_crack',
 ] as const;
 
 /** v2 effects (docs/phases.md): record now, the field/console owners wire them in phases 1–3. */

@@ -9,6 +9,7 @@ import { evaText as t } from '../i18n/en/eva';
 import { store } from '../state/store';
 import { FIELD } from './style';
 import { worldLabels } from './WorldLabels';
+import { gust, stormLevel } from './stormMath';
 
 const EVENT_NOTE_MS = 5500;
 
@@ -179,8 +180,7 @@ export class FieldFx {
       this.musicStarted = true;
     }
     this.footsteps(mine.x, mine.y, mine.status === 'active');
-    const storm = snap.weather.storm;
-    audio.setStorm(storm && snap.t >= storm.tStart && snap.t < storm.tEnd ? 1 : 0);
+    audio.setStorm(stormLevel(snap) * (0.7 + 0.3 * gust(snap.t)));
     if (mine.status === 'active' && snap.t >= 0) audio.loop('breath_loop');
     else audio.stop('breath_loop');
     if (mine.repairing) audio.loop('repair_loop');
