@@ -22,7 +22,6 @@ export function LobbyScreen() {
   const self = useApp(me);
   const conn = useApp((s) => s.conn);
   const error = useApp((s) => s.error);
-  const local = useApp((s) => s.mode === 'local');
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const busy = conn === 'connecting';
@@ -156,12 +155,10 @@ export function LobbyScreen() {
           <button
             className="btn-main"
             disabled={waiting.length > 0}
-            onClick={() => {
-              if (local) send({ t: 'lobby:scenario', id: 'training' });
-              send({ t: 'lobby:start', quick: true });
-            }}
+            onClick={() => send({ t: 'lobby:start', quick: true })}
           >
-            {t(local ? 'lobby.quick_training' : 'lobby.quick')}
+            {/* Solo opens on training (lobby/solo.ts); a picked card is honoured, not overridden. */}
+            {t(room.scenario === 'training' ? 'lobby.quick_training' : 'lobby.quick')}
           </button>
           <button
             className="btn-main"

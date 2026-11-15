@@ -579,6 +579,8 @@ export interface TimelineEntry {
   type: FxType;
   playerId?: string;
   n?: number;
+  /** Detail of the effect: objective id for objective_done, fault kind for fault/repair_done. */
+  s?: string;
 }
 
 export interface Award {

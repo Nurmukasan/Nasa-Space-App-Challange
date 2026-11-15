@@ -61,14 +61,16 @@ export function CrewPanel({
           </div>
         );
       })}
-      <label>
-        <input
-          type="checkbox"
-          checked={snap.lander.ration}
-          onChange={(e) => send({ t: 'mc:ration', on: e.target.checked })}
-        />
-        {t('console.ration')}
-      </label>
+      {!params?.solo && (
+        <label>
+          <input
+            type="checkbox"
+            checked={snap.lander.ration}
+            onChange={(e) => send({ t: 'mc:ration', on: e.target.checked })}
+          />
+          {t('console.ration')}
+        </label>
+      )}
     </section>
   );
 }

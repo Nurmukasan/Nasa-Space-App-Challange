@@ -305,7 +305,7 @@ export function pushFx(sim: Sim, fx: Omit<FxEvent, 'id' | 't'>): void {
   sim.pub.fx.push({ id: sim.hidden.nextFxId++, t: sim.pub.t, ...fx });
   const timeline = sim.hidden.timeline;
   if (TIMELINE_TYPES.has(fx.type) && timeline.length < REPORT.timelineMax)
-    timeline.push({ t: sim.pub.t, type: fx.type, playerId: fx.playerId, n: fx.n });
+    timeline.push({ t: sim.pub.t, type: fx.type, playerId: fx.playerId, n: fx.n, s: fx.s });
 }
 
 export function pushLog(sim: Sim, from: string, key: string, params?: LogEntry['params']): void {

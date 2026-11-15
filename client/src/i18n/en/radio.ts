@@ -7,6 +7,7 @@ export default {
   'ping.low_o2': 'LOW OXYGEN',
   'ping.returning': 'RETURNING',
   'ping.found': 'SITE FOUND',
+  'ping.shaking': 'STRONG SHAKING HERE',
   'alert.evac': '{id}: evacuate the hazard zone',
   'alert.return': '{id}: return to lander',
   'alert.hold': '{id}: hold position',

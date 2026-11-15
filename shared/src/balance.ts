@@ -244,7 +244,7 @@ export const PROPS = {
 };
 /** Point of no return: walk cost home × margin + reserve. */
 export const RETURN = { margin: 1.15, reserve: 5, warningUnits: 10 };
-/** v2 airlock: with nothing left in the store, E lets a part-full suit inside (no trap at the door). */
+/** Airlock: with nothing left in the store, E lets a part-full suit inside (no trap at the door). */
 export const AIRLOCK = { emptyStore: 1 };
 
 // ----- owner: A --------------------------------------------------------------
@@ -333,6 +333,11 @@ export const OBJECTIVE = { secondaryBonus: 20 };
  * Teamwork in training and RED SIGNAL: more ways to earn it than in v1, so each pays less.
  * Bot soak (A12): near-perfect play lands near the 150 cap instead of ~235.
  */
+/**
+ * Efficiency parts (PL 8.1): each part reaches its cap at half of the budget / time left, the
+ * mass and store parts scale linearly. Caps sum to SCORE.efficiencyMax.
+ */
+export const EFFICIENCY = { budget: 80, mass: 40, store: 40, time: 40, halfMul: 2 };
 export const TEAMWORK_V2 = { classifyBonus: 15, goodPickBonus: 12, secondaryBonus: 12 };
 export const REPORT = { timelineMax: 80 };
 /** v2 causal findings thresholds (docs/product-logic.md 8.2). */

@@ -16,6 +16,7 @@ import { SystemsPanel } from '../console/panels/SystemsPanel';
 import { AheadPanel } from '../console/panels/AheadPanel';
 import { fxBus } from '../fx/FxBus';
 import { audio } from '../audio';
+import { radioText } from '../ui/radioText';
 const VOICES = ['earth', 'tulpar', 'mc', 'sys'];
 function voice(from: string): string {
   return VOICES.includes(from) ? from : 'crew';
@@ -156,7 +157,7 @@ export function ConsoleScreen() {
               <div key={entry.id} className={`voice-${voice(entry.from)}`}>
                 {Math.floor(entry.t)} · {speaker(entry.from, players ?? [])}
                 {entry.from === 'earth' && ` (${t('console.earthDelay')})`} ·{' '}
-                {t(entry.key, entry.params)}
+                {radioText(entry, players)}
               </div>
             ))}
           </div>

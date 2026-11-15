@@ -3,15 +3,19 @@ import { t } from '../../i18n';
 import { useApp } from '../../state/store';
 import { spriteFiles } from '../../game/assets';
 import { HUD } from './style';
+import { radioText, radioVoice } from '../../ui/radioText';
 
 export function RadioLine({ entry }: { entry: LogEntry }) {
   const roster = useApp((s) => s.room?.players);
-  const speaker = ['earth', 'tulpar', 'mc'].includes(entry.from) ? entry.from : 'mc';
-  const label = ['earth', 'tulpar', 'mc'].includes(entry.from)
-    ? t(`eva.speaker.${speaker}`)
-    : (roster?.find((p) => p.id === entry.from)?.name ?? entry.from);
+  const voice = radioVoice(entry.from);
+  // Crew lines carry no portrait of their own: the MC portrait frames every relayed call.
+  const speaker = voice === 'crew' ? 'mc' : voice;
+  const label =
+    voice === 'crew'
+      ? (roster?.find((p) => p.id === entry.from)?.name ?? entry.from)
+      : t(`eva.speaker.${speaker}`);
   const file = `portrait_${speaker}`;
-  const text = t(entry.key, entry.params);
+  const text = radioText(entry, roster);
   return (
     <div className="helmet-radio" aria-live="polite" key={entry.id}>
       {spriteFiles[`/public/assets/sprites/${file}.png`] ? (

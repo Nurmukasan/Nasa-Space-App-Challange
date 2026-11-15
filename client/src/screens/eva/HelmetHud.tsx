@@ -129,7 +129,7 @@ export function HelmetHud({
         </div>
       </header>
       {a.status === 'active' && homeDist > O2.airlockRadius * 2 && (
-        <div className="helmet-home" aria-label="lander bearing">
+        <div className="helmet-home" aria-label={t('eva.lander_bearing_label')}>
           <span className="home-arrow" style={{ transform: `rotate(${homeAngle}rad)` }}>
             ➤
           </span>
