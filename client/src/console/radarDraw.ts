@@ -1,18 +1,19 @@
 /** Drawing helpers for the tactical radar. All coordinates are canvas pixels. */
 export const RADAR = {
-  bg: '#100808',
-  grid: '#5a3524',
-  gridBright: '#a2623a',
-  text: '#ffd9b0',
-  sweep: '255, 176, 96',
+  bg: '#06111f',
+  grid: '#28557d',
+  gridBright: '#4b96cc',
+  text: '#d2ebff',
+  sweep: '96, 196, 255',
   amber: '#ffb030',
   danger: '#ff6a58',
   ok: '#8dffb8',
   station: '#7bd9e5',
   site: '#ffc66a',
   font: '13px "Share Tech Mono", monospace',
-  sweepPeriodMs: 5200,
+  sweepPeriodMs: 4800,
   pingMs: 6000,
+  blipRingMs: 900,
   trailRad: Math.PI * 0.55,
   tickCount: 36,
   tickLongEvery: 3,
@@ -195,5 +196,66 @@ export function drawPing(
   ctx.beginPath();
   ctx.arc(cx, cy, maxR * k, 0, TAU);
   ctx.stroke();
+  ctx.globalAlpha = 1;
+}
+
+/** A short expanding ring where the sweep arm has just touched a contact. */
+export function drawBlipRing(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  age: number,
+  color: string,
+) {
+  const k = age / RADAR.blipRingMs;
+  if (k >= 1) return;
+  ctx.globalAlpha = (1 - k) * 0.9;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(x, y, 8 + k * 26, 0, TAU);
+  ctx.stroke();
+  ctx.lineWidth = 1;
+  ctx.globalAlpha = 1;
+}
+
+/** True when the arm moved across `bearing` between two frames (all angles 0..2π). */
+export function crossed(prev: number, cur: number, bearing: number): boolean {
+  const b = ((bearing % TAU) + TAU) % TAU;
+  return prev <= cur ? b > prev && b <= cur : b > prev || b <= cur;
+}
+
+/** Fills the strips left and right of the square world with a dim grid, and frames the world. */
+export function drawBackdrop(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  ox: number,
+  terrain: CanvasImageSource,
+) {
+  ctx.fillStyle = RADAR.bg;
+  ctx.fillRect(0, 0, w, h);
+  if (ox <= 0) return;
+  // Past the edge of the world the relief just carries on, dimmed.
+  ctx.globalAlpha = 0.4;
+  for (let x = ox - h; x > -h; x -= h) ctx.drawImage(terrain, x, 0);
+  for (let x = ox + h; x < w; x += h) ctx.drawImage(terrain, x, 0);
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = RADAR.grid;
+  ctx.globalAlpha = 0.25;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let x = ox % 40; x < w; x += 40) {
+    ctx.moveTo(x + 0.5, 0);
+    ctx.lineTo(x + 0.5, h);
+  }
+  for (let y = 0; y < h; y += 40) {
+    ctx.moveTo(0, y + 0.5);
+    ctx.lineTo(w, y + 0.5);
+  }
+  ctx.stroke();
+  ctx.globalAlpha = 0.7;
+  ctx.strokeStyle = RADAR.gridBright;
+  ctx.strokeRect(ox + 0.5, 0.5, h - 1, h - 1);
   ctx.globalAlpha = 1;
 }

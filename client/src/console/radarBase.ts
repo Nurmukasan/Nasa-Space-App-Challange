@@ -5,14 +5,14 @@ import { terrainPaint } from '../render/terrainPaint';
 const BASE = {
   /** The relief is baked at half resolution, then scaled to the radar. */
   scale: 2,
-  dark: [16, 8, 9],
-  light: [172, 100, 52],
+  dark: [5, 14, 30],
+  light: [38, 104, 164],
   /** Keeps the map a backdrop: markers must always win against it. */
-  strength: 0.62,
+  strength: 0.5,
   vignette: 0.55,
   /** Dunes seen from orbit (PL 7.1): one dot per this many world px. */
   sandStep: 12,
-  sandDot: 'rgba(240, 206, 150, 0.45)',
+  sandDot: 'rgba(150, 205, 255, 0.4)',
 };
 
 /**

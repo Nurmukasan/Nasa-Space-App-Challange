@@ -1,0 +1,246 @@
+/* Softer corners everywhere: pixel-art look stays, the sharp 90 degree edges go. */
+.panel,
+.screen .panel,
+.screen button,
+.screen input,
+.screen select,
+button,
+input,
+select {
+  border-radius: 10px;
+}
+.screen .panel {
+  border-radius: 14px;
+}
+.screen .panel::before {
+  border-top-left-radius: 14px;
+}
+.screen .panel::after {
+  border-bottom-right-radius: 14px;
+}
+.crew-row,
+.radio-log,
+.seismo-canvas,
+.systems-hull,
+.systems-port,
+.asset-card,
+.module-card,
+.forecast-item,
+.chip,
+.tag,
+.roster-row,
+.site-card canvas,
+.wrist-map canvas,
+.solo-tools,
+.solo-fault,
+.debrief-objective,
+.report-timeline li,
+.report-awards article,
+.scenario-cards button,
+.deposit-counter,
+.spacecraft-layout,
+.issues p,
+.settings .panel,
+.settings > button {
+  border-radius: 10px;
+}
+.helmet-block,
+.helmet-radio,
+.helmet-clock,
+.helmet-banner,
+.helmet-home,
+.sample-slot,
+.scanner-found,
+.wl.hint,
+.wl.arrow,
+.wl-note,
+.controls-hint {
+  border-radius: 10px;
+}
+.console-screen meter,
+.console-screen progress,
+.console-screen input[type='range'] {
+  border-radius: 6px;
+}
+.console-screen input[type='range']::-webkit-slider-thumb {
+  border-radius: 5px;
+}
+.console-screen meter::-webkit-meter-bar {
+  border-radius: 6px;
+}
+.helmet-scanner,
+.score-bar,
+.seal-wrap,
+.stamp-ink {
+  border-radius: 10px;
+}
+.gem {
+  border-radius: 5px;
+}
+.score-bar > * {
+  border-radius: 6px;
+}
+
+/* ---- Even sizes: blocks that sit in the same column share one width / height ---- */
+.report-grid {
+  align-items: stretch;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  box-sizing: border-box;
+}
+.report-grid > .panel,
+.report-details > .panel {
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+}
+.report-details {
+  width: 100%;
+}
+.screen > .roster,
+.screen > .crew-picker,
+.screen > .scenario-picker,
+.screen > .role-grid {
+  box-sizing: border-box;
+  width: min(780px, 96vw);
+}
+.screen > .role-grid {
+  justify-content: center;
+}
+.screen > .roster {
+  min-width: 0;
+}
+
+/* ---- Mission design: every card in a column has the same width and height ---- */
+.fields {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  align-items: start;
+}
+.fields .choice-cards,
+.fields .site-cards {
+  grid-template-columns: 1fr;
+  grid-auto-rows: 1fr;
+}
+.fields:has(> :only-child) .choice-cards,
+.fields:has(> :only-child) .site-cards {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+.fields .choice-cards button,
+.fields .site-cards button {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-height: 92px;
+}
+.fields .site-card {
+  grid-template-columns: 96px 1fr;
+  justify-items: start;
+  align-items: center;
+  column-gap: 14px;
+  row-gap: 4px;
+  text-align: left;
+}
+.fields .site-card canvas {
+  grid-row: 1 / span 4;
+  align-self: center;
+}
+.design-indicators {
+  grid-auto-rows: 1fr;
+}
+.gauge {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+.gauge output {
+  white-space: nowrap;
+  font-size: clamp(15px, 1.15vw, 19px);
+}
+.gauge .resource-why {
+  margin-top: auto;
+}
+
+/* ---- Mission cards in the lobby: compact, equal height ---- */
+.scenario-cards {
+  grid-auto-rows: 1fr;
+}
+.scenario-cards button {
+  box-sizing: border-box;
+  align-content: start;
+  padding: 12px 14px;
+  gap: 6px 12px;
+}
+.scenario-cards small {
+  font-size: 16px;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+.scenario-cards small:last-of-type {
+  margin-top: auto;
+  opacity: 0.8;
+}
+.scenario-icon {
+  font-size: 22px;
+}
+
+/* ---- Mission design: shared edges, no overlaps ---- */
+.design-screen > .panel,
+.design-screen > section,
+.design-screen > .bays {
+  box-sizing: border-box;
+  width: 100%;
+}
+.gauge-bar {
+  margin-bottom: 8px;
+}
+.gauge .resource-why {
+  padding-top: 4px;
+}
+.fields .site-card small,
+.fields .site-card > span {
+  font-size: 15px;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+.fields .site-card canvas {
+  width: 80px;
+  height: 80px;
+}
+.fields .site-card {
+  grid-template-columns: 80px 1fr;
+}
+
+/* ---- Mission design: forecast and module grids ---- */
+.design-screen .forecast {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.design-screen .forecast-item {
+  align-items: baseline;
+}
+.forecast-callouts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.forecast-callouts p {
+  margin: 0;
+}
+.forecast-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+}
+.module-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+@media (max-width: 1100px) {
+  .module-grid {
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  }
+  .design-screen .forecast,
+  .forecast-callouts {
+    grid-template-columns: 1fr;
+  }
+}
+.module-card {
+  align-content: start;
+}

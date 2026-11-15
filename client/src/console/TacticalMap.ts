@@ -7,11 +7,17 @@ import { prefs } from '../state/prefs';
 import { Telemetry } from './telemetry';
 import {
   RADAR,
+  blipAlpha,
+  crossed,
+  drawBlipRing,
+  drawBackdrop,
   drawCompass,
   drawCrewMark,
   drawLander,
   drawNoise,
   drawPing,
+  drawSweep,
+  sweepAngle,
   drawTriangle,
   pulseRing,
 } from './radarDraw';
@@ -21,6 +27,7 @@ import { drawSite } from './radarSites';
 import { drawPending, drawStormBar, mmss, returnBudget, tiersTotal } from './radarPanels';
 import { drawAnomalies, drawLocate } from './locateOverlay';
 import { drawDevils } from './radarHazards';
+import { audio } from '../audio';
 export const MAP_SIZE = 640;
 const SCALE = MAP_SIZE / WORLD_PX;
 const RINGS = [50, 100, 150];
@@ -30,6 +37,10 @@ export class TacticalMap {
   private terrain: HTMLCanvasElement;
   private telemetry = new Telemetry();
   private trails = new Map<string, { x: number; y: number }[]>();
+  /** Left offset of the square world inside a wider canvas, so the radar fills its pane. */
+  private ox = 0;
+  private prevAngle: number | null = null;
+  private pinged = new Map<string, number>();
   private roster = store.getState().room?.players ?? [];
   private colors = PLAYER_COLORS.map((color) => `#${color.toString(16).padStart(6, '0')}`);
   constructor(
@@ -47,8 +58,9 @@ export class TacticalMap {
   }
   point(clientX: number, clientY: number) {
     const b = this.canvas.getBoundingClientRect();
+    const wx = (((clientX - b.left) / b.width) * this.canvas.width - this.ox) / MAP_SIZE;
     return {
-      x: Math.max(0, Math.min(WORLD_PX, ((clientX - b.left) / b.width) * WORLD_PX)),
+      x: Math.max(0, Math.min(WORLD_PX, wx * WORLD_PX)),
       y: Math.max(0, Math.min(WORLD_PX, ((clientY - b.top) / b.height) * WORLD_PX)),
     };
   }
@@ -84,6 +96,11 @@ export class TacticalMap {
     const now = still ? 0 : performance.now();
     const cx = px(s.lander.x),
       cy = px(s.lander.y);
+    const wide = this.canvas.width;
+    this.ox = Math.round((wide - MAP_SIZE) / 2);
+    drawBackdrop(ctx, wide, MAP_SIZE, this.ox, this.terrain);
+    ctx.save();
+    ctx.translate(this.ox, 0);
     ctx.drawImage(this.terrain, 0, 0);
     const room = store.getState().room;
     const params = room?.params;
@@ -95,6 +112,9 @@ export class TacticalMap {
       ctx.fillStyle = RADAR.text;
       ctx.fillText(`${m}m`, px(s.lander.x + m / METERS_PER_PX) + 3, cy - 3);
     }
+    // The arm sweeps the whole map; sites light up and chirp as it passes over them.
+    const angle = sweepAngle(now);
+    if (!still) drawSweep(ctx, cx, cy, wide, angle);
     drawCompass(ctx, cx, cy, px(RINGS[RINGS.length - 1]! / METERS_PER_PX));
     if (!still) drawPing(ctx, cx, cy, px(RINGS[RINGS.length - 1]! / METERS_PER_PX), now);
     const storm = s.weather.storm;
@@ -109,21 +129,35 @@ export class TacticalMap {
       ctx.setLineDash([]);
     }
     drawLander(ctx, cx, cy);
+    const prev = this.prevAngle;
+    this.prevAngle = angle;
+    let chirp = false;
     for (const site of s.sites) {
       const total = tiersTotal(site.kind, params?.maxDepth ?? 3);
       // Once every tier is in somebody's hands there is nothing left to find here.
       if (site.taken.length >= total) continue;
-      if (site.known && (site.expiresAt === null || site.expiresAt > s.t))
+      if (site.known && (site.expiresAt === null || site.expiresAt > s.t)) {
+        const sx = px(site.x),
+          sy = px(site.y);
+        if (!still && prev !== null && crossed(prev, angle, Math.atan2(sy - cy, sx - cx))) {
+          this.pinged.set(site.id, now);
+          chirp = true;
+        }
+        const at = this.pinged.get(site.id);
+        if (at !== undefined) drawBlipRing(ctx, sx, sy, now - at, RADAR.site);
         drawSite(
           ctx,
-          px(site.x),
-          px(site.y),
+          sx,
+          sy,
           site.richness,
           total - site.taken.length,
           total,
           params?.hasGpr ? `${site.id} ${t(`site.${site.kind}`)}` : site.id,
+          still ? 1 : blipAlpha(angle, cx, cy, sx, sy),
         );
+      }
     }
+    if (chirp) audio.sfx('radar_ping');
     drawAnomalies(ctx, s, SCALE);
     for (let i = 0; i < s.stations.length; i++) {
       const p = s.stations[i]!;
@@ -294,6 +328,7 @@ export class TacticalMap {
         60,
       );
     }
+    ctx.restore();
     recordFrame(
       performance.now() - start,
       s.sites.length + s.stations.length + this.telemetry.contacts.size + 1,

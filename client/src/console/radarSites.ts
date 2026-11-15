@@ -9,16 +9,18 @@ export function drawSite(
   left: number,
   total: number,
   label: string,
+  alpha = 1,
 ) {
   const r = 3 + richness * 2;
+  ctx.globalAlpha = alpha;
   ctx.fillStyle = RADAR.site;
   ctx.strokeStyle = RADAR.site;
   drawDiamond(ctx, x, y, r);
-  ctx.globalAlpha = 0.35;
+  ctx.globalAlpha = alpha * 0.35;
   ctx.beginPath();
   ctx.arc(x, y, r + 5, 0, Math.PI * 2);
   ctx.stroke();
-  ctx.globalAlpha = 1;
+  ctx.globalAlpha = alpha;
   const gap = 6,
     start = x - ((total - 1) * gap) / 2;
   for (let i = 0; i < total; i++) {
@@ -29,4 +31,5 @@ export function drawSite(
   }
   ctx.fillStyle = RADAR.text;
   ctx.fillText(label, x + r + 5, y + 4);
+  ctx.globalAlpha = 1;
 }
