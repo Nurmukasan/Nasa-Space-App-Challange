@@ -112,17 +112,34 @@ select {
 
 /* ---- Mission design: every card in a column has the same width and height ---- */
 .fields {
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
   align-items: start;
+}
+/* each choice is one band: its title on the left, three equal cards in a row */
+.fields .choice-section {
+  display: grid;
+  grid-template-columns: 130px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+.fields .choice-section > h2 {
+  margin: 0;
+  padding-top: 8px;
 }
 .fields .choice-cards,
 .fields .site-cards {
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   grid-auto-rows: 1fr;
 }
-.fields:has(> :only-child) .choice-cards,
-.fields:has(> :only-child) .site-cards {
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+@media (max-width: 900px) {
+  .fields .choice-section {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .fields .choice-cards,
+  .fields .site-cards {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
 }
 .fields .choice-cards button,
 .fields .site-cards button {
