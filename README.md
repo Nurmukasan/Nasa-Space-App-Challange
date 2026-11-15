@@ -85,6 +85,12 @@ The lander interior is built from the team's AI-generated tileset and base refer
 sprite atlas and 64-px tiles, laid out the Tiled map `client/src/game/interior/data/base.tmj` after the
 reference, and added collisions, sliding doors, room actions and the ARIA assistant's talking face and
 alarm screen on top of it (`client/src/game/interior/`).
+The 30-second promo video (`media/red-signal-promo-30s.mp4`) mixes real in-engine gameplay with
+AI-generated material: two still images made with Higgsfield (Nano Banana Pro) and the English
+voice-over made with Higgsfield (Seed Audio 1.0). Both AI images carry a visible "AI-GENERATED IMAGE"
+label in the video and the end card states that it contains AI-generated imagery and voice. Claude Code
+captured the gameplay, retouched the images (removed generated flag and patch details), synthesized the
+music and sound effects in code, and edited the video.
 Claude Code drew the shared in-base action animations (console work, watering plants, talking to
 ARIA, sitting, sleeping) for every crew class.
 Claude Code added the start screen and lobby motion (`client/src/ui/menuMotion.css`), following the
