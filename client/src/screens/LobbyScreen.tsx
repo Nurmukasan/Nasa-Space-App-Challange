@@ -11,6 +11,7 @@ import { TaskChoice } from './lobby/TaskChoice';
 import '../ui/personalTasks.css';
 import { startSoloLobby } from './lobby/solo';
 import '../ui/menu.css';
+import '../ui/menuMotion.css';
 
 const ROLES: Role[] = ['mc', 'eva', 'solo'];
 
