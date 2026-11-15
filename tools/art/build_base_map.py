@@ -10,7 +10,7 @@ import json
 import sys
 
 TILE = 64
-COLS, ROWS = 30, 17
+COLS, ROWS = 30, 18
 
 # '#' hull wall, 'F' wall face (panels drawn by props), 'B' back wall of a room (the wall art with
 # posters, cabinets, the wall map: floor-coloured in the picture, but you cannot walk there),
@@ -33,6 +33,7 @@ MAP = [
     ' #.........#......#           ',
     ' #.........#......#           ',
     ' #.........#......#           ',
+    ' ##################           ',
 ]
 # Rooms (cols, rows of floor) for the floor look and for roomAt().
 ROOMS = {
@@ -58,8 +59,8 @@ PROPS = {
     'crate_rocks_b': ('props', None), 'crate_soil_b': ('props', None),
     'lab_pc_side': ('props', 'work'), 'lab_chair': ('props', None),
     'lab_table_rocks': ('props', 'work'), 'lab_table_jars': ('props', 'work'),
-    'bio_tank_a': ('props', None), 'floor_vent': ('props', None), 'bio_tank_b': ('props', None),
-    'pipes_floor': ('props', None), 'lab_locker_tall': ('props', None),
+    'bio_tank_a': ('props', None), 'floor_vent': ('floor', None), 'bio_tank_b': ('props', None),
+    'pipes_floor': ('floor', None), 'lab_locker_tall': ('props', None),
     'lab_bench_corner': ('props', 'work'), 'lab_box_green': ('props', None),
     'lab_bench_scope': ('props', 'work'), 'lab_bench_soil': ('props', 'work'),
     # hall
@@ -68,8 +69,8 @@ PROPS = {
     'gh_header': ('wall', None), 'planter_left': ('props', 'tend'),
     'tank_blue_top': ('props', None), 'tank_green_top': ('props', None),
     'planter_right': ('props', 'tend'), 'tank_blue_tall': ('props', None),
-    'tank_blue_tall_b': ('props', None), 'tank_pipe': ('props', None),
-    'bed_plants_a': ('props', 'tend'), 'bed_plants_b': ('props', 'tend'), 'channel': ('props', None),
+    'tank_blue_tall_b': ('props', None), 'tank_pipe': ('floor', None),
+    'bed_plants_a': ('props', 'tend'), 'bed_plants_b': ('props', 'tend'), 'channel': ('floor', None),
     'planter_berries': ('props', 'tend'), 'sprinkler_a': ('props', None),
     'tank_green_tall': ('props', None), 'tank_blue_tall_c': ('props', None),
     'aquarium': ('props', 'work'), 'pump_a': ('props', None), 'pump_b': ('props', None),
@@ -89,12 +90,18 @@ PROPS = {
     # engine room
     'engine_wall_pipes': ('wall', None), 'engine_wall_panel': ('props', 'work'),
     'box_cardboard': ('props', None), 'box_wrench': ('props', None), 'box_tools': ('props', None),
-    'box_parts': ('props', None), 'reactor': ('props', 'work'), 'reactor_pipes': ('props', None),
-    'generator': ('props', 'work'),
+    'box_parts': ('props', None), 'engine_core': ('props', None), 'generator': ('props', 'work'),
 }
 # Pieces you walk over or that hang on a wall: no collision.
-WALKOVER = {'floor_vent', 'pipes_floor', 'tank_pipe', 'channel', 'lab_chair', 'dining_chair_l',
-            'dining_chair_r', 'sprinkler_a', 'sprinkler_b', 'sprinkler_c'}
+WALKOVER = {'engine_core'}
+# The reactor and its pipework are one clean sprite (so the cables stay whole); these invisible
+# bases give it collision and actions: name -> (x0, y0, x1, y1, action).
+COLLIDERS = {
+    'reactor': (912, 900, 1004, 958, 'work'),
+    'reactor_pipework': (1004, 868, 1146, 1062, None),
+}
+# Depth override (base y) for sprites without a base of their own.
+DEPTH = {'engine_core': 958}
 # Doors: the wall_door sprite at the reference position (px) of each doorway.
 DOORS = {'bridge': (897, 385), 'engine': (897, 597), 'quarters': (333, 790)}
 SPAWN = (960, 548)
@@ -111,11 +118,13 @@ def prop(name, layer, lid, frame, action, oid):
          'height': frame['h'], 'rotation': 0, 'visible': True,
          'properties': [{'name': 'sprite', 'type': 'string', 'value': name}]}
     fp = None if name in WALKOVER else frame.get('footprint') or [0, 0.6, 1, 1]
-    if layer in ('overlay', 'wall'):
+    if layer in ('overlay', 'wall', 'floor'):
         fp = None
-    if layer == 'wall':
-        # Hangs on the back wall: always drawn behind the astronaut.
-        o['properties'].append({'name': 'mount', 'type': 'string', 'value': 'wall'})
+    if layer in ('wall', 'floor'):
+        # Hangs on the back wall or lies flat on the floor: always drawn behind the astronaut.
+        o['properties'].append({'name': 'mount', 'type': 'string', 'value': layer})
+    if name in DEPTH:
+        o['properties'].append({'name': 'depth', 'type': 'float', 'value': DEPTH[name]})
     if fp:
         o['properties'].append({'name': 'footprint', 'type': 'string', 'value': ','.join(map(str, fp))})
     if action:
@@ -148,7 +157,15 @@ def main(atlas_path, tiles_path, out):
     for name, (layer, action) in PROPS.items():
         o = prop(name, layer, 0, atlas[name], action, oid)
         oid += 1
-        (overlay if layer in ('overlay', 'wall') else props).append(o)
+        (overlay if layer in ('overlay', 'wall', 'floor') else props).append(o)
+    for name, (x0, y0, x1, y1, action) in COLLIDERS.items():
+        o = {'id': oid, 'name': name, 'type': 'collider', 'x': x0, 'y': y0, 'width': x1 - x0,
+             'height': y1 - y0, 'rotation': 0, 'visible': True,
+             'properties': [{'name': 'footprint', 'type': 'string', 'value': '0,0,1,1'}]}
+        if action:
+            o['properties'].append({'name': 'action', 'type': 'string', 'value': action})
+        props.append(o)
+        oid += 1
     props.sort(key=lambda o: o['y'] + o['height'])
     door_frame = atlas['wall_door']
     doors = []

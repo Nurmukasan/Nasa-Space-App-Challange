@@ -1,11 +1,15 @@
 // Crew class sprites, drawn in code. Pure: returns RGBA pixels, no DOM, so it is testable in Node.
 // Look follows the team's reference sheets; every pixel here is our own.
 // Frame layout matches the base astronaut: 0-1 idle (front), 2-5 walk (side, facing right),
-// 6-7 work (side), 8 down. The game mirrors the side frames when walking left.
+// 6-7 work (side), 8 down, 9 sit (front), 10 asleep on the back (front, head to the left).
+// The game mirrors the side frames when walking left.
 import type { CrewClassId } from '@rs/shared';
 
 export const CREW_FRAME = 24;
-export const CREW_FRAMES = 9;
+export const CREW_FRAMES = 11;
+/** Frames used inside the base. */
+export const CREW_SIT = 9;
+export const CREW_SLEEP = 10;
 /** Boots stand on this row of the frame. */
 export const CREW_FEET_Y = 22;
 
@@ -279,6 +283,45 @@ function down(f: Frame, p: Palette, id: CrewClassId): void {
     }
 }
 
+/** Seated, facing the viewer: thighs come towards us, boots rest just below the seat. */
+function sit(f: Frame, p: Palette, id: CrewClassId): void {
+  const top = 13;
+  f.rect(5, top - 2, 14, 6, p.packShade);
+  // Thighs seen end-on, knees, shins and boots in front of the seat.
+  f.rect(7, top + 5, 4, 2, p.suit);
+  f.rect(13, top + 5, 4, 2, p.suit);
+  f.rect(8, top + 7, 3, 2, p.suitShade);
+  f.rect(13, top + 7, 3, 2, p.suitShade);
+  f.rect(8, top + 9, 3, 1, p.boot);
+  f.rect(13, top + 9, 3, 1, p.boot);
+  f.set(9, top + 5, p.accent);
+  f.set(14, top + 5, p.accent);
+  // Torso, belt and chest panel.
+  f.rect(7, top, 10, 5, p.suit);
+  f.rect(15, top, 2, 5, p.suitShade);
+  f.rect(7, top + 4, 10, 1, p.suitShade);
+  f.rect(10, top + 1, 4, 2, id === 'biologist' ? p.accent : p.suitShade);
+  f.set(11, top + 1, p.glow);
+  // Arms resting on the knees.
+  f.rect(5, top + 1, 2, 4, p.suitShade);
+  f.rect(17, top + 1, 2, 4, p.suitShade);
+  f.rect(6, top + 5, 2, 1, p.boot);
+  f.rect(16, top + 5, 2, 1, p.boot);
+  f.rect(8, top - 1, 8, 1, p.packShade);
+  helmet(f, p, id, 12, 8, false);
+}
+
+/** Asleep on the back: the front pose laid down, visor up, head to the left. */
+function sleep(f: Frame, p: Palette, id: CrewClassId): void {
+  const stand = new Frame();
+  front(stand, p, id, 0);
+  for (let y = 0; y < CREW_FRAME; y++)
+    for (let x = 0; x < CREW_FRAME; x++) {
+      const c = stand.get(x, y);
+      if (c !== -1) f.set(y, CREW_FRAME - 1 - x + 2, c);
+    }
+}
+
 const WALK: Pose[] = [
   { near: 3, far: -3, nearLift: 0, farLift: 0, bob: 0, arm: -2 }, // contact
   { near: 0, far: 1, nearLift: 0, farLift: 2, bob: -1, arm: 0 }, // passing, far foot up
@@ -286,7 +329,7 @@ const WALK: Pose[] = [
   { near: 1, far: 0, nearLift: 2, farLift: 0, bob: -1, arm: 0 }, // passing, near foot up
 ];
 
-/** All nine frames of one class as an RGBA strip (CREW_FRAMES * 24) x 24. */
+/** All frames of one class as an RGBA strip (CREW_FRAMES * 24) x 24. */
 export function crewSheet(id: CrewClassId): {
   width: number;
   height: number;
@@ -301,6 +344,8 @@ export function crewSheet(id: CrewClassId): {
   work(frames[6]!, p, id, 0);
   work(frames[7]!, p, id, 1);
   down(frames[8]!, p, id);
+  sit(frames[CREW_SIT]!, p, id);
+  sleep(frames[CREW_SLEEP]!, p, id);
   const width = CREW_FRAME * CREW_FRAMES,
     height = CREW_FRAME;
   const data = new Uint8ClampedArray(width * height * 4);

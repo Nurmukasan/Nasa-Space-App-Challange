@@ -1,6 +1,6 @@
 // The lander interior map: data/base.tmj (Tiled JSON, built by tools/art/build_base_map.py from
 // the team's tileset and base reference) plus the sprite atlas. Pure: no DOM, no Phaser.
-// Coordinates are map pixels (64 px per tile, 1920x1088).
+// Coordinates are map pixels (64 px per tile, 1920x1152).
 import tmjText from './data/base.tmj?raw';
 import atlasJson from './data/atlas.json';
 
@@ -19,8 +19,8 @@ export interface Frame {
 export type ActionKind = 'sleep' | 'work' | 'tend' | 'talk' | 'exit';
 export interface MapProp {
   id: string;
-  /** Atlas frame name. */
-  sprite: string;
+  /** Atlas frame name, or null for an invisible collider (a base inside a bigger sprite). */
+  sprite: string | null;
   x: number;
   y: number;
   w: number;
@@ -32,6 +32,10 @@ export interface MapProp {
   overlay: boolean;
   /** Hangs on a back wall (Decor/Overlay with mount=wall): always drawn behind the astronaut. */
   wall: boolean;
+  /** Lies flat on the floor (mount=floor: vents, floor cables): walked over, drawn under. */
+  floor: boolean;
+  /** Depth line (map px y): the astronaut is drawn in front of the prop once below it. */
+  depth: number;
 }
 export interface MapDoor {
   id: string;
@@ -102,24 +106,29 @@ const collidingTiles = new Set(
 
 function toProp(o: TmjObject, overlay: boolean): MapProp {
   const fp = prop(o, 'footprint')?.split(',').map(Number);
+  const foot = fp
+    ? {
+        x0: o.x + fp[0]! * o.width,
+        y0: o.y + fp[1]! * o.height,
+        x1: o.x + fp[2]! * o.width,
+        y1: o.y + fp[3]! * o.height,
+      }
+    : null;
+  const mount = prop(o, 'mount');
+  const depth = prop(o, 'depth');
   return {
     id: o.name,
-    sprite: prop(o, 'sprite') ?? o.name,
+    sprite: prop(o, 'sprite') ?? null,
     x: o.x,
     y: o.y,
     w: o.width,
     h: o.height,
-    foot: fp
-      ? {
-          x0: o.x + fp[0]! * o.width,
-          y0: o.y + fp[1]! * o.height,
-          x1: o.x + fp[2]! * o.width,
-          y1: o.y + fp[3]! * o.height,
-        }
-      : null,
+    foot,
     action: (prop(o, 'action') as ActionKind | undefined) ?? null,
-    overlay: overlay && prop(o, 'mount') !== 'wall',
-    wall: prop(o, 'mount') === 'wall',
+    overlay: overlay && !mount,
+    wall: mount === 'wall',
+    floor: mount === 'floor',
+    depth: depth !== undefined ? Number(depth) : foot ? foot.y1 : o.y + o.height,
   };
 }
 

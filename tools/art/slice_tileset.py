@@ -77,6 +77,9 @@ def build(sheet, names_path, out, reference=None):
     names = json.load(open(names_path))
     sprites = {}
     for name, spec in names.items():
+        if spec.get('src') == 'clean':
+            sprites[name] = clean(spec)
+            continue
         im = sources[spec.get('src', 'sheet')]
         rgb = np.asarray(im).astype(int)
         x0, y0, x1, y1 = spec['box']
@@ -122,6 +125,24 @@ def build(sheet, names_path, out, reference=None):
     atlas.save(f'{out}/atlas.webp', 'WEBP', lossless=True, quality=100, method=6)
     json.dump(meta, open(f'{out}/atlas.json', 'w'), indent=1)
     print('atlas', atlas.size, len(frames), 'sprites')
+
+
+CLEAN_DIR = 'assets/raw/clean'
+SHEET_SRC_W = 2752  # tileset.png's own width; the clean cut-outs are at this size
+
+
+def clean(spec):
+    """A hand-cleaned cut-out (assets/raw/clean/): the sheet's own pixels with a clean alpha, used
+    where the glow or shadows on the sheet would leave dirt around the piece (the reactor and its
+    cables). Scaled like the sheet; 'at' is its top-left on the 2752-px sheet."""
+    im = Image.open(f"{CLEAN_DIR}/{spec['file']}").convert('RGBA')
+    s = SHEET_W / SHEET_SRC_W
+    im = im.resize((round(im.width * s), round(im.height * s)), Image.LANCZOS)
+    a = np.asarray(im).copy()
+    a[..., 3] = np.where(a[..., 3] >= 128, 255, 0)
+    x, y = round(spec['at'][0] * s), round(spec['at'][1] * s)
+    spec = dict(spec, box=[x, y, x + im.width, y + im.height], at=[x, y])
+    return Image.fromarray(a), spec
 
 
 WALL_DARK = (29, 32, 40)

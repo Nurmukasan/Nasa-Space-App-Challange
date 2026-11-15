@@ -20,7 +20,7 @@ const lowestRow = (data: Uint8ClampedArray, width: number, i: number): number =>
 };
 
 describe('crew sprites drawn in code', () => {
-  it('draws nine 24x24 frames per class, all different from each other', () => {
+  it('draws every 24x24 frame per class, all different from each other', () => {
     for (const id of CREW_CLASS_IDS) {
       const s = crewSheet(id);
       expect([s.width, s.height]).toEqual([CREW_FRAME * CREW_FRAMES, CREW_FRAME]);

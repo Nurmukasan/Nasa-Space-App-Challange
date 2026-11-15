@@ -1,11 +1,16 @@
 // Full-resolution view of the lander interior, drawn as DOM above the game canvas.
 // The 480x270 game canvas would shrink the 64-px tiles to 16 px and lose their detail, so the
-// map (1920x1088, base.tmj) is painted on canvases of its own size and laid over the game:
+// map (1920x1152, base.tmj) is painted on canvases of its own size and laid over the game:
 // a static one for floor and walls, a dynamic one for props, doors and the astronaut.
-import { VIEW_W } from '@rs/shared';
+import { VIEW_H, VIEW_W } from '@rs/shared';
 import { ATLAS, COLS, FLOOR, MAP_H, MAP_W, ROWS, TILE, TILESET, WALLS } from './baseMap';
 
 const RECT_REFRESH_MS = 400;
+/** Below this many screen px per map px the whole base no longer fits nicely: the camera then
+ * follows the astronaut instead (small windows, phones). */
+const MIN_ZOOM = 0.5;
+/** Camera easing per frame towards the astronaut. */
+const CAMERA_EASE = 0.15;
 const BASE_URL = `${import.meta.env.BASE_URL}assets/interior/`;
 /** Map pixels per view pixel (the view is 480 px wide). */
 export const MAP_PER_VIEW = MAP_W / VIEW_W;
@@ -54,7 +59,17 @@ export class InteriorView {
   private canvas = document.createElement('canvas');
   private alarm = document.createElement('div');
   private labels = new Map<string, HTMLDivElement>();
+  /** Screen px per view px (HUD labels) and per map px (the room). */
   private k = 1;
+  private kx = 1;
+  private ky = 1;
+  private zoom = 1;
+  /** Visible window size and the room's offset in it, screen px. */
+  private vw = 0;
+  private vh = 0;
+  private ox = 0;
+  private oy = 0;
+  private placed = '';
   private rectAt = -Infinity;
   private painted = false;
 
@@ -65,6 +80,8 @@ export class InteriorView {
       top: '0',
       pointerEvents: 'none',
       zIndex: '1',
+      overflow: 'hidden',
+      background: '#07090d',
     });
     css(this.room, { position: 'absolute', left: '0', top: '0' });
     for (const c of [this.base, this.canvas]) {
@@ -105,23 +122,47 @@ export class InteriorView {
     this.painted = true;
   }
 
-  /** Keep the layer exactly over the game canvas (it moves only on window resize). */
-  sync(now: number): void {
-    if (now - this.rectAt < RECT_REFRESH_MS) return;
-    this.rectAt = now;
-    const c = this.gameCanvas.getBoundingClientRect();
-    const p = this.root.parentElement!.getBoundingClientRect();
-    this.k = c.width / VIEW_W;
-    css(this.root, {
-      left: `${c.left - p.left}px`,
-      top: `${c.top - p.top}px`,
-      width: `${c.width}px`,
-      height: `${c.height}px`,
-    });
-    css(this.room, {
-      width: `${(MAP_W / MAP_PER_VIEW) * this.k}px`,
-      height: `${(MAP_H / MAP_PER_VIEW) * this.k}px`,
-    });
+  /**
+   * Cover the part of the game canvas that is actually on screen (the canvas is scaled to cover
+   * the window, so its edges can be cut off) and fit the whole base into it. When that would make
+   * it too small, zoom in and follow `focus` (map px), clamped to the map's edges.
+   */
+  sync(now: number, focus: { x: number; y: number }): void {
+    if (now - this.rectAt >= RECT_REFRESH_MS) {
+      this.rectAt = now;
+      const c = this.gameCanvas.getBoundingClientRect();
+      const p = this.root.parentElement!.getBoundingClientRect();
+      const left = Math.max(c.left, p.left, 0),
+        top = Math.max(c.top, p.top, 0);
+      const right = Math.min(c.right, p.right, window.innerWidth),
+        bottom = Math.min(c.bottom, p.bottom, window.innerHeight);
+      this.vw = Math.max(1, right - left);
+      this.vh = Math.max(1, bottom - top);
+      this.kx = this.vw / VIEW_W;
+      this.ky = this.vh / VIEW_H;
+      this.k = Math.min(this.kx, this.ky);
+      this.zoom = Math.max(MIN_ZOOM, Math.min(this.vw / MAP_W, this.vh / MAP_H));
+      css(this.root, {
+        left: `${left - p.left}px`,
+        top: `${top - p.top}px`,
+        width: `${this.vw}px`,
+        height: `${this.vh}px`,
+      });
+      css(this.room, { width: `${MAP_W * this.zoom}px`, height: `${MAP_H * this.zoom}px` });
+    }
+    const axis = (view: number, size: number, at: number, cur: number): number => {
+      const room = size * this.zoom;
+      if (room <= view) return (view - room) / 2;
+      const want = Math.min(0, Math.max(view - room, view / 2 - at * this.zoom));
+      return Number.isFinite(cur) && this.placed ? cur + (want - cur) * CAMERA_EASE : want;
+    };
+    this.ox = axis(this.vw, MAP_W, focus.x, this.ox);
+    this.oy = axis(this.vh, MAP_H, focus.y, this.oy);
+    const at = `translate(${Math.round(this.ox)}px, ${Math.round(this.oy)}px)`;
+    if (at !== this.placed) {
+      this.room.style.transform = at;
+      this.placed = at;
+    }
   }
 
   setAlarm(opacity: number): void {
@@ -154,9 +195,10 @@ export class InteriorView {
     el.style.display = l ? '' : 'none';
     if (!l) return;
     if (el.textContent !== l.text) el.textContent = l.text;
-    const s = world ? this.k / MAP_PER_VIEW : this.k;
+    const x = world ? this.ox + l.x * this.zoom : l.x * this.kx;
+    const y = world ? this.oy + l.y * this.zoom : l.y * this.ky;
     el.style.fontSize = `${Math.max(10, 3.4 * this.k)}px`;
-    el.style.transform = `translate(${(l.x * s).toFixed(1)}px, ${(l.y * s).toFixed(1)}px) ${anchor}`;
+    el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) ${anchor}`;
   }
 
   destroy(): void {
