@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { prefs, usePrefs } from '../state/prefs';
-import { useApp } from '../state/store';
+import { me, useApp } from '../state/store';
+import { LiftoffControl } from '../screens/eva/LiftoffControl';
+import { ControlsHelp } from '../screens/eva/ControlsHelp';
 import { endSession } from '../net/session';
 import { t } from '../i18n';
 import './menu.css';
@@ -15,6 +17,7 @@ export function Settings() {
   // During the mission the button would sit on top of the HUD, so Esc opens it instead.
   const inMission = useApp((s) => s.room?.phase === 'eva');
   const inRoom = useApp((s) => !!s.room);
+  const solo = useApp((s) => me(s)?.role === 'solo');
   useEffect(() => {
     document.documentElement.dataset.reduceMotion = String(reduce);
   }, [reduce]);
@@ -82,6 +85,8 @@ export function Settings() {
             />
             {t('settings.visorGlass')}
           </label>
+          {inMission && <ControlsHelp />}
+          {inMission && solo && <LiftoffControl />}
           <button onClick={() => setOpen(false)}>
             {t(inMission ? 'settings.resume' : 'settings.close')}
           </button>
