@@ -65,8 +65,10 @@ export function buildInsights(sim: Sim, design: MissionDesign): Insight[] {
     { oxygen: Math.round(s.o2StoreLeft) },
     'battery',
   );
+  // Stations that actually listened: in v2 the crew deploys kits, so the design alone says little.
+  const listening = sim.pub.stations.length;
   add(
-    p.stations === 1 && s.classifyWrong > 0,
+    listening === 1 && s.classifyWrong > 0,
     'single_station',
     'bad',
     { count: s.classifyWrong },
@@ -130,7 +132,7 @@ export function buildInsights(sim: Sim, design: MissionDesign): Insight[] {
     { count: s.discoveries },
     'gpr',
   );
-  add(p.stations === 3 && s.classifyCorrect >= INSIGHTS.netCorrect, 'net_good', 'good', {
+  add(listening >= 3 && s.classifyCorrect >= INSIGHTS.netCorrect, 'net_good', 'good', {
     count: s.classifyCorrect,
   });
   add(v2 && s.locateGood >= R.goodPicks, 'good_pick', 'good', { count: s.locateGood });

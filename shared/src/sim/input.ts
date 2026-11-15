@@ -121,8 +121,9 @@ export function handleSimMsg(
         pushFx(sim, { type: 'deposit', playerId, n: a.carrying.length });
         a.carrying = [];
       }
-      // v2: an empty store cannot refill anyone, so the airlock lets the suit in as it is.
-      const storeEmpty = sim.params.scenario !== 'free' && lander.o2Store < AIRLOCK.emptyStore;
+      // An empty store cannot refill anyone, so the airlock lets the suit in as it is: otherwise
+      // the crew dies at the door of a safe hull (every scenario; bot soak, audit).
+      const storeEmpty = lander.o2Store < AIRLOCK.emptyStore;
       if (a.o2 < a.o2Max * 0.98 && !storeEmpty) {
         if (!a.wantsRefill) sim.hidden.stats.refills++;
         a.wantsRefill = true;
@@ -177,7 +178,8 @@ export function handleSimMsg(
       return;
     }
     case 'mc:ration': {
-      if (canMc) sim.pub.lander.ration = msg.on === true;
+      // RATION shares the store between people (PL 7.4): it does not exist in solo.
+      if (canMc && !sim.params.solo) sim.pub.lander.ration = msg.on === true;
       return;
     }
     case 'mc:dispense': {

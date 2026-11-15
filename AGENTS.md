@@ -33,6 +33,8 @@ If a task comes from `docs/phases.md`, follow its acceptance criteria literally.
 10. **`main` is always playable.** Unfinished features stay behind a flag or unreachable.
 11. Keep files under ~300 lines; one system or one component per file. No `<StrictMode>`.
 12. **Free mission keeps v1 behaviour.** New v2 rules switch on only in the `training` and `signal` scenarios.
+    The only exceptions are listed in `docs/product-logic.md` section 0 (crew specialties, the airlock
+    fix, efficiency caps); add a new one there before changing free-mission behaviour.
 13. **Assets follow `docs/assets.md`.** Names and frame sizes come from `client/src/game/assetManifest.ts` and
     `client/src/audio/soundManifest.ts`; `npm test` (`tools/assets.test.ts`) rejects anything else.
 

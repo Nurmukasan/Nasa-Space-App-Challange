@@ -24,9 +24,9 @@ it('free mission: quota and deep quota are primary, all aboard is secondary', ()
   ]);
 });
 
-it('signal: reduced quota, signal sample is primary, kits come from the design', () => {
+it('signal: quota + 1 samples, signal sample is primary, kits come from the design', () => {
   const o = byKind(sim('signal'));
-  expect(o.deliver!.target).toBe(4);
+  expect(o.deliver!.target).toBe(6); // astrobiology quota 5, plus one (balance soak)
   expect(o.retrieve_signal!.primary).toBe(true);
   expect(o.deliver_deep!.primary).toBe(false);
   expect(o.deploy_stations!.target).toBe(2);

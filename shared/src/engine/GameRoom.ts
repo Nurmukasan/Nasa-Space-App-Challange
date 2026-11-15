@@ -52,6 +52,7 @@ export class GameRoom {
   private readonly allowDebug: boolean;
   private slots: PlayerSlot[] = [];
   private sim: Sim | null = null;
+  private flown: RoomState['design'] | null = null;
   private dirty = false;
 
   constructor(opts: RoomOptions) {
@@ -193,7 +194,7 @@ export class GameRoom {
       case 'lobby:scenario':
         if ((phase !== 'lobby' && phase !== 'design') || !isHost || !isScenarioId(msg.id)) return;
         this.state.scenario = msg.id;
-        this.state.check = checkDesign(this.state.design, msg.id);
+        this.state.check = checkDesign(this.missionDesign(), msg.id);
         this.dirty = true;
         return;
       case 'lobby:ready':
@@ -325,14 +326,21 @@ export class GameRoom {
 
   private setDesign(design: RoomState['design']): void {
     this.state.design = design;
-    this.state.check = checkDesign(design, this.state.scenario);
+    this.state.check = checkDesign(this.missionDesign(), this.state.scenario);
     this.dirty = true;
+  }
+
+  /** The design that actually flies: a scenario may force the landing site (training: Jezero). */
+  private missionDesign(): RoomState['design'] {
+    const sc = SCENARIOS[this.state.scenario];
+    return sc.site ? { ...this.state.design, site: sc.site } : this.state.design;
   }
 
   private launch(): void {
     this.state.attempt++;
     const sc = SCENARIOS[this.state.scenario];
-    const design = sc.site ? { ...this.state.design, site: sc.site } : this.state.design;
+    const design = this.missionDesign();
+    this.flown = design;
     const seed = sc.seed ?? (this.state.seed + this.state.attempt) >>> 0;
     const params = deriveParams(design, seed, sc.id);
     const crew = this.slots.map((s) => s.info).filter((p) => p.role === 'eva' || p.role === 'solo');
@@ -356,9 +364,10 @@ export class GameRoom {
     const operator =
       this.slots.find((s) => s.info.role === 'mc') ??
       this.slots.find((s) => s.info.role === 'solo');
+    // Report on the design that flew (forced site included), not on the editor state.
     this.state.report = buildReport(
       this.sim,
-      this.state.design,
+      this.flown ?? this.state.design,
       this.state.check,
       operator?.info.id ?? null,
     );

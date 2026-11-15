@@ -2,7 +2,6 @@ export default {
   'console.relayNone': 'DIRECT LINK · NO RELAY',
   'console.relayPermanent': 'PERMANENT RELAY',
   'console.stormActive': 'STORM ACTIVE',
-  'console.liftoff': 'LIFTOFF',
   'console.liftoffOutside': 'Still outside: {names}',
   'console.liftoffAllIn': 'All crew aboard',
   'console.ahead': 'NEXT 2 MIN',
