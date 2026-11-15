@@ -38,6 +38,9 @@ export type ClientMsg =
   | { t: 'lobby:ready'; ready: boolean }
   | { t: 'lobby:start'; quick: boolean }
   | { t: 'lobby:scenario'; id: ScenarioId }
+  | { t: 'lobby:tasks'; enabled: boolean }
+  | { t: 'task:offer'; taskId: string; playerId: string }
+  | { t: 'task:accept'; taskId: string }
   | { t: 'design:set'; field: DesignField; value: string }
   | { t: 'design:module'; id: ModuleId; on: boolean }
   | { t: 'design:preset'; id: PresetId }
