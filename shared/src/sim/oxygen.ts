@@ -25,11 +25,12 @@ export const oxygenSystem: System = (sim, dt) => {
       if (sim.params.scenario !== 'free') {
         if (environment.o2 > 1) sim.hidden.stats.sandSeconds += dt;
         if (environment.o2Extra > 0) sim.hidden.stats.devilSeconds += dt;
-        const crew = sim.hidden.stats.crewStats.find((s) => s.id === a.id);
-        if (crew) {
-          crew.o2Used += spent;
-          crew.secondsOutside += dt;
-        }
+      }
+      // Per-crew counters feed the awards in every scenario (no effect on the score).
+      const crew = sim.hidden.stats.crewStats.find((s) => s.id === a.id);
+      if (crew) {
+        crew.o2Used += spent;
+        crew.secondsOutside += dt;
       }
       sim.hidden.stats.secondsOutside += dt;
       if (a.o2 <= 0) {

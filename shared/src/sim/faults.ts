@@ -1,6 +1,6 @@
 // Lander faults and repairs at service ports (docs/product-logic.md 7.16).
 // Mission Control sees which hatch; the crew repairs it by standing there (E starts the job).
-import { CREW, FAULTS, LANDER_POS, O2 } from '../balance';
+import { CREW, FAULTS, LANDER_POS } from '../balance';
 import type { Astronaut, Fault, FaultKind, ServicePort, Vec2 } from '../types';
 import { dist, pushFx, pushLog } from './sim';
 import type { Sim, System } from './sim';
@@ -77,8 +77,7 @@ export const faultSystem: System = (sim, dt) => {
       a.repairing = null;
       continue;
     }
-    // Repair work breathes like digging (the oxygen system already charged the idle rate).
-    a.o2 = Math.max(0, a.o2 - (O2.dig - O2.idle) * dt);
+    // Repair work breathes like digging: the oxygen system charges O2.dig while repairing.
     if (worked.has(fault.id)) continue; // a second astronaut does not speed it up
     worked.add(fault.id);
     fault.progress = Math.min(

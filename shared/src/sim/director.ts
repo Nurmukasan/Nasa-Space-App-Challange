@@ -58,7 +58,7 @@ export function placeEvent(
       distance ??
       (kind === 'quake'
         ? rng.range(DIRECTOR.nearCrewMin, DIRECTOR.nearCrewMax)
-        : rng.range(SEISMIC.impactMinDist, SEISMIC.impactMaxDist));
+        : rng.range(DIRECTOR.impactMinDist, DIRECTOR.impactMaxDist));
     best = {
       x: clampToWorld(centre.x + Math.cos(angle) * r),
       y: clampToWorld(centre.y + Math.sin(angle) * r),

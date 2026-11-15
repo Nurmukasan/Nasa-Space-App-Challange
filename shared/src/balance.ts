@@ -275,7 +275,8 @@ export const SIGNAL = {
   /** Zone radius from the automatic estimate, by station count (3+ / fewer). */
   autoR3: 170,
   autoR1: 320,
-  locatedR: 170,
+  /** Below autoR3 on purpose: the computer's estimate alone never locates the source. */
+  locatedR: 160,
   /** Value of the deep signal sample; core is worth tierMul.core / tierMul.deep more. */
   sampleValue: 60,
   feelNear: 200,
@@ -309,6 +310,9 @@ export const DIRECTOR = {
   windowWarnS: 60,
   nearCrewMin: 120,
   nearCrewMax: 260,
+  /** Impacts land this far from the lander, away from sample sites (PL 7.17). */
+  impactMinDist: 400,
+  impactMaxDist: 650,
 };
 
 export const SOLO = { classifyMul: 1.5 };

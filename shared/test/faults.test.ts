@@ -1,6 +1,6 @@
 // A7: lander faults and repairs (docs/phases.md, task A7; docs/product-logic.md 7.16).
 import { expect, it } from 'vitest';
-import { FAULTS, PRESETS, WEATHER, deriveParams } from '../src';
+import { FAULTS, O2, PRESETS, WEATHER, deriveParams } from '../src';
 import { createSim } from '../src/sim/sim';
 import { stepSim } from '../src/sim/step';
 import { handleSimMsg } from '../src/sim/input';
@@ -109,4 +109,19 @@ it('a storm always leaves dust on the panels in v2, never in the free mission', 
     run(sim, WEATHER.stormDurS + 1);
     expect(faultActive(sim, 'panel_dust')).toBe(scenario === 'signal');
   }
+});
+
+it('repair work costs oxygen like digging, charged once (O2.dig per second)', () => {
+  const sim = setup();
+  spawnFault(sim, 'moxie_clog');
+  const a = atPort(sim, 'a', FAULTS.ports.moxie_clog);
+  handleSimMsg(sim, 'a', true, false, { t: 'eva:interact' });
+  expect(a.repairing).not.toBeNull();
+  const before = a.o2;
+  // Keep the client "alive" so the astronaut is not treated as idle-disconnected.
+  for (let i = 0; i < 45; i++) {
+    sim.hidden.lastMoveT['a'] = sim.pub.t;
+    stepSim(sim, 1 / 15);
+  }
+  expect(before - a.o2).toBeCloseTo(O2.dig * 3, 1);
 });

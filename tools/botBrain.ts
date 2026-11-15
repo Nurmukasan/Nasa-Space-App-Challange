@@ -134,7 +134,7 @@ export class EvaBrain {
   private move(s: EvaState, p: MissionParams, a: Astronaut, to: Vec2): ClientMsg {
     const d = dist(a, to);
     const ang = Math.atan2(to.y - a.y, to.x - a.x);
-    const step = Math.min(d, fieldSpeed(p, s, a.x, a.y, false) / TICK_HZ);
+    const step = Math.min(d, fieldSpeed(p, s, a.x, a.y, false, a.crewClass) / TICK_HZ);
     return {
       t: 'eva:move',
       x: a.x + Math.cos(ang) * step,
