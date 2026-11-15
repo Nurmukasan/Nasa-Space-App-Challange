@@ -54,7 +54,7 @@ it('pulses start at SIGNAL.firstS and are never classified', () => {
   expect(sim.hidden.pendingRockfalls).toHaveLength(0);
 });
 
-it('a close pick narrows the zone to located; pulses then stop', () => {
+it('close picks narrow the zone; located only after SIGNAL.minPulses pulses; then pulses stop', () => {
   const { sim, until } = mission();
   until(SIGNAL.firstS + 1);
   const src = sim.hidden.signalSource!;
@@ -62,6 +62,20 @@ it('a close pick narrows the zone to located; pulses then stop', () => {
   handleSimMsg(sim, 'mc', false, true, { t: 'mc:locate', eventId: e.id, x: src.x + 20, y: src.y });
   until(e.deadline + 1);
   expect(sim.pub.signal.zone!.r).toBeCloseTo(20 * SIGNAL.zoneErrMul + SIGNAL.zoneSlack);
+  // One lucky pick is not a fix (balance: the hunt belongs to act II).
+  expect(sim.pub.signal.located).toBe(false);
+  for (let k = 2; k <= SIGNAL.minPulses; k++) {
+    until(sim.hidden.director.nextPulseAt + 0.5);
+    const next = sim.pub.seismic.find((x) => x.signal && x.truth === null)!;
+    handleSimMsg(sim, 'mc', false, true, {
+      t: 'mc:locate',
+      eventId: next.id,
+      x: src.x + 20,
+      y: src.y,
+    });
+    until(next.deadline + 1);
+  }
+  expect(sim.pub.signal.pulses).toBe(SIGNAL.minPulses);
   expect(sim.pub.signal.located).toBe(true);
   expect(sim.pub.log.at(-1)?.key).toBe('story.signal.located');
   const n = pulses(sim).length;

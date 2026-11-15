@@ -32,7 +32,7 @@ export const SIGNAL_MISSION: ScenarioDef = {
     { from: 330, gapS: [25, 40], pool: { quake: 1, devil: 1, fault: 1 } },
   ],
   objectives: [
-    { kind: 'deliver', primary: true, target: 'quota', minus: 1, min: 3 },
+    { kind: 'deliver', primary: true, target: 'quota', minus: -1, min: 3 },
     { kind: 'retrieve_signal', primary: true, target: 1 },
     // Mission Control's part of the hunt (docs/product-logic.md 7.12, 7.18).
     { kind: 'locate_signal', primary: false, target: 1 },

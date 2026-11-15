@@ -277,6 +277,8 @@ export const SIGNAL = {
   autoR1: 320,
   /** Below autoR3 on purpose: the computer's estimate alone never locates the source. */
   locatedR: 160,
+  /** Pulses heard before the source can count as located: keeps the hunt in act II. */
+  minPulses: 2,
   /** Value of the deep signal sample; core is worth tierMul.core / tierMul.deep more. */
   sampleValue: 60,
   feelNear: 200,

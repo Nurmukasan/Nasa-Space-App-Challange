@@ -99,7 +99,8 @@ export function onSignalResolved(sim: Sim, event: SeismicEvent): void {
     candidate = { x: src.x + Math.cos(angle) * offset, y: src.y + Math.sin(angle) * offset, r };
   }
   if (!state.zone || candidate.r < state.zone.r) state.zone = candidate;
-  if (state.zone.r <= SIGNAL.locatedR) {
+  // One lucky pick is not a fix: the source needs several pulses (PL 7.12, balance soak).
+  if (state.zone.r <= SIGNAL.locatedR && state.pulses >= SIGNAL.minPulses) {
     state.located = true;
     pushFx(sim, { type: 'signal_located', x: state.zone.x, y: state.zone.y });
     pushLog(sim, 'earth', 'story.signal.located');
