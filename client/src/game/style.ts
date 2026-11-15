@@ -1,5 +1,8 @@
 /** Visual budgets and palette; gameplay tuning stays in @rs/shared. */
 export const FIELD = {
+  taskDepth: 10860,
+  taskRadius: 18,
+  taskLabelGap: 4,
   interpolationMs: 100,
   /** Crew class sprites (game/crewArt.ts) are drawn 1:1, 24x24 frames. */
   crewScale: 1,

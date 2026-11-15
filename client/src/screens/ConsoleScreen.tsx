@@ -12,6 +12,7 @@ import { SeismicPanel } from '../console/panels/SeismicPanel';
 import { Commands } from '../console/panels/Commands';
 import { PixelIcon } from '../ui/PixelIcon';
 import { ObjectivesPanel } from '../console/panels/ObjectivesPanel';
+import { PersonalTasks } from '../ui/PersonalTasks';
 import { SystemsPanel } from '../console/panels/SystemsPanel';
 import { AheadPanel } from '../console/panels/AheadPanel';
 import { fxBus } from '../fx/FxBus';
@@ -136,6 +137,7 @@ export function ConsoleScreen() {
               select={setSelected}
             />
             <ObjectivesPanel snap={hud} />
+            <PersonalTasks snap={hud} />
             <AheadPanel snap={hud} params={params} />
             <SeismicPanel snap={hud} locating={locating} setLocating={setLocating} />
             {hud.scenario !== 'free' && <SystemsPanel snap={hud} target={target} />}

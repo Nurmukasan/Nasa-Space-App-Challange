@@ -21,6 +21,7 @@ import { crewStatsOf, dist, findAstronaut, pushFx, pushLog } from './sim';
 import { tryStartRepair } from './faults';
 import { tryDeployKit } from './stations';
 import type { Sim } from './sim';
+import { taskFact, taskWaypoint } from './tasks/progress';
 
 function num(v: unknown): v is number {
   return typeof v === 'number' && Number.isFinite(v);
@@ -140,6 +141,7 @@ export function handleSimMsg(
           sim.hidden.stats.samplesDeposited++;
           if (s.tier !== 'surface') sim.hidden.stats.deepDeposited++;
           sim.hidden.stats.scienceRaw += s.value;
+          taskFact(sim, { kind: 'deliver', actor: playerId, siteId: s.siteId, tier: s.tier });
         }
         pushFx(sim, { type: 'deposit', playerId, n: a.carrying.length });
         a.carrying = [];
@@ -169,17 +171,22 @@ export function handleSimMsg(
     case 'mc:waypoint': {
       if (!canMc || !num(msg.x) || !num(msg.y)) return;
       const a = findAstronaut(sim, String(msg.playerId));
-      if (a)
+      if (a) {
         a.waypoint = {
           x: clampToWorld(msg.x, sim.params.bigWorld),
           y: clampToWorld(msg.y, sim.params.bigWorld),
         };
+        taskWaypoint(sim, playerId, a.id, { id: '', ...a.waypoint });
+      }
       return;
     }
     case 'mc:clearWaypoint': {
       if (!canMc) return;
       const a = findAstronaut(sim, String(msg.playerId));
-      if (a) a.waypoint = null;
+      if (a) {
+        a.waypoint = null;
+        taskWaypoint(sim, playerId, a.id, null);
+      }
       return;
     }
     case 'mc:power': {
@@ -223,13 +230,23 @@ export function handleSimMsg(
       )
         return;
       const event = sim.pub.seismic.find((e) => e.id === msg.eventId);
-      if (event && event.truth === null && t < event.deadline) resolveEvent(sim, event, msg.kind);
+      if (event && event.truth === null && t < event.deadline) {
+        resolveEvent(sim, event, msg.kind);
+        if (!event.signal && event.guess === msg.kind && event.truth === msg.kind)
+          taskFact(sim, { kind: 'observe', actor: playerId });
+      }
       return;
     }
     case 'mc:locate': {
       if (!canMc || typeof msg.eventId !== 'string' || !num(msg.x) || !num(msg.y)) return;
-      const big = sim.params.bigWorld;
-      placePick(sim, msg.eventId.slice(0, 32), clampToWorld(msg.x, big), clampToWorld(msg.y, big));
+      {
+        const big = sim.params.bigWorld;
+        const eventId = msg.eventId.slice(0, 32);
+        const event = sim.pub.seismic.find((e) => e.id === eventId);
+        const first = event?.signal && event.pick === null;
+        if (placePick(sim, eventId, clampToWorld(msg.x, big), clampToWorld(msg.y, big)) && first)
+          taskFact(sim, { kind: 'observe', actor: playerId });
+      }
       return;
     }
     default:

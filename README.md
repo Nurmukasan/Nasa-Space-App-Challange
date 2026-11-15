@@ -65,8 +65,9 @@ AI assistants were used to help write and review code and to create some of the 
 repository; screens that show AI-made art carry a visible "AI-GENERATED ART" label.
 OpenAI Codex assisted with client foundation recovery, mission control, mission design, networking,
 scene lifecycle fixes, field effects, causal report UI, integration checks and deployment setup.
-OpenAI Codex also drafted the personal-task and crew-size scaling proposal
-(`docs/personal-tasks-proposal.md`); this proposal does not implement gameplay changes.
+OpenAI Codex also designed and implemented opt-in personal assignments: seeded, crew-scaled
+task chains, authoritative progress, handoffs, field guidance and contribution reports
+(`docs/personal-tasks.md`).
 Claude Code assisted with the remote-interpolation correction in PR #1.
 Claude Code drew the 18 pixel-art constructor icons (modules, launch vehicles, relays) in code,
 and they are used in the mission design screen.

@@ -277,6 +277,7 @@ v2: director → weather → flare → power → comms → devils → oxygen →
 | `0x5e15` | расписание free (`buildSchedule`) | `0x516` | v2: источник RED SIGNAL |
 | `0x570a` | буря | `0xa40` | v2: аномалии |
 | `hashString(eventId)` | оценка эпицентра | `0xde7` | v2: пылевые вихри |
+| `0x7a51 ^ imul(attempt, 0x9e3779b9)` | персональные задания (seed миссии; отдельный поток) | | |
 | `^ hash(eventId) ^ stationIdx` | v2: кольца дальности | `0xfa17` | v2: поломки |
 - Не перебирать `Map`/`Set`/ключи объектов там, где порядок влияет на результат; использовать массивы.
 - Тест `is deterministic for the same seed and inputs` должен оставаться зелёным.

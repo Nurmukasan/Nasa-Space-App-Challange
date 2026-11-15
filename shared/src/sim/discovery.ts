@@ -4,6 +4,7 @@ import { createRng } from '../rng';
 import { SCENARIOS } from '../scenarios';
 import { dist, pushFx, pushLog } from './sim';
 import type { Sim, System } from './sim';
+import { taskFact } from './tasks/progress';
 
 export function initDiscovery(sim: Sim): void {
   if (sim.params.scenario === 'free') return;
@@ -46,6 +47,7 @@ export const discoverySystem: System = (sim) => {
     sim.pub.sites.push(site);
     sim.hidden.hiddenSites = sim.hidden.hiddenSites.filter((s) => s.id !== site.id);
     sim.pub.anomalies = sim.pub.anomalies.filter((a) => a.id !== site.id);
+    taskFact(sim, { kind: 'discover', actor: finder.id, siteId: site.id });
     sim.hidden.stats.discoveries++;
     sim.hidden.stats.scienceRaw += DISCOVERY.science;
     const stats = sim.hidden.stats.crewStats.find((s) => s.id === finder.id);

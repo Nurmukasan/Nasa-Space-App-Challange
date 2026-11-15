@@ -1,0 +1,77 @@
+.personal-tasks {
+  font-size: 12px;
+  display: grid;
+  gap: 5px;
+  text-align: left;
+}
+.personal-tasks h2,
+.personal-tasks h3 {
+  font-size: 12px;
+  margin: 0;
+}
+.personal-tasks small {
+  display: block;
+  font-size: 11px;
+  opacity: 0.8;
+}
+.personal-tasks ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.personal-task {
+  display: grid;
+  gap: 4px;
+  padding: 8px 0;
+  border-bottom: 1px solid #a84a2e55;
+  overflow-wrap: anywhere;
+}
+.personal-task.task-done {
+  color: #96d7a0;
+}
+.personal-task.task-failed,
+.personal-task.task-blocked {
+  color: #ffbd83;
+}
+.task-bearing {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.task-bearing i {
+  display: inline-block;
+  font-style: normal;
+}
+.personal-tasks button {
+  pointer-events: auto;
+  font-size: 11px;
+}
+.task-compact {
+  margin: 7px 0;
+  max-width: 230px;
+}
+.crew-task-list {
+  position: relative;
+  pointer-events: auto;
+}
+.crew-task-list summary {
+  cursor: pointer;
+}
+.task-compact .crew-task-list[open] > ul {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: min(300px, 65vw);
+  max-height: 45vh;
+  overflow-y: auto;
+  padding: 8px 12px;
+  background: #170a0bf5;
+  border: 1px solid #a84a2e;
+  border-radius: 8px;
+  z-index: 20;
+}
+.task-report > ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}

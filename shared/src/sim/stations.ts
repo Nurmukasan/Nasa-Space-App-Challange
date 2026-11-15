@@ -4,6 +4,7 @@ import { sandAt } from '../terrain';
 import type { Astronaut } from '../types';
 import { dist, pushFx, pushLog } from './sim';
 import type { Sim } from './sim';
+import { taskFact } from './tasks/progress';
 
 /** E-key step 5: deploy a carried kit here. Returns true if the key press was used. */
 export function tryDeployKit(sim: Sim, a: Astronaut): boolean {
@@ -20,6 +21,7 @@ export function tryDeployKit(sim: Sim, a: Astronaut): boolean {
   if (sandAt(a.x, a.y, sim.salt, sim.params.bigWorld)) return false;
   sim.pub.stations.push({ x: a.x, y: a.y });
   a.kits--;
+  taskFact(sim, { kind: 'deploy', actor: a.id, x: a.x, y: a.y });
   sim.hidden.stats.stationsDeployed++;
   pushFx(sim, { type: 'deploy', playerId: a.id, x: a.x, y: a.y });
   pushLog(sim, a.id, 'log.deploy', { n: sim.pub.stations.length });

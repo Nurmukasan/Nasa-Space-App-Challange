@@ -16,6 +16,8 @@ import {
 import type { ClientMsg, JoinRequest, JoinResult, ServerMsg } from '../protocol';
 import { buildReport, createSim, endMission, handleSimMsg, stepSim } from '../sim';
 import type { Sim } from '../sim';
+import { initTaskBoard } from '../sim/tasks/allocation';
+import { syncTaskConnections, taskTransfer } from '../sim/tasks/transfers';
 import type { PlayerInfo, Role, RoomState } from '../types';
 
 /** Emit target meaning "everyone in the room". */
@@ -161,6 +163,7 @@ export class GameRoom {
   /** Advance one fixed step. The caller owns the clock. */
   tick(dt: number): void {
     if (this.state.phase === 'eva' && this.sim) {
+      syncTaskConnections(this.sim, this.state.players);
       stepSim(this.sim, dt);
       this.emit(ALL, { t: 'snap', snap: this.sim.pub });
       if (this.sim.pub.ended) this.finishMission();
@@ -175,6 +178,21 @@ export class GameRoom {
     const isHost = me.id === this.state.hostId;
     const phase = this.state.phase;
     switch (msg.t) {
+      case 'lobby:tasks':
+        if (
+          (phase === 'lobby' || phase === 'design') &&
+          isHost &&
+          typeof msg.enabled === 'boolean'
+        ) {
+          this.state.personalTasks = msg.enabled;
+          this.dirty = true;
+        }
+        return;
+      case 'task:offer':
+      case 'task:accept':
+        if (phase === 'eva' && this.sim && me.connected)
+          taskTransfer(this.sim, me.id, this.state.hostId, msg);
+        return;
       case 'lobby:role':
         if (phase !== 'lobby') return;
         if (this.canTakeRole(me, msg.role)) {
@@ -352,6 +370,25 @@ export class GameRoom {
       crew.map((p) => p.id),
       crew.map((p) => p.crewClass),
     );
+    if (this.state.personalTasks) {
+      initTaskBoard(
+        this.sim,
+        this.slots.flatMap(({ info: p }) =>
+          p.role
+            ? [
+                {
+                  id: p.id,
+                  name: p.name,
+                  role: p.role,
+                  crewClass: p.crewClass,
+                },
+              ]
+            : [],
+        ),
+        this.state.attempt,
+      );
+      syncTaskConnections(this.sim, this.state.players);
+    }
     this.state.params = params;
     this.state.report = null;
     this.state.phase = 'eva';
@@ -385,6 +422,7 @@ export class GameRoom {
 
   private syncPlayers(): void {
     this.state.players = this.slots.map((s) => s.info);
+    if (this.sim) syncTaskConnections(this.sim, this.state.players);
     this.dirty = true;
   }
 

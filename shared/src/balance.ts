@@ -256,6 +256,21 @@ export const RETURN = { margin: 1.15, reserve: 5, warningUnits: 10 };
 export const AIRLOCK = { emptyStore: 1 };
 
 // ----- owner: A --------------------------------------------------------------
+/** Personal assignment budgets; optional and never part of mission scoring. */
+export const TASKS = {
+  perPlayer: 2,
+  rngSalt: 0x7a51,
+  attemptSalt: 0x9e3779b9,
+  maxRange: 550,
+  tankFraction: 0.9,
+  travelMargin: 1.15,
+  arrivalRadius: 24,
+  stationAngles: 24,
+  stationRadius: 180,
+  disconnectGraceS: 30,
+  historyLimit: 4,
+  returnReserveS: 15,
+};
 
 export const LOCATE = {
   /** Relative error of the S–P distance at full instrument power. */
