@@ -38,8 +38,11 @@ const SUBTITLE = { color: '#9af7f0', background: 'rgba(16,26,40,0.9)' };
 const HULL = { color: '#e2ecff', textShadow: '0 1px 2px #000' };
 const DIM = { ...HULL, color: '#9aa4b4' };
 const ARIA = PROPS.find((p) => p.action === 'talk')!;
-const SOLID = PROPS.filter((p) => !p.overlay).sort((a, b) => base(a) - base(b));
+const WALL_DECOR = PROPS.filter((p) => p.wall);
+const SOLID = PROPS.filter((p) => !p.overlay && !p.wall).sort((a, b) => base(a) - base(b));
 const OVERLAY = PROPS.filter((p) => p.overlay);
+/** Furniture narrower than this (map px) is sat on rather than lain on. */
+const LIE_MIN_W = 90;
 const DOOR_W = ATLAS.wall_door?.w ?? 0;
 
 type Mode = 'free' | 'sleep' | 'work' | 'exiting';
@@ -55,7 +58,8 @@ export class InteriorScene extends Phaser.Scene {
   private flip = false;
   private frame = 0;
   private mode: Mode = 'free';
-  private bed: { x: number; y: number } | null = null;
+  /** The sofa or armchair the astronaut rests on, while sleeping. */
+  private bed: MapProp | null = null;
   /** Px each door's leaves have slid into the wall. */
   private doors = DOORS.map(() => ({ open: 0, acc: 0 }));
   private alarm: AlarmKind | null = null;
@@ -108,7 +112,8 @@ export class InteriorScene extends Phaser.Scene {
       });
     } else if (p.action === 'sleep') {
       this.mode = 'sleep';
-      this.bed = { x: p.x + p.w / 2, y: p.y + p.h * 0.75 };
+      this.bed = p;
+      this.flip = false;
     } else {
       this.mode = 'work';
       this.flip = p.x + p.w / 2 < this.x;
@@ -136,7 +141,8 @@ export class InteriorScene extends Phaser.Scene {
       if (dx !== 0) this.flip = dx < 0;
     }
     // Same frame layout as the field (crewArt.ts).
-    if (this.mode === 'sleep') this.frame = 8;
+    // Lie down on a sofa; on a narrow armchair, sit (the idle frame).
+    if (this.mode === 'sleep') this.frame = this.bed && this.bed.w < LIE_MIN_W ? 0 : 8;
     else if (this.mode === 'work') this.frame = 6 + (Math.floor(time / ANIM_WORK_MS) % 2);
     else if (moving) this.frame = 2 + (Math.floor(time / ANIM_WALK_MS) % 4);
     else this.frame = Math.floor(time / 600) % 2;
@@ -170,19 +176,25 @@ export class InteriorScene extends Phaser.Scene {
     });
   }
 
-  /** Props and the astronaut sorted by their base, then doors and the overlay layer on top. */
+  /** Wall decor, then props and the astronaut sorted by their base, then doors and the overlay. */
   private draw(time: number): void {
     const g = this.view.ctx;
     g.clearRect(0, 0, g.canvas.width, g.canvas.height);
-    const me = this.bed ?? { x: this.x, y: this.y };
+    for (const p of WALL_DECOR) drawSprite(g, p.sprite, p.x, p.y);
+    // A resting astronaut is drawn right after (on top of) the furniture it rests on.
+    const me = this.bed ? this.restPoint(this.bed) : { x: this.x, y: this.y };
     let drawnMe = false;
     for (const p of SOLID) {
-      if (!drawnMe && base(p) > me.y) {
+      if (!drawnMe && !this.bed && base(p) > me.y) {
         this.drawMe(g, me);
         drawnMe = true;
       }
       drawSprite(g, p.sprite, p.x, p.y);
       if (p === ARIA) this.drawFace(g);
+      if (p === this.bed) {
+        this.drawMe(g, me);
+        drawnMe = true;
+      }
     }
     if (!drawnMe) this.drawMe(g, me);
     // Door leaves retract into the wall: each half keeps its outer edge and loses width.
@@ -195,6 +207,11 @@ export class InteriorScene extends Phaser.Scene {
     for (const p of OVERLAY) drawSprite(g, p.sprite, p.x, p.y);
     const reduce = prefs.getState().reduceMotion;
     this.view.setAlarm(this.alarm ? (reduce ? 0.1 : 0.1 + 0.06 * Math.sin(time / 140)) : 0);
+  }
+
+  /** Feet point for resting on `p`: centred on the seat. */
+  private restPoint(p: MapProp): { x: number; y: number } {
+    return { x: p.x + p.w / 2, y: p.y + p.h * (p.w < LIE_MIN_W ? 0.78 : 0.7) };
   }
 
   private drawFace(g: CanvasRenderingContext2D): void {
@@ -229,9 +246,10 @@ export class InteriorScene extends Phaser.Scene {
     const py = below ? this.y + 12 : this.y - head - 4;
     const anchor = below ? 'translate(-50%, 0)' : 'translate(-50%, -100%)';
     v.label('prompt', key ? { text: t(key), x: this.x, y: py } : null, PROMPT, true, anchor);
+    const rest = this.bed ? this.restPoint(this.bed) : null;
     const zzz =
-      this.mode === 'sleep' && this.bed
-        ? { text: 'Z z', x: this.bed.x + 30, y: this.bed.y - 70 + Math.sin(time / 400) * 6 }
+      this.mode === 'sleep' && rest
+        ? { text: 'Z z', x: rest.x + 30, y: rest.y - 80 + Math.sin(time / 400) * 6 }
         : null;
     v.label('zzz', zzz, { color: '#e2ecff' }, true, '');
     const line = this.face.text ? `${t('interior.ai.name')}: ${this.face.text}` : null;

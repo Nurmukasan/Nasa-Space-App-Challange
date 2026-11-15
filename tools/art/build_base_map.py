@@ -12,22 +12,24 @@ import sys
 TILE = 64
 COLS, ROWS = 30, 17
 
-# '#' hull wall, 'F' wall face (panels drawn by props), 'D' doorway, '.' floor, ' ' outside.
+# '#' hull wall, 'F' wall face (panels drawn by props), 'B' back wall of a room (the wall art with
+# posters, cabinets, the wall map: floor-coloured in the picture, but you cannot walk there),
+# 'D' doorway, '.' floor, ' ' outside.
 MAP = [
     '                              ',
     '           ########           ',
     ' ###########......########### ',
-    ' #.........#......#.........# ',
-    ' #.........#......#.........# ',
+    ' #BBBBBBBBB#......#BBBBBBBBB# ',
+    ' #.........#......#BBBBBBBBB# ',
     ' #.........###DD###.........# ',
     ' #.........FFFDDFFF.........# ',
     ' #.........FFFDDFFF.........# ',
     ' #..........................# ',
     ' #.........###DD###.........# ',
-    ' #.........#......#.........# ',
-    ' #.........#......#.........# ',
+    ' #.........#BBDDBB#.........# ',
+    ' #.........#BB....#.........# ',
     ' ####DD#####......########### ',
-    ' #.........#......########### ',
+    ' #BBBDDBBBB#......########### ',
     ' #.........#......#           ',
     ' #.........#......#           ',
     ' #.........#......#           ',
@@ -48,8 +50,8 @@ PROPS = {
     # bridge
     'bridge_deck': ('props', 'work'),
     # lab
-    'world_map': ('overlay', None), 'lab_tools_hanging': ('overlay', None),
-    'lab_pegboard': ('overlay', None), 'lab_server_rack': ('props', None),
+    'world_map': ('wall', None), 'lab_tools_hanging': ('wall', None),
+    'lab_pegboard': ('wall', None), 'lab_server_rack': ('props', None),
     'lab_computers': ('props', 'work'), 'lab_printer_tower': ('props', None),
     'ai_monitor': ('props', 'talk'), 'lab_cabinet_small': ('props', None),
     'crate_rocks': ('props', None), 'crate_soil': ('props', None), 'crate_empty': ('props', None),
@@ -63,7 +65,7 @@ PROPS = {
     # hall
     'hall_wall_l': ('props', 'exit'), 'hall_wall_r': ('props', None),
     # greenhouse
-    'gh_header': ('overlay', None), 'planter_left': ('props', 'tend'),
+    'gh_header': ('wall', None), 'planter_left': ('props', 'tend'),
     'tank_blue_top': ('props', None), 'tank_green_top': ('props', None),
     'planter_right': ('props', 'tend'), 'tank_blue_tall': ('props', None),
     'tank_blue_tall_b': ('props', None), 'tank_pipe': ('props', None),
@@ -74,18 +76,18 @@ PROPS = {
     'planter_bush': ('props', 'tend'), 'planter_low': ('props', 'tend'),
     'sprinkler_b': ('props', None), 'sprinkler_c': ('props', None),
     # quarters
-    'kitchen_hood': ('overlay', None), 'kitchen_cabinet': ('overlay', None),
+    'kitchen_hood': ('wall', None), 'kitchen_cabinet': ('wall', None),
     'kitchen_stove': ('props', None), 'kitchen_sink': ('props', None),
     'kitchen_fridge': ('props', None), 'plant_big': ('props', None),
     'dining_chair_l': ('props', None), 'dining_table': ('props', None),
-    'dining_chair_r': ('props', None), 'poster_octopus': ('overlay', None),
-    'poster_tree': ('overlay', None), 'wall_shelf': ('overlay', None),
-    'wall_screen': ('overlay', None), 'side_plant': ('props', None),
+    'dining_chair_r': ('props', None), 'poster_octopus': ('wall', None),
+    'poster_tree': ('wall', None), 'wall_shelf': ('wall', None),
+    'wall_screen': ('wall', None), 'side_plant': ('props', None),
     'lounge_sofa': ('props', 'sleep'), 'lounge_arcade': ('props', 'work'),
     'armchair_l': ('props', 'sleep'), 'coffee_table': ('props', None),
     'armchair_r': ('props', 'sleep'), 'lounge_sofa_b': ('props', 'sleep'),
     # engine room
-    'engine_wall_pipes': ('overlay', None), 'engine_wall_panel': ('props', 'work'),
+    'engine_wall_pipes': ('wall', None), 'engine_wall_panel': ('props', 'work'),
     'box_cardboard': ('props', None), 'box_wrench': ('props', None), 'box_tools': ('props', None),
     'box_parts': ('props', None), 'reactor': ('props', 'work'), 'reactor_pipes': ('props', None),
     'generator': ('props', 'work'),
@@ -109,8 +111,11 @@ def prop(name, layer, lid, frame, action, oid):
          'height': frame['h'], 'rotation': 0, 'visible': True,
          'properties': [{'name': 'sprite', 'type': 'string', 'value': name}]}
     fp = None if name in WALKOVER else frame.get('footprint') or [0, 0.6, 1, 1]
-    if layer == 'overlay':
+    if layer in ('overlay', 'wall'):
         fp = None
+    if layer == 'wall':
+        # Hangs on the back wall: always drawn behind the astronaut.
+        o['properties'].append({'name': 'mount', 'type': 'string', 'value': 'wall'})
     if fp:
         o['properties'].append({'name': 'footprint', 'type': 'string', 'value': ','.join(map(str, fp))})
     if action:
@@ -128,8 +133,10 @@ def main(atlas_path, tiles_path, out):
     for r, line in enumerate(MAP):
         for c, ch in enumerate(line):
             walkable = ch in '.D'
-            floor.append(gid[FLOOR.get(room_at(c, r), 'floor_plain')] if walkable or ch == 'F' else 0)
-            if ch in '#F':
+            floor.append(gid[FLOOR.get(room_at(c, r), 'floor_plain')] if walkable or ch in 'FB' else 0)
+            if ch == 'B':
+                walls.append(gid['wall_back'])
+            elif ch in '#F':
                 at = lambda dc, dr: MAP[r + dr][c + dc] if 0 <= r + dr < ROWS and 0 <= c + dc < COLS else ' '
                 sides = ''.join(k for k, (dc, dr) in zip('NESW', ((0, -1), (1, 0), (0, 1), (-1, 0)))
                                 if at(dc, dr) in '.D')
@@ -141,7 +148,7 @@ def main(atlas_path, tiles_path, out):
     for name, (layer, action) in PROPS.items():
         o = prop(name, layer, 0, atlas[name], action, oid)
         oid += 1
-        (overlay if layer == 'overlay' else props).append(o)
+        (overlay if layer in ('overlay', 'wall') else props).append(o)
     props.sort(key=lambda o: o['y'] + o['height'])
     door_frame = atlas['wall_door']
     doors = []
