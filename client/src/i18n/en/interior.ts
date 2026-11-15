@@ -6,6 +6,7 @@ export default {
   'interior.prompt.tend': 'E · TEND PLANTS',
   'interior.prompt.talk': 'E · TALK TO ARIA',
   'interior.prompt.exit': 'E · CYCLE AIRLOCK',
+  'interior.ai.airlock': 'Cycling the airlock. Good luck out there.',
   'interior.prompt.stand': 'E / WASD · STAND UP',
   'interior.ai.name': 'ARIA',
   'interior.header': 'TULPAR-1 · {clock} · O2 STORE {o2}%',

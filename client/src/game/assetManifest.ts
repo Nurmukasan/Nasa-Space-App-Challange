@@ -67,6 +67,10 @@ export const ASSETS: AssetSpec[] = [
   sheet('astronaut', 16, 16, 9, true),
   sheet('astronaut_stripe', 16, 16, 9, true),
   sheet('lander', 128, 96, 1, true),
+  // Lander interior: the team's reference picture, cleaned of HUD and cut to the hull (AI-made art),
+  // and the three sliding door leaves taken from it (bridge, engine room, quarters).
+  sheet('interior_base', 480, 258, 1, true),
+  sheet('interior_doors', 35, 30, 3, true),
   ...['delta', 'crater', 'basalt', 'impact'].map((kind) => sheet(`site_${kind}`, 16, 16, 2, true)),
   sheet('samples', 8, 8, 3, true),
   sheet('station', 16, 16, 1, true),

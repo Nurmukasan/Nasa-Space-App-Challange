@@ -1,11 +1,15 @@
-// Animated interior pieces drawn in code: sliding door frames and the AI assistant's face.
+// ARIA's face, drawn into the screen of the lab terminal in interior_base.png.
+// Same look as the picture (teal on dark teal) so the still frame matches the reference.
 import type { Look } from './assistant';
 
-export const DOOR_W = 32;
-export const DOOR_H = 16;
-export const DOOR_FRAMES = 6;
-export const SCREEN_W = 40;
-export const SCREEN_H = 34;
+/** Screen of the terminal in the picture (pixels of interior_base.png). */
+export const FACE_X = 89;
+export const FACE_Y = 57;
+export const FACE_W = 25;
+export const FACE_H = 17;
+
+const BG = { neutral: '#163435', happy: '#163a30', worried: '#33300f', alarm: '#5a0c10' };
+const INK = { neutral: '#80ffff', happy: '#9affc0', worried: '#ffd860', alarm: '#ffd0c0' };
 
 type Ctx = CanvasRenderingContext2D;
 const box = (g: Ctx, x: number, y: number, w: number, h: number, c: string): void => {
@@ -13,113 +17,58 @@ const box = (g: Ctx, x: number, y: number, w: number, h: number, c: string): voi
   g.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
 };
 
-/** Strip of door frames: 0 shut ... DOOR_FRAMES-1 fully open (panels slid into the wall). */
-export function doorSheet(outer: boolean): HTMLCanvasElement {
-  const canvas = document.createElement('canvas');
-  canvas.width = DOOR_W * DOOR_FRAMES;
-  canvas.height = DOOR_H;
-  const g = canvas.getContext('2d')!;
-  const stripe = outer ? '#d03030' : '#f2c230';
-  for (let f = 0; f < DOOR_FRAMES; f++) {
-    const ox = f * DOOR_W;
-    const slide = Math.round((f / (DOOR_FRAMES - 1)) * 14);
-    for (const side of [-1, 1]) {
-      // Each panel is half the doorway; it slides away from the centre line.
-      const px = side < 0 ? ox - slide : ox + 16 + slide;
-      const left = Math.max(ox, px),
-        right = Math.min(ox + DOOR_W, px + 16);
-      if (right - left <= 0) continue;
-      box(g, left, 0, right - left, DOOR_H, '#12141c');
-      box(g, left + 1, 1, right - left - 2, DOOR_H - 2, '#8a94a4');
-      box(g, left + 1, 1, right - left - 2, 2, '#b4bccb');
-      box(g, left + 1, DOOR_H - 4, right - left - 2, 2, stripe);
-      // Window slit near the centre edge of each panel.
-      const wx = side < 0 ? px + 11 : px + 3;
-      if (wx >= left && wx + 2 <= right) box(g, wx, 5, 2, 4, '#2fd6d0');
-    }
-  }
-  return canvas;
-}
-
-const BG = { neutral: '#0e2a30', happy: '#0e3028', worried: '#2a2a10', alarm: '#5a0c10' };
-const INK = { neutral: '#2fd6d0', happy: '#7cf0a0', worried: '#f2c230', alarm: '#ffd0c0' };
-
-/**
- * Draws the assistant screen (bezel, face, mouth) for `look` into `g` at 0,0.
- * `flash` toggles the alarm background so the warning blinks.
- */
-export function drawScreen(g: Ctx, look: Look, flash: boolean): void {
+/** Draws the face for `look`; `flash` blinks the alarm background. */
+export function drawFace(g: Ctx, look: Look, flash: boolean): void {
   const mood = look.mood;
-  // Light grey monitor on a short stand, like the reference terminal.
-  g.clearRect(0, 0, SCREEN_W, SCREEN_H);
-  box(g, SCREEN_W / 2 - 4, SCREEN_H - 7, 8, 5, '#555d69');
-  box(g, SCREEN_W / 2 - 9, SCREEN_H - 3, 18, 3, '#12141c');
-  box(g, 0, 0, SCREEN_W, SCREEN_H - 6, '#12141c');
-  box(g, 1, 1, SCREEN_W - 2, SCREEN_H - 8, '#9aa3b0');
-  box(g, 1, 1, SCREEN_W - 2, 2, '#c4cbd5');
-  const sx = 4,
-    sy = 4,
-    sw = SCREEN_W - 8,
-    sh = SCREEN_H - 14;
-  box(g, sx, sy, sw, sh, mood === 'alarm' && flash ? '#a01818' : BG[mood]);
-  // Scan lines.
-  for (let y = sy + 1; y < sy + sh; y += 3) box(g, sx, y, sw, 1, 'rgba(0,0,0,0.18)');
-  box(g, SCREEN_W - 7, SCREEN_H - 9, 2, 1, mood === 'alarm' ? '#ff5040' : '#3ec44e'); // power LED
-
+  box(g, 0, 0, FACE_W, FACE_H, mood === 'alarm' && flash ? '#a01818' : BG[mood]);
+  for (let y = 1; y < FACE_H; y += 3) box(g, 0, y, FACE_W, 1, 'rgba(0,0,0,0.16)');
   const ink = INK[mood];
+  const cx = Math.floor(FACE_W / 2);
   if (look.alarm && look.text === null) {
-    // Silent alarm: a big warning triangle instead of the face.
-    const cx = SCREEN_W / 2;
-    for (let r = 0; r < 14; r++) box(g, cx - r * 0.75, sy + 2 + r, r * 1.5 + 1, 1, '#ffd040');
-    box(g, cx - 1, sy + 6, 2, 5, '#5a0c10');
-    box(g, cx - 1, sy + 12, 2, 2, '#5a0c10');
+    // Silent alarm: a warning triangle instead of the face.
+    for (let r = 0; r < 12; r++) box(g, cx - r * 0.6, 2 + r, r * 1.2 + 1, 1, '#ffd040');
+    box(g, cx, 6, 1, 4, '#5a0c10');
+    box(g, cx, 11, 1, 1, '#5a0c10');
     return;
   }
-
-  // Eyes.
-  const ey = sy + 4,
-    lx = SCREEN_W / 2 - 9,
-    rx = SCREEN_W / 2 + 3;
+  // Eyes: 3x4 blocks like the picture; lines when blinking, arcs when happy.
+  const ey = 3,
+    lx = cx - 6,
+    rx = cx + 4;
   if (look.eyesClosed) {
-    box(g, lx, ey + 3, 6, 1, ink);
-    box(g, rx, ey + 3, 6, 1, ink);
+    box(g, lx, ey + 2, 3, 1, ink);
+    box(g, rx, ey + 2, 3, 1, ink);
   } else if (mood === 'happy') {
     for (const ex of [lx, rx]) {
-      box(g, ex, ey + 4, 2, 2, ink);
-      box(g, ex + 2, ey + 2, 2, 2, ink);
-      box(g, ex + 4, ey + 4, 2, 2, ink);
+      box(g, ex, ey + 2, 1, 1, ink);
+      box(g, ex + 1, ey + 1, 1, 1, ink);
+      box(g, ex + 2, ey + 2, 1, 1, ink);
     }
   } else {
-    const tall = mood === 'alarm' ? 7 : 6;
-    box(g, lx, ey, 6, tall, ink);
-    box(g, rx, ey, 6, tall, ink);
-    box(g, lx + 1, ey + 1, 2, 2, '#ffffff');
-    box(g, rx + 1, ey + 1, 2, 2, '#ffffff');
+    box(g, lx, ey, 3, 4, ink);
+    box(g, rx, ey, 3, 4, ink);
   }
   if (mood === 'worried' || mood === 'alarm') {
-    // Brows slanting up towards the middle.
-    box(g, lx, ey - 2, 3, 1, ink);
-    box(g, lx + 3, ey - 3, 3, 1, ink);
-    box(g, rx, ey - 3, 3, 1, ink);
-    box(g, rx + 3, ey - 2, 3, 1, ink);
+    box(g, lx, ey - 2, 2, 1, ink);
+    box(g, lx + 2, ey - 1, 1, 1, ink);
+    box(g, rx, ey - 1, 1, 1, ink);
+    box(g, rx + 1, ey - 2, 2, 1, ink);
   }
-
-  // Mouth: closed line (or smile), half open, open.
-  const my = sy + 13,
-    mx = SCREEN_W / 2;
+  // Mouth: the picture's smile when idle; half open and open while talking.
+  const my = 10;
   if (look.mouth === 0) {
-    if (mood === 'happy') {
-      box(g, mx - 6, my, 2, 1, ink);
-      box(g, mx - 4, my + 1, 8, 1, ink);
-      box(g, mx + 4, my, 2, 1, ink);
-    } else if (mood === 'worried' || mood === 'alarm') {
-      box(g, mx - 4, my + 1, 8, 1, ink);
-      box(g, mx - 5, my + 2, 1, 1, ink);
-      box(g, mx + 4, my + 2, 1, 1, ink);
-    } else box(g, mx - 5, my + 1, 10, 1, ink);
+    if (mood === 'worried' || mood === 'alarm') {
+      box(g, cx - 3, my + 1, 7, 1, ink);
+      box(g, cx - 4, my + 2, 1, 1, ink);
+      box(g, cx + 4, my + 2, 1, 1, ink);
+    } else {
+      box(g, cx - 5, my, 1, 1, ink);
+      box(g, cx - 4, my + 1, 9, 1, ink);
+      box(g, cx + 5, my, 1, 1, ink);
+    }
   } else {
-    const h = look.mouth === 1 ? 2 : 4;
-    box(g, mx - 5, my, 10, h + 2, ink);
-    box(g, mx - 4, my + 1, 8, h, '#06161a');
+    const h = look.mouth === 1 ? 1 : 3;
+    box(g, cx - 3, my, 7, h + 2, ink);
+    box(g, cx - 2, my + 1, 5, h, '#06161a');
   }
 }
