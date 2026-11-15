@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { VIEW_H, VIEW_W } from '@rs/shared';
 import { frameStats, recordFrame } from '../state/frameStats';
 import { FieldScene } from './FieldScene';
+import { InteriorScene } from './interior/InteriorScene';
 
 export function createGame(parent: HTMLElement): Phaser.Game {
   const game = new Phaser.Game({
@@ -18,7 +19,8 @@ export function createGame(parent: HTMLElement): Phaser.Game {
     scale: { mode: Phaser.Scale.ENVELOP, autoCenter: Phaser.Scale.CENTER_BOTH },
     render: { powerPreference: 'high-performance' },
     fps: { target: 60 },
-    scene: [FieldScene],
+    // The interior is launched by the field scene while our astronaut is inside the lander.
+    scene: [FieldScene, InteriorScene],
   });
   let start = 0;
   game.events.on(Phaser.Core.Events.PRE_STEP, () => {

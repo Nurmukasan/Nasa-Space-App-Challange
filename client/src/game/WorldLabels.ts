@@ -25,6 +25,11 @@ export class WorldLabels {
     scene.events.once('shutdown', () => this.root.remove());
   }
 
+  /** Hide every field label, e.g. while the lander interior covers the field. */
+  setHidden(hidden: boolean): void {
+    this.root.style.display = hidden ? 'none' : '';
+  }
+
   /** World position label; pass screen=true for view-space coordinates (0..VIEW_W). */
   set(key: string, text: string, x: number, y: number, kind: string, screen = false): void {
     let el = this.items.get(key);

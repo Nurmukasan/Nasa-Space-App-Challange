@@ -17,6 +17,7 @@ import { EntityLayer } from './EntityLayer';
 import { preloadAssets, ensureAssets } from './assets';
 import { ensureCrewTextures } from './crewTextures';
 import { FIELD } from './style';
+import { worldLabels } from './WorldLabels';
 import { Lighting } from './Lighting';
 import type { Light } from './Lighting';
 const CONE_KEYS = Array.from({ length: FIELD.coneDirections }, (_, index) => `light-cone-${index}`);
@@ -89,9 +90,21 @@ export class FieldScene extends Phaser.Scene {
       kb.on(`keydown-${i + 1}`, () =>
         send({ t: 'eva:ping', kind: kind as 'ok' | 'help' | 'low_o2' | 'returning' | 'found' }),
       );
-    this.keys.E.on('down', () => send({ t: 'eva:interact' }));
+    // Inside the lander the interior scene owns the E key (rooms, then the outer hatch).
+    this.keys.E.on('down', () => {
+      if (!this.scene.isActive('interior')) send({ t: 'eva:interact' });
+    });
     this.keys.SPACE.on('down', () => send({ t: 'eva:dig', on: true }));
     this.keys.SPACE.on('up', () => send({ t: 'eva:dig', on: false }));
+  }
+
+  /** Show the lander interior while our astronaut is inside; hide it when they cycle out. */
+  private syncInterior(inside: boolean): void {
+    const active = this.scene.isActive('interior');
+    if (inside === active) return;
+    if (inside) this.scene.launch('interior');
+    else this.scene.stop('interior');
+    worldLabels(this).setHidden(inside);
   }
 
   override update(_time: number, deltaMs: number): void {
@@ -104,6 +117,7 @@ export class FieldScene extends Phaser.Scene {
     const params = st.room?.params;
 
     const mine = snap.astronauts.find((a) => a.id === myId);
+    this.syncInterior(mine?.status === 'inside');
     if (mine) {
       if (!this.hasPos || Math.hypot(mine.x - this.meX, mine.y - this.meY) > SNAP_BACK_PX) {
         this.meX = mine.x;

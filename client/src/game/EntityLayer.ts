@@ -168,9 +168,10 @@ export class EntityLayer {
       (a) => a.id !== myId && a.status === 'down' && Math.hypot(a.x - x, a.y - y) <= O2.shareRange,
     );
     const airlock = Math.hypot(x - snap.lander.x, y - snap.lander.y) <= O2.airlockRadius;
+    // Inside the lander the interior scene shows its own prompts.
     const hintText =
       mine?.status === 'inside'
-        ? evaText('eva.exit')
+        ? ''
         : rescue
           ? evaText('eva.rescue')
           : airlock
