@@ -1,12 +1,12 @@
-// ARIA's face, drawn into the screen of the lab terminal in interior_base.png.
-// Same look as the picture (teal on dark teal) so the still frame matches the reference.
+// ARIA's face, drawn into the screen of the lab terminal (atlas sprite ai_monitor).
+// Same look as the tileset (teal smile on dark teal) so the still frame matches the art.
 import type { Look } from './assistant';
 
-/** Screen of the terminal in the picture (pixels of interior_base.png). */
-export const FACE_X = 89;
-export const FACE_Y = 57;
+/** Face canvas size; the scene scales it onto the monitor's screen (AI_SCREEN). */
 export const FACE_W = 25;
 export const FACE_H = 17;
+/** The screen inside the ai_monitor sprite (sprite px). */
+export const AI_SCREEN = { dx: 10, dy: 12, w: 97, h: 78 };
 
 const BG = { neutral: '#163435', happy: '#163a30', worried: '#33300f', alarm: '#5a0c10' };
 const INK = { neutral: '#80ffff', happy: '#9affc0', worried: '#ffd860', alarm: '#ffd0c0' };

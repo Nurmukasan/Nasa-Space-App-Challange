@@ -1,0 +1,600 @@
+{
+  "floor_plain": {
+    "box": [65, 125, 129, 189],
+    "kind": "floor",
+    "keepBackground": true
+  },
+  "floor_grate_h": {
+    "box": [129, 125, 193, 189],
+    "kind": "floor",
+    "keepBackground": true
+  },
+  "floor_grate_v": {
+    "box": [193, 125, 257, 189],
+    "kind": "floor",
+    "keepBackground": true
+  },
+  "floor_grate_h2": {
+    "box": [257, 125, 321, 189],
+    "kind": "floor",
+    "keepBackground": true
+  },
+  "floor_diamond_dark": {
+    "box": [322, 125, 386, 189],
+    "kind": "floor",
+    "keepBackground": true
+  },
+  "floor_diamond": {
+    "box": [386, 125, 450, 189],
+    "kind": "floor",
+    "keepBackground": true
+  },
+  "floor_diamond_b": {
+    "box": [450, 125, 514, 189],
+    "kind": "floor",
+    "keepBackground": true
+  },
+  "floor_stripe_yellow": {
+    "box": [514, 125, 578, 189],
+    "kind": "floor",
+    "keepBackground": true
+  },
+  "floor_stripe_green": {
+    "box": [578, 125, 642, 189],
+    "kind": "floor",
+    "keepBackground": true
+  },
+  "floor_plain_b": {
+    "box": [65, 189, 129, 253],
+    "kind": "floor",
+    "keepBackground": true
+  },
+  "floor_stripe_red": {
+    "box": [514, 189, 578, 253],
+    "kind": "floor",
+    "keepBackground": true
+  },
+  "floor_stripe_blue": {
+    "box": [578, 189, 642, 253],
+    "kind": "floor",
+    "keepBackground": true
+  },
+  "wall_side": {
+    "box": [642, 125, 706, 253],
+    "kind": "wall",
+    "keepBackground": true
+  },
+  "wall_panels": {
+    "box": [25, 15, 385, 124],
+    "kind": "wallface",
+    "footprint": [0, 0, 1, 1]
+  },
+  "wall_door": {
+    "box": [385, 15, 512, 124],
+    "kind": "door"
+  },
+  "wall_panels_b": {
+    "box": [512, 15, 682, 124],
+    "kind": "wallface",
+    "footprint": [0, 0, 1, 1]
+  },
+  "ai_monitor": {
+    "box": [395, 225, 513, 331],
+    "kind": "ai",
+    "footprint": [0, 0.7, 1, 1]
+  },
+  "lab_tools_hanging": {
+    "box": [524, 234, 573, 301],
+    "kind": "wallprop"
+  },
+  "lab_pegboard": {
+    "box": [595, 234, 681, 297],
+    "kind": "wallprop"
+  },
+  "lab_server_rack": {
+    "box": [147, 262, 201, 379],
+    "footprint": [0, 0.55, 1, 1]
+  },
+  "lab_computers": {
+    "box": [207, 286, 331, 381],
+    "footprint": [0, 0.4, 1, 1]
+  },
+  "lab_printer_tower": {
+    "box": [336, 284, 389, 381],
+    "footprint": [0, 0.4, 1, 1]
+  },
+  "lab_cabinet_small": {
+    "box": [526, 311, 565, 354],
+    "footprint": [0, 0.3, 1, 1]
+  },
+  "crate_rocks": {
+    "box": [579, 309, 639, 364],
+    "footprint": [0, 0.3, 1, 1]
+  },
+  "crate_soil": {
+    "box": [643, 311, 701, 371],
+    "footprint": [0, 0.3, 1, 1]
+  },
+  "crate_empty": {
+    "box": [596, 359, 639, 405],
+    "footprint": [0, 0.3, 1, 1]
+  },
+  "crate_rocks_b": {
+    "box": [643, 369, 701, 429],
+    "footprint": [0, 0.3, 1, 1]
+  },
+  "crate_soil_b": {
+    "box": [643, 429, 701, 496],
+    "footprint": [0, 0.3, 1, 1]
+  },
+  "lab_pc_side": {
+    "box": [146, 393, 206, 506],
+    "footprint": [0, 0.3, 1, 1]
+  },
+  "lab_chair": {
+    "box": [216, 425, 261, 501]
+  },
+  "lab_table_rocks": {
+    "box": [333, 375, 453, 501],
+    "footprint": [0, 0.55, 1, 0.95]
+  },
+  "lab_table_jars": {
+    "box": [455, 389, 575, 501],
+    "footprint": [0, 0.55, 1, 0.95]
+  },
+  "crystal_blue": {
+    "box": [774, 61, 826, 119]
+  },
+  "crystal_green": {
+    "box": [774, 127, 826, 184]
+  },
+  "crystal_red": {
+    "box": [774, 191, 826, 246]
+  },
+  "ore_gold": {
+    "box": [773, 266, 829, 307]
+  },
+  "rock_dark": {
+    "box": [840, 69, 889, 116]
+  },
+  "rock_pair": {
+    "box": [839, 136, 890, 179]
+  },
+  "rock_dark_b": {
+    "box": [841, 196, 884, 245]
+  },
+  "rock_grey": {
+    "box": [843, 266, 885, 305]
+  },
+  "soil_pile": {
+    "box": [905, 81, 951, 116]
+  },
+  "soil_pile_red": {
+    "box": [900, 144, 954, 181]
+  },
+  "bio_tank_a": {
+    "box": [339, 501, 404, 636],
+    "footprint": [0.1, 0.65, 0.9, 1]
+  },
+  "floor_vent": {
+    "box": [409, 571, 496, 635],
+    "kind": "floorprop"
+  },
+  "bio_tank_b": {
+    "box": [501, 501, 566, 636],
+    "footprint": [0.1, 0.65, 0.9, 1]
+  },
+  "pipes_floor": {
+    "box": [574, 569, 704, 636],
+    "kind": "floorprop"
+  },
+  "lab_locker_tall": {
+    "box": [148, 502, 194, 636],
+    "footprint": [0, 0.6, 1, 1]
+  },
+  "lab_bench_corner": {
+    "box": [145, 619, 266, 766],
+    "footprint": [0, 0.3, 1, 0.95]
+  },
+  "lab_box_green": {
+    "box": [276, 714, 321, 757],
+    "footprint": [0, 0.3, 1, 1]
+  },
+  "lab_bench_scope": {
+    "box": [456, 664, 576, 766],
+    "footprint": [0, 0.5, 1, 0.95]
+  },
+  "lab_bench_soil": {
+    "box": [579, 654, 701, 766],
+    "footprint": [0, 0.5, 1, 0.95]
+  },
+  "lab_soil_tray_a": {
+    "box": [963, 74, 1021, 120]
+  },
+  "lab_soil_tray_b": {
+    "box": [1028, 74, 1086, 120]
+  },
+  "lab_soil_tray_c": {
+    "box": [1091, 74, 1148, 120]
+  },
+  "lab_microscope": {
+    "box": [974, 119, 1012, 184]
+  },
+  "lab_terminal": {
+    "box": [1028, 126, 1086, 186],
+    "footprint": [0, 0.4, 1, 1]
+  },
+  "lab_3d_printer": {
+    "box": [1089, 126, 1150, 186],
+    "footprint": [0, 0.4, 1, 1]
+  },
+  "lab_scanner": {
+    "box": [961, 191, 1022, 251],
+    "footprint": [0, 0.4, 1, 1]
+  },
+  "lab_tool_table": {
+    "box": [1026, 189, 1151, 251],
+    "footprint": [0, 0.4, 1, 1]
+  },
+  "bridge_seat": {
+    "box": [1416, 174, 1458, 249]
+  },
+  "bridge_seat_r": {
+    "box": [1548, 174, 1591, 249]
+  },
+  "galley_table": {
+    "box": [1456, 174, 1538, 249],
+    "footprint": [0, 0.4, 1, 1]
+  },
+  "rack_b": {
+    "box": [1224, 26, 1279, 146],
+    "footprint": [0, 0.55, 1, 1]
+  },
+  "computers_b": {
+    "box": [1284, 54, 1409, 149],
+    "footprint": [0, 0.4, 1, 1]
+  },
+  "tower_b": {
+    "box": [1413, 49, 1467, 146],
+    "footprint": [0, 0.4, 1, 1]
+  },
+  "jars_b": {
+    "box": [1479, 41, 1599, 156],
+    "footprint": [0, 0.5, 1, 1]
+  },
+  "poster_blue": {
+    "box": [1609, 34, 1654, 94],
+    "kind": "wallprop"
+  },
+  "fridge_b": {
+    "box": [1670, 19, 1715, 121],
+    "footprint": [0, 0.5, 1, 1]
+  },
+  "stove_b": {
+    "box": [1729, 19, 1790, 124],
+    "footprint": [0, 0.5, 1, 1]
+  },
+  "crate_shelf": {
+    "box": [1796, 36, 1851, 121],
+    "footprint": [0, 0.5, 1, 1]
+  },
+  "trash_bin": {
+    "box": [1226, 186, 1269, 246],
+    "footprint": [0, 0.5, 1, 1]
+  },
+  "sofa": {
+    "box": [1285, 184, 1399, 249],
+    "footprint": [0, 0.35, 1, 1]
+  },
+  "plant_tall": {
+    "box": [1609, 164, 1651, 249],
+    "footprint": [0.15, 0.7, 0.85, 1]
+  },
+  "poster_fungus": {
+    "box": [1671, 151, 1719, 211],
+    "kind": "wallprop"
+  },
+  "vending_machine": {
+    "box": [1734, 176, 1784, 251],
+    "footprint": [0, 0.5, 1, 1]
+  },
+  "arcade": {
+    "box": [1796, 154, 1849, 251],
+    "footprint": [0, 0.5, 1, 1]
+  },
+  "gh_header": {
+    "box": [1431, 246, 1569, 296],
+    "kind": "wallprop"
+  },
+  "planter_left": {
+    "box": [1217, 271, 1406, 379],
+    "footprint": [0, 0.6, 1, 1]
+  },
+  "tank_blue_top": {
+    "box": [1411, 284, 1466, 374],
+    "footprint": [0, 0.5, 1, 1]
+  },
+  "tank_green_top": {
+    "box": [1533, 284, 1589, 374],
+    "footprint": [0, 0.5, 1, 1]
+  },
+  "planter_right": {
+    "box": [1591, 279, 1775, 379],
+    "footprint": [0, 0.6, 1, 1]
+  },
+  "pot_leafy": {
+    "box": [1799, 306, 1846, 369],
+    "footprint": [0.1, 0.6, 0.9, 1]
+  },
+  "ai_monitor_b": {
+    "box": [1029, 396, 1149, 511],
+    "footprint": [0, 0.7, 1, 1]
+  },
+  "tank_blue_tall": {
+    "box": [1221, 381, 1276, 501],
+    "footprint": [0.05, 0.6, 0.95, 1]
+  },
+  "tank_blue_tall_b": {
+    "box": [1349, 381, 1401, 501],
+    "footprint": [0.05, 0.6, 0.95, 1]
+  },
+  "tank_pipe": {
+    "box": [1275, 465, 1349, 506],
+    "kind": "floorprop"
+  },
+  "bed_plants_a": {
+    "box": [1406, 409, 1469, 634],
+    "footprint": [0, 0.1, 1, 1]
+  },
+  "bed_plants_b": {
+    "box": [1531, 429, 1591, 634],
+    "footprint": [0, 0.1, 1, 1]
+  },
+  "channel": {
+    "box": [1467, 326, 1531, 763],
+    "footprint": [0.05, 0, 0.95, 1]
+  },
+  "planter_berries": {
+    "box": [1593, 419, 1775, 506],
+    "footprint": [0, 0.4, 1, 1]
+  },
+  "sprinkler_a": {
+    "box": [1658, 381, 1711, 433]
+  },
+  "flower_purple": {
+    "box": [1809, 389, 1841, 436]
+  },
+  "pot_plant_b": {
+    "box": [1804, 451, 1846, 501],
+    "footprint": [0.1, 0.5, 0.9, 1]
+  },
+  "tank_green_tall": {
+    "box": [1349, 506, 1401, 628],
+    "footprint": [0.05, 0.6, 0.95, 1]
+  },
+  "tank_blue_tall_c": {
+    "box": [1349, 636, 1401, 763],
+    "footprint": [0.05, 0.6, 0.95, 1]
+  },
+  "aquarium": {
+    "box": [1226, 666, 1333, 763],
+    "footprint": [0, 0.3, 1, 1]
+  },
+  "pump_a": {
+    "box": [1411, 686, 1461, 766],
+    "footprint": [0, 0.5, 1, 1]
+  },
+  "pump_b": {
+    "box": [1538, 686, 1587, 766],
+    "footprint": [0, 0.5, 1, 1]
+  },
+  "planter_bush": {
+    "box": [1594, 554, 1776, 636],
+    "footprint": [0, 0.4, 1, 1]
+  },
+  "planter_low": {
+    "box": [1594, 671, 1776, 763],
+    "footprint": [0, 0.4, 1, 1]
+  },
+  "sprinkler_b": {
+    "box": [1658, 514, 1711, 563]
+  },
+  "sprinkler_c": {
+    "box": [1658, 641, 1711, 693]
+  },
+  "pot_a": {
+    "box": [1799, 509, 1846, 563],
+    "footprint": [0.1, 0.5, 0.9, 1]
+  },
+  "pot_b": {
+    "box": [1799, 576, 1839, 628],
+    "footprint": [0.1, 0.5, 0.9, 1]
+  },
+  "pot_c": {
+    "box": [1806, 644, 1839, 691],
+    "footprint": [0.1, 0.5, 0.9, 1]
+  },
+  "pot_d": {
+    "box": [1806, 704, 1846, 758],
+    "footprint": [0.1, 0.5, 0.9, 1]
+  },
+  "engine_wall_pipes": {
+    "box": [766, 636, 896, 746],
+    "kind": "wallprop"
+  },
+  "engine_wall_panel": {
+    "box": [1024, 636, 1153, 746],
+    "kind": "wallprop"
+  },
+  "box_cardboard": {
+    "box": [773, 739, 831, 809],
+    "footprint": [0, 0.4, 1, 1]
+  },
+  "box_wrench": {
+    "box": [839, 751, 891, 811],
+    "footprint": [0, 0.4, 1, 1]
+  },
+  "box_tools": {
+    "box": [773, 809, 831, 886],
+    "footprint": [0, 0.4, 1, 1]
+  },
+  "box_parts": {
+    "box": [775, 894, 826, 951],
+    "footprint": [0, 0.4, 1, 1]
+  },
+  "reactor": {
+    "box": [905, 766, 1008, 956],
+    "kind": "core",
+    "footprint": [0.05, 0.55, 0.95, 1]
+  },
+  "reactor_pipes": {
+    "box": [1008, 755, 1152, 1063],
+    "footprint": [0, 0.35, 1, 1]
+  },
+  "generator": {
+    "box": [796, 958, 906, 1046],
+    "footprint": [0, 0.3, 1, 1]
+  },
+  "kitchen_hood": {
+    "box": [149, 841, 198, 884],
+    "kind": "wallprop"
+  },
+  "kitchen_cabinet": {
+    "box": [211, 835, 262, 874],
+    "kind": "wallprop"
+  },
+  "kitchen_stove": {
+    "box": [145, 889, 202, 951],
+    "footprint": [0, 0.3, 1, 1]
+  },
+  "kitchen_sink": {
+    "box": [201, 879, 269, 951],
+    "footprint": [0, 0.3, 1, 1]
+  },
+  "kitchen_fridge": {
+    "box": [273, 858, 317, 946],
+    "footprint": [0, 0.4, 1, 1]
+  },
+  "plant_big": {
+    "box": [151, 964, 200, 1051],
+    "footprint": [0.15, 0.7, 0.85, 1]
+  },
+  "dining_chair_l": {
+    "box": [211, 979, 254, 1046]
+  },
+  "dining_table": {
+    "box": [259, 976, 331, 1056],
+    "footprint": [0, 0.3, 1, 0.9]
+  },
+  "dining_chair_r": {
+    "box": [339, 979, 381, 1046]
+  },
+  "poster_octopus": {
+    "box": [476, 844, 511, 887],
+    "kind": "wallprop"
+  },
+  "poster_tree": {
+    "box": [529, 836, 564, 879],
+    "kind": "wallprop"
+  },
+  "wall_shelf": {
+    "box": [583, 838, 636, 872],
+    "kind": "wallprop"
+  },
+  "wall_screen": {
+    "box": [659, 836, 689, 863],
+    "kind": "wallprop"
+  },
+  "side_plant": {
+    "box": [474, 899, 506, 946],
+    "footprint": [0, 0.5, 1, 1]
+  },
+  "lounge_sofa": {
+    "box": [524, 889, 636, 951],
+    "kind": "sofa",
+    "footprint": [0, 0.35, 1, 1]
+  },
+  "lounge_arcade": {
+    "box": [646, 866, 697, 951],
+    "footprint": [0, 0.5, 1, 1]
+  },
+  "armchair_l": {
+    "box": [464, 936, 514, 1019],
+    "kind": "sofa",
+    "footprint": [0, 0.4, 1, 1]
+  },
+  "coffee_table": {
+    "box": [544, 964, 615, 1009],
+    "footprint": [0, 0.2, 1, 1]
+  },
+  "armchair_r": {
+    "box": [649, 936, 700, 1019],
+    "kind": "sofa",
+    "footprint": [0, 0.4, 1, 1]
+  },
+  "lounge_sofa_b": {
+    "box": [524, 1019, 635, 1064],
+    "kind": "sofa",
+    "footprint": [0, 0.3, 1, 1]
+  },
+  "crate_wood": {
+    "box": [1219, 814, 1275, 891],
+    "footprint": [0, 0.4, 1, 1]
+  },
+  "crate_metal": {
+    "box": [1284, 821, 1339, 891],
+    "footprint": [0, 0.4, 1, 1]
+  },
+  "crate_bio": {
+    "box": [1348, 814, 1403, 891],
+    "footprint": [0, 0.4, 1, 1]
+  },
+  "barrel_yellow": {
+    "box": [1416, 814, 1463, 888],
+    "footprint": [0, 0.4, 1, 1]
+  },
+  "barrel_blue": {
+    "box": [1480, 814, 1526, 888],
+    "footprint": [0, 0.4, 1, 1]
+  },
+  "barrel_red": {
+    "box": [1544, 814, 1591, 888],
+    "footprint": [0, 0.4, 1, 1]
+  },
+  "locker_a": {
+    "box": [1606, 814, 1658, 951],
+    "footprint": [0, 0.6, 1, 1]
+  },
+  "locker_b": {
+    "box": [1669, 814, 1721, 951],
+    "footprint": [0, 0.6, 1, 1]
+  },
+  "locker_c": {
+    "box": [1731, 814, 1783, 951],
+    "footprint": [0, 0.6, 1, 1]
+  },
+  "bridge_deck": {
+    "src": "reference",
+    "box": [768, 96, 1152, 330],
+    "keepBackground": true,
+    "kind": "console",
+    "footprint": [0, 0, 1, 0.58]
+  },
+  "world_map": {
+    "src": "reference",
+    "box": [212, 181, 384, 281],
+    "kind": "wallprop"
+  },
+  "hall_wall_l": {
+    "src": "reference",
+    "box": [705, 385, 897, 505],
+    "keepBackground": true,
+    "kind": "wallface"
+  },
+  "hall_wall_r": {
+    "src": "reference",
+    "box": [1022, 385, 1216, 505],
+    "keepBackground": true,
+    "kind": "wallface"
+  }
+}
