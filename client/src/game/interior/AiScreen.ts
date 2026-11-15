@@ -1,13 +1,13 @@
-// The AI assistant's screen on the bridge plus its subtitle line. Redraws only when the face changes.
+// ARIA's animated face over the lab terminal, plus the subtitle line. Redraws only on change.
 import type Phaser from 'phaser';
 import { prefs } from '../../state/prefs';
 import { t } from '../../i18n';
-import { SCREEN_H, SCREEN_W, drawScreen } from './interiorProps';
-import { PROPS, TILE } from './layout';
+import { FACE_H, FACE_W, FACE_X, FACE_Y, drawFace } from './interiorProps';
 import { assistant } from './assistant';
 
-const SCREEN_PROP = PROPS.find((p) => p.action === 'talk')!;
 const FLASH_MS = 300;
+/** Subtitle sits just above the bottom of the screen. */
+const SUBTITLE_BOTTOM = 30;
 
 export class AiScreen {
   private tex: Phaser.Textures.CanvasTexture;
@@ -19,22 +19,18 @@ export class AiScreen {
     makeText: (size: string, color: string) => Phaser.GameObjects.Text,
   ) {
     this.tex =
-      (scene.textures.exists('ai_screen') &&
-        (scene.textures.get('ai_screen') as Phaser.Textures.CanvasTexture)) ||
-      scene.textures.createCanvas('ai_screen', SCREEN_W, SCREEN_H)!;
+      (scene.textures.exists('ai_face') &&
+        (scene.textures.get('ai_face') as Phaser.Textures.CanvasTexture)) ||
+      scene.textures.createCanvas('ai_face', FACE_W, FACE_H)!;
     scene.add
-      .image(
-        SCREEN_PROP.col * TILE - 4,
-        (SCREEN_PROP.row + SCREEN_PROP.h) * TILE - SCREEN_H,
-        'ai_screen',
-      )
+      .image(FACE_X, FACE_Y, 'ai_face')
       .setOrigin(0)
-      .setDepth((SCREEN_PROP.row + SCREEN_PROP.h) * TILE);
+      .setDepth(FACE_Y + FACE_H);
     this.subtitle = makeText('9px', '#9af7f0')
-      .setOrigin(0.5, 0)
+      .setOrigin(0.5, 1)
       .setWordWrapWidth(300)
-      .setPosition(scene.scale.width / 2, scene.scale.height - 2 * TILE)
-      .setOrigin(0.5, 1);
+      .setScrollFactor(0)
+      .setPosition(scene.scale.width / 2, scene.scale.height - SUBTITLE_BOTTOM);
   }
 
   update(time: number): void {
@@ -43,7 +39,7 @@ export class AiScreen {
     const key = `${look.mood}|${look.mouth}|${look.eyesClosed}|${look.alarm}|${flash && !!look.alarm}`;
     if (key !== this.key) {
       this.key = key;
-      drawScreen(this.tex.getContext(), look, flash);
+      drawFace(this.tex.getContext(), look, flash);
       this.tex.refresh();
     }
     this.subtitle.setVisible(!!look.text);
