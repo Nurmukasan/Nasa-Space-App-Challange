@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { FAULTS } from '@rs/shared';
 import type { EvaState } from '@rs/shared';
 import { t } from '../../i18n';
@@ -21,7 +21,6 @@ export function SoloSeismic({ snap, playerId }: { snap: EvaState; playerId: stri
   const event = snap.seismic.find(
     (e) => e.truth === null && e.guess === null && snap.t >= e.t0 && snap.t < e.deadline,
   );
-  const [armed, setArmed] = useState(false);
   const eventId = event?.id;
   const signal = event?.signal;
   useEffect(() => {
@@ -95,25 +94,6 @@ export function SoloSeismic({ snap, playerId }: { snap: EvaState; playerId: stri
           </button>
         </div>
       ))}
-      <div className="solo-launch">
-        {armed && (
-          <small>
-            {t('eva.launch_outside', {
-              n: snap.astronauts.filter((a) => a.status === 'active' || a.status === 'down').length,
-            })}
-          </small>
-        )}
-        <button
-          disabled={snap.t < 0}
-          onClick={() => {
-            if (armed) send({ t: 'mc:liftoff' });
-            else setArmed(true);
-          }}
-        >
-          {t(armed ? 'eva.confirm_launch' : 'eva.liftoff')}
-        </button>
-        {armed && <button onClick={() => setArmed(false)}>{t('eva.cancel_launch')}</button>}
-      </div>
     </section>
   );
 }
