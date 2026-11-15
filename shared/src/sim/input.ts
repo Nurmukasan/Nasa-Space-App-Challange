@@ -1,6 +1,16 @@
 // Applies client messages to the sim. Every value from the client is validated here.
 import { AIRLOCK, MOVE, O2, TICK_DT } from '../balance';
-import type { ClientMsg } from '../protocol';
+import type { AlertKind, ClientMsg, PingKind } from '../protocol';
+
+const PING_KINDS: readonly unknown[] = [
+  'ok',
+  'help',
+  'low_o2',
+  'returning',
+  'found',
+  'shaking',
+] satisfies PingKind[];
+const ALERT_KINDS: readonly unknown[] = ['evac', 'return', 'hold'] satisfies AlertKind[];
 import { clampToWorld } from '../terrain';
 import { endMission } from './endcheck';
 import { placePick, resolveEvent } from './seismic';
@@ -125,10 +135,11 @@ export function handleSimMsg(
       return;
     }
     case 'eva:ping': {
-      if (!canEva) return;
-      const kind = String(msg.kind).slice(0, 16);
-      pushFx(sim, { type: 'ping', playerId, s: kind });
-      pushLog(sim, playerId, `ping.${kind}`);
+      if (!canEva || !PING_KINDS.includes(msg.kind)) return;
+      // The position matters for SHAKING: a hint for Mission Control (PL 7.11, 7.20).
+      const a = findAstronaut(sim, playerId);
+      pushFx(sim, { type: 'ping', playerId, s: msg.kind, x: a?.x, y: a?.y });
+      pushLog(sim, playerId, `ping.${msg.kind}`);
       return;
     }
     case 'mc:waypoint': {
@@ -154,10 +165,11 @@ export function handleSimMsg(
       return;
     }
     case 'mc:alert': {
-      if (!canMc) return;
-      const kind = String(msg.kind).slice(0, 16);
-      pushFx(sim, { type: 'alert', playerId: String(msg.playerId), s: kind });
-      pushLog(sim, 'mc', `alert.${kind}`, { id: String(msg.playerId) });
+      if (!canMc || !ALERT_KINDS.includes(msg.kind)) return;
+      const a = findAstronaut(sim, String(msg.playerId));
+      if (!a) return;
+      pushFx(sim, { type: 'alert', playerId: a.id, s: msg.kind });
+      pushLog(sim, 'mc', `alert.${msg.kind}`, { id: a.id });
       return;
     }
     case 'mc:liftoff': {

@@ -1,4 +1,5 @@
 import { finalizeObjectives } from './objectives';
+import { pushFx } from './sim';
 import type { Sim, System } from './sim';
 
 export function endMission(sim: Sim): void {
@@ -14,6 +15,8 @@ export function endMission(sim: Sim): void {
   stats.allAboard = stats.lost === 0;
   stats.o2StoreLeft = sim.pub.lander.o2Store;
   finalizeObjectives(sim);
+  // Ascent stage leaves (docs/product-logic.md 7.21): the takeoff scene and the report timeline.
+  if (stats.lost < stats.crew) pushFx(sim, { type: 'liftoff', n: sim.pub.lander.cache.length });
   sim.pub.ended = true;
 }
 
