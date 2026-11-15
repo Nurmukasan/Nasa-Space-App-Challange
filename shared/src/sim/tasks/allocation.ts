@@ -28,10 +28,10 @@ function targetOf(site: SampleSite, deep = false): TaskTarget {
   return { id: site.id, x: site.x, y: site.y, tier: deep ? 'deep' : 'surface' };
 }
 
-function reserved(sim: Sim, exceptOwner?: string): Set<string> {
+function reserved(sim: Sim, ignoreIds: readonly string[] = []): Set<string> {
   return new Set(
     (sim.pub.taskBoard?.tasks ?? [])
-      .filter((t) => t.ownerId !== exceptOwner && t.kind !== 'guide' && t.target)
+      .filter((t) => !ignoreIds.includes(t.id) && t.kind !== 'guide' && t.target)
       .map((t) => `${t.target!.id}:${t.target!.tier ?? 'surface'}`),
   );
 }
@@ -41,8 +41,9 @@ export function sampleTarget(
   crew: TaskCrew,
   variant = 0,
   deep = false,
+  ignoreIds: readonly string[] = [],
 ): TaskTarget | undefined {
-  const used = reserved(sim, crew.id);
+  const used = reserved(sim, ignoreIds);
   const candidates = sim.pub.sites
     .filter((s) => s.known && s.kind !== 'signal' && s.expiresAt === null)
     .map((s) => ({ site: s, target: targetOf(s, deep) }))
@@ -83,7 +84,7 @@ function preferredTarget(sim: Sim, crew: TaskCrew, variant: number): TaskTarget 
     if (
       site.known &&
       !site.taken.includes('surface') &&
-      !reserved(sim, crew.id).has(`${site.id}:surface`) &&
+      !reserved(sim).has(`${site.id}:surface`) &&
       reachable(sim, candidate, crew)
     )
       return candidate;
@@ -107,7 +108,7 @@ function chain(
     return target && reachable(sim, target, crew) ? ['deploy', target, sample] : undefined;
   }
   if (kind === 'survey' && sim.params.scenario === 'signal') {
-    const used = reserved(sim, crew.id);
+    const used = reserved(sim);
     const candidates = sim.pub.anomalies.filter(
       (a) => !used.has(`${a.id}:surface`) && reachable(sim, { ...a, tier: 'surface' }, crew),
     );

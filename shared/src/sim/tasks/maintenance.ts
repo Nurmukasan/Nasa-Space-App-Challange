@@ -8,18 +8,19 @@ import { checkTaskRoutes } from './progress';
 import { recordChange, unfinished } from './state';
 
 function replace(sim: Sim, task: PersonalTask, crew: TaskCrew): void {
-  const target = sampleTarget(sim, crew, sim.hidden.tasks!.decisions++);
+  const ignoreIds = sim.pub
+    .taskBoard!.tasks.filter((t) => t.id === task.id || t.after === task.id)
+    .map((t) => t.id);
+  const target = sampleTarget(sim, crew, sim.hidden.tasks!.decisions++, false, ignoreIds);
   if (!target) {
     task.state = 'blocked';
     task.reason = 'no_work';
     return;
   }
   recordChange(sim, task, 'consumed');
-  const firstDone =
-    task.after && sim.pub.taskBoard!.tasks.find((t) => t.id === task.after)?.state === 'done';
-  // A completed first milestone remains history. Its replacement delivery collects a fresh sample.
+  // A completed first milestone stays history; a replacement delivery still needs an actual deposit.
   task.target = target;
-  if (!task.after || firstDone) task.kind = 'collect';
+  if (!task.after) task.kind = 'collect';
   task.state = 'active';
   delete task.reason;
   for (const next of sim.pub.taskBoard!.tasks)

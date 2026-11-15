@@ -80,7 +80,7 @@ export function PersonalTasks({ snap, compact = false }: { snap: EvaState; compa
   const next = mine.find((task) => task.state === 'queued');
   const done = mine.filter((task) => task.state === 'done').length;
   const a = snap.astronauts.find((p) => p.id === self.id);
-  const destination = active && taskDestination(active, snap.lander);
+  const destination = active && taskDestination(active, snap.lander, a?.carrying);
   const guide = active?.kind === 'guide' && active.target;
   return (
     <section

@@ -1,4 +1,4 @@
-import type { PersonalTask, TaskBoard } from '@rs/shared';
+import type { PersonalTask, Sample, TaskBoard } from '@rs/shared';
 import { t } from '../i18n';
 
 export function taskName(task: PersonalTask, board: TaskBoard): string {
@@ -13,8 +13,16 @@ export function ownTasks(board: TaskBoard, playerId: string): PersonalTask[] {
   return board.tasks.filter((task) => task.ownerId === playerId);
 }
 
-/** Point to the airlock for delivery, not back to the sample's collection site. */
-export function taskDestination(task: PersonalTask, lander: { x: number; y: number }) {
-  if (task.kind === 'deliver') return lander;
+/** A delivery starts at the collection site until the matching sample is actually carried. */
+export function taskDestination(
+  task: PersonalTask,
+  lander: { x: number; y: number },
+  carrying: readonly Pick<Sample, 'siteId' | 'tier'>[] = [],
+) {
+  if (
+    task.kind === 'deliver' &&
+    carrying.some((s) => s.siteId === task.target?.id && s.tier === task.target?.tier)
+  )
+    return lander;
   return task.target;
 }
