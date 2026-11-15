@@ -21,6 +21,7 @@ import { prefs } from '../state/prefs';
 import { store } from '../state/store';
 import { HazardLayer } from './HazardLayer';
 import { PortLayer } from './PortLayer';
+import { PersonalTaskMarker } from './PersonalTaskMarker';
 import { PropLayer } from './PropLayer';
 import { FieldJuice } from './FieldJuice';
 import { FieldFx } from './fieldFx';
@@ -51,6 +52,7 @@ export class FieldScene extends Phaser.Scene {
   private crewLights = new Map<string, Light>();
   private hazards!: HazardLayer;
   private ports!: PortLayer;
+  private taskMarker!: PersonalTaskMarker;
   private juice!: FieldJuice;
   private effects!: FieldFx;
   private eventFx!: EventFx;
@@ -113,6 +115,7 @@ export class FieldScene extends Phaser.Scene {
     this.sampleFx = new SampleFx(this);
     this.hazards = new HazardLayer(this);
     this.ports = new PortLayer(this);
+    this.taskMarker = new PersonalTaskMarker(this);
     this.juice = new FieldJuice(this);
 
     this.lighting = new Lighting(this);
@@ -231,6 +234,7 @@ export class FieldScene extends Phaser.Scene {
     );
     this.hazards.update(snap, _time);
     this.ports.update(snap, myId, st.room?.players.find((p) => p.id === myId)?.role === 'solo');
+    this.taskMarker.update(snap, myId);
     this.juice.update(snap, myId, this.meX, this.meY, _time);
     if (mine) this.cameras.main.centerOn(this.meX, this.meY);
     this.chunks.update(this.cameras.main.worldView);

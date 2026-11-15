@@ -30,6 +30,8 @@ export interface MapProp {
   action: ActionKind | null;
   /** Decor/Overlay layer: drawn above the astronaut. */
   overlay: boolean;
+  /** Hangs on a back wall (Decor/Overlay with mount=wall): always drawn behind the astronaut. */
+  wall: boolean;
 }
 export interface MapDoor {
   id: string;
@@ -116,7 +118,8 @@ function toProp(o: TmjObject, overlay: boolean): MapProp {
         }
       : null,
     action: (prop(o, 'action') as ActionKind | undefined) ?? null,
-    overlay,
+    overlay: overlay && prop(o, 'mount') !== 'wall',
+    wall: prop(o, 'mount') === 'wall',
   };
 }
 

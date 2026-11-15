@@ -62,6 +62,17 @@ describe('lander interior map (base.tmj)', () => {
     }
   });
 
+  it('never lets the astronaut stand on a back wall or its decor', () => {
+    // Feet may come close to a poster's bottom edge (the wall meets the floor) but not into it.
+    const SLACK = 12;
+    for (const p of PROPS.filter((q) => q.wall)) {
+      const onIt = reached.find(
+        ([x, y]) => x > p.x && x < p.x + p.w && y > p.y && y < p.y + p.h - SLACK,
+      );
+      expect(onIt, `${p.id} at ${onIt}`).toBeUndefined();
+    }
+  });
+
   it('stops at walls and slides along them', () => {
     expect(step(SPAWN.x, SPAWN.y, 0, -400)).toEqual(SPAWN);
     expect(step(SPAWN.x, SPAWN.y, 4, 0).x).toBe(SPAWN.x + 4);

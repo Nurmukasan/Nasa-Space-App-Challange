@@ -17,6 +17,7 @@ import { generateCaches } from '../bigWorld';
 import { initDiscovery } from './discovery';
 import { initSignal } from './signal';
 import { buildObjectives } from './objectives';
+import type { TaskRuntime } from './tasks/state';
 import type {
   CrewClassId,
   Astronaut,
@@ -52,6 +53,8 @@ export interface ScheduledEvent {
 
 /** Server-only state: never serialized into snapshots. */
 export interface SimHidden {
+  /** Personal task bookkeeping; omitted when assignments are off. */
+  tasks?: TaskRuntime;
   schedule: ScheduledEvent[];
   stats: MissionStats;
   storm: { tStart: number; tEnd: number } | null;

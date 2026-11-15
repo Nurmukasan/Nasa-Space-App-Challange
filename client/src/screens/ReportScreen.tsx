@@ -14,6 +14,7 @@ import { ScoreRow } from './report/ScoreRow';
 import { Takeoff, TAKEOFF_MS } from './report/Takeoff';
 import { Stamp } from './report/Stamp';
 import { Objectives } from './report/Objectives';
+import { PersonalTaskReport } from '../ui/PersonalTasks';
 import { Timeline } from './report/Timeline';
 import { Awards } from './report/Awards';
 import { Findings } from './report/Findings';
@@ -81,6 +82,7 @@ export function ReportScreen({ skipTakeoff = false }: { skipTakeoff?: boolean })
         </div>
         <div className="report-details" style={{ '--delay': `${detailsAt}ms` } as CSSProperties}>
           <Timeline entries={report.timeline ?? []} players={players} />
+          <PersonalTaskReport board={report.taskBoard} />
           <Awards awards={report.awards ?? []} players={players} />
           <Findings insights={findings} at={0} isHost={self.isHost} redesign={redesign} />
           <Reveal reveal={report.reveal} />

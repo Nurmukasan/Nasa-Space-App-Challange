@@ -7,6 +7,7 @@ import { t } from '../../i18n';
 import { usePrefs } from '../../state/prefs';
 import { PixelIcon } from '../../ui/PixelIcon';
 import { MissionObjectives, ActTitle } from './MissionStatus';
+import { PersonalTasks } from '../../ui/PersonalTasks';
 import { BiomeTitle, WorldStatus } from './WorldStatus';
 import { MissionFlow } from './MissionFlow';
 import { DepositCounter } from './DepositCounter';
@@ -116,6 +117,8 @@ export function HelmetHud({
             {t(a.linked ? 'eva.link' : 'eva.no_signal')}
             <PixelIcon name="icon_antenna_hg" scale={1} />
           </span>
+          <PersonalTasks snap={snap} compact />
+          {snap.taskBoard && <small>{t('tasks.mission')}</small>}
           <MissionObjectives snap={snap} />
           {snap.objectives.length === 0 && (
             <>
