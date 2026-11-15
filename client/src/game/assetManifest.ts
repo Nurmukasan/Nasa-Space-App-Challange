@@ -67,10 +67,6 @@ export const ASSETS: AssetSpec[] = [
   sheet('astronaut', 16, 16, 9, true),
   sheet('astronaut_stripe', 16, 16, 9, true),
   sheet('lander', 128, 96, 1, true),
-  // Lander interior: the team's reference picture, cleaned of HUD and cut to the hull (AI-made art),
-  // and the three sliding door leaves taken from it (bridge, engine room, quarters).
-  sheet('interior_base', 480, 258, 1, true),
-  sheet('interior_doors', 35, 30, 3, true),
   ...['delta', 'crater', 'basalt', 'impact'].map((kind) => sheet(`site_${kind}`, 16, 16, 2, true)),
   sheet('samples', 8, 8, 3, true),
   sheet('station', 16, 16, 1, true),
@@ -113,6 +109,15 @@ export const ASSETS: AssetSpec[] = [
 /** Upper bounds that keep the first load small (docs/architecture.md, section 10.1). */
 export const ASSET_LIMITS = {
   spriteBytes: 256 * 1024,
+  /** Full-resolution lander interior picture (client/public/assets/interior/, WebP). */
+  interiorBytes: 400 * 1024,
   sfxBytes: 400 * 1024,
   musicBytes: 3 * 1024 * 1024,
 };
+
+/**
+ * Lander interior, shown at full resolution above the game canvas (game/interior/InteriorView.ts):
+ * the team's reference picture cleaned of HUD and cut to the hull, and its three door leaves
+ * (130x110 each, bridge, engine room, quarters). AI-made art.
+ */
+export const INTERIOR_FILES = ['base.webp', 'doors.webp'] as const;

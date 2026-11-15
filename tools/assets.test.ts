@@ -4,13 +4,14 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { ASSETS, ASSET_LIMITS } from '../client/src/game/assetManifest';
+import { ASSETS, ASSET_LIMITS, INTERIOR_FILES } from '../client/src/game/assetManifest';
 import { MUSIC_NAMES, SFX_NAMES } from '../client/src/audio/soundManifest';
 
 const ROOT = fileURLToPath(new URL('../client/public/assets/', import.meta.url));
 const SPRITES = join(ROOT, 'sprites');
 const SFX_DIR = join(ROOT, 'audio', 'sfx');
 const MUSIC_DIR = join(ROOT, 'audio', 'music');
+const INTERIOR_DIR = join(ROOT, 'interior');
 const IGNORED = new Set(['.gitkeep', '.DS_Store', 'Thumbs.db']);
 
 function list(dir: string): string[] {
@@ -107,5 +108,16 @@ describe('client/public/assets/audio', () => {
 
   it('music/ holds only known music, sting and ambience names within the size limit', () => {
     expect(check(MUSIC_DIR, MUSIC_NAMES, ASSET_LIMITS.musicBytes, 'music')).toEqual([]);
+  });
+});
+
+describe('client/public/assets/interior', () => {
+  it('holds exactly the interior pictures, each within the size limit', () => {
+    expect(list(INTERIOR_DIR).sort()).toEqual([...INTERIOR_FILES].sort());
+    for (const name of INTERIOR_FILES) {
+      const bytes = statSync(join(INTERIOR_DIR, name)).size;
+      expect(bytes, `${name}: ${kb(bytes)}`).toBeLessThanOrEqual(ASSET_LIMITS.interiorBytes);
+      expect(readFileSync(join(INTERIOR_DIR, name)).toString('ascii', 8, 12), name).toBe('WEBP');
+    }
   });
 });
