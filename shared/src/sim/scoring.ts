@@ -1,4 +1,4 @@
-import { FAULTS, LOCATE, O2, OBJECTIVE, REPORT, SCORE, TEAMWORK_V2 } from '../balance';
+import { EFFICIENCY, FAULTS, LOCATE, O2, OBJECTIVE, REPORT, SCORE, TEAMWORK_V2 } from '../balance';
 import type {
   DesignCheck,
   Grade,
@@ -58,11 +58,18 @@ export function scoreMission(
   const massLeft = clamp((t.massCapKg - t.massKg) / t.massCapKg, 0, 1);
   const storeLeft = clamp(stats.o2StoreLeft / Math.max(1, params.o2StoreInit), 0, 1);
   const timeLeft = clamp((params.durationS - stats.endedAtS) / params.durationS, 0, 1);
+  const E = EFFICIENCY;
+  // Budget and time parts are full at half left, never more (they used to reach 160 and 80).
   const efficiency =
     survivors === 0
       ? 0
       : clamp(
-          Math.round(80 * budgetLeft * 2 + 40 * massLeft + 40 * storeLeft + 40 * timeLeft * 2),
+          Math.round(
+            Math.min(E.budget, E.budget * budgetLeft * E.halfMul) +
+              E.mass * massLeft +
+              E.store * storeLeft +
+              Math.min(E.time, E.time * timeLeft * E.halfMul),
+          ),
           0,
           SCORE.efficiencyMax,
         );

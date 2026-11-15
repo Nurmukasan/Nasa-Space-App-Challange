@@ -36,7 +36,15 @@ export function Timeline({
           .map((e, index) => {
             const key = `reportUi.event.${e.type}`,
               text = t(key);
-            const label = text === key ? t('reportUi.event.default') : text;
+            const base = text === key ? t('reportUi.event.default') : text;
+            // Which objective was met, which system broke or was repaired.
+            const detail =
+              e.s && e.type === 'objective_done'
+                ? t(`objective.${e.s}`)
+                : e.s && (e.type === 'fault' || e.type === 'repair_done')
+                  ? t(`fault.${e.s}`)
+                  : null;
+            const label = detail ? `${base} · ${detail}` : base;
             const name = players.find((p) => p.id === e.playerId)?.name;
             return (
               <li

@@ -1,4 +1,5 @@
-// v2 airlock: an empty O2 store must not trap a crew member outside the hull (balance soak, A12).
+// Airlock: an empty O2 store must not trap a crew member outside the hull (balance soak, A12).
+// The free mission used to keep the trap as "v1 behaviour"; bots died at the door, so it is fixed.
 import { expect, it } from 'vitest';
 import { AIRLOCK, PRESETS, deriveParams } from '../src';
 import type { ScenarioId } from '../src';
@@ -18,7 +19,7 @@ function atDoor(scenario: ScenarioId, store: number) {
   return a;
 }
 
-for (const scenario of ['signal', 'training'] as const)
+for (const scenario of ['signal', 'training', 'free'] as const)
   it(`${scenario}: E at the airlock enters with a part-full suit when the store is empty`, () => {
     expect(atDoor(scenario, 0).status).toBe('inside');
     expect(atDoor(scenario, AIRLOCK.emptyStore - 0.5).status).toBe('inside');
@@ -30,8 +31,8 @@ it('with oxygen in the store, E still asks for a refill first', () => {
   expect(a.wantsRefill).toBe(true);
 });
 
-it('free mission keeps the v1 rule', () => {
-  const a = atDoor('free', 0);
+it('free mission: with oxygen in the store, E still asks for a refill first', () => {
+  const a = atDoor('free', 100);
   expect(a.status).toBe('active');
   expect(a.wantsRefill).toBe(true);
 });
