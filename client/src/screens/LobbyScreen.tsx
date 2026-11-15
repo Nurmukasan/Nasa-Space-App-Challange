@@ -169,9 +169,7 @@ export function LobbyScreen() {
           </button>
         </div>
       )}
-      {error && (
-        <div className="err">{error === 'class_not_chosen' ? t('crew.not_chosen') : error}</div>
-      )}
+      {error && <div className="err">{t(`lobby.error.${error}`)}</div>}
       <button onClick={() => endSession()}>{t('lobby.leave')}</button>
     </div>
   );

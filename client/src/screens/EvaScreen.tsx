@@ -42,7 +42,8 @@ export function EvaScreen({ active = true }: { active?: boolean }) {
     <div className={`stage ${down ? 'is-down' : ''}`}>
       <div ref={host} style={{ width: '100%', height: '100%' }} />
       {hud && myId && params && !inside && <HelmetHud snap={hud} playerId={myId} params={params} />}
-      {solo && hud && myId && !inside && <SoloSeismic snap={hud} playerId={myId} />}
+      {/* Solo is also Mission Control: sheltering inside, the decision card must stay (PL 7.22). */}
+      {solo && hud && myId && <SoloSeismic snap={hud} playerId={myId} />}
     </div>
   );
 }
