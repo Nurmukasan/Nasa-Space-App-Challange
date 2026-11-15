@@ -1,4 +1,15 @@
-import { DIG, FAULTS, O2, RETURN, SAMPLE, SITES, STATIONS, sandAt } from '@rs/shared';
+import {
+  CACHES,
+  DIG,
+  FAULTS,
+  O2,
+  RETURN,
+  ROVER,
+  SAMPLE,
+  SITES,
+  STATIONS,
+  sandAt,
+} from '@rs/shared';
 import type { Astronaut, EvaState } from '@rs/shared';
 
 export function hudBanner(s: EvaState, a: Astronaut, needed: number) {
@@ -37,6 +48,9 @@ export function actionHint(
   const distance = (x: number, y: number) => Math.hypot(a.x - x, a.y - y);
   if (a.status === 'inside') return { key: 'eva.exit' };
   if (a.status !== 'active') return { key: 'eva.cleared' };
+  // Same order as the E key on the server (docs/product-logic.md 7.4).
+  if (a.inRover)
+    return { key: 'eva.rover_exit', params: { n: Math.round((s.rover?.charge ?? 0) * 100) } };
   if (
     s.astronauts.some(
       (b) =>
@@ -49,6 +63,9 @@ export function actionHint(
   )
     return { key: 'eva.rescue' };
   if (distance(s.lander.x, s.lander.y) <= O2.airlockRadius) return { key: 'eva.airlock' };
+  const rover = s.rover;
+  if (rover && rover.driver === null && distance(rover.x, rover.y) <= ROVER.boardDist)
+    return { key: 'eva.rover_board', params: { n: Math.round(rover.charge * 100) } };
   const ports = { n: [0, -1], e: [1, 0], s: [0, 1], w: [-1, 0] } as const;
   const fault = s.lander.faults.find((f) => {
     const [x, y] = ports[f.port];
@@ -69,6 +86,9 @@ export function actionHint(
     )
   )
     return { key: a.carrying.length >= SAMPLE.carryCap ? 'eva.inventory_full' : 'eva.dig' };
+  const cache = s.caches.find((c) => c.o2 > 0 && distance(c.x, c.y) <= CACHES.useDist);
+  if (cache && a.o2 < a.o2Max - 0.5)
+    return { key: 'eva.cache', params: { n: Math.round(cache.o2) } };
   if (a.kits > 0) {
     if (distance(s.lander.x, s.lander.y) < STATIONS.minFromLander)
       return { key: 'eva.deploy_lander' };

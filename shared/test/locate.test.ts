@@ -1,6 +1,15 @@
 // A3: epicentre rings and picks (docs/phases.md, task A3; docs/product-logic.md 7.11).
 import { expect, it } from 'vitest';
-import { LOCATE, PRESETS, SEISMIC, TEAMWORK_V2, checkDesign, deriveParams } from '../src';
+import {
+  LOCATE,
+  PRESETS,
+  SEISMIC,
+  TEAMWORK_V2,
+  WORLD_MAX,
+  WORLD_MIN,
+  checkDesign,
+  deriveParams,
+} from '../src';
 import type { ScenarioId } from '../src';
 import { createSim } from '../src/sim/sim';
 import { seismicSystem } from '../src/sim/seismic';
@@ -54,8 +63,8 @@ it('validates mc:locate: role, event, deadline, numbers; clamps; last pick wins'
   mc(sim, { t: 'mc:locate', eventId: 'nope', x: 1, y: 1 });
   mc(sim, { t: 'mc:locate', eventId: 'Q', x: NaN, y: 1 });
   expect(sim.pub.seismic[0]!.pick).toBeNull();
-  mc(sim, { t: 'mc:locate', eventId: 'Q', x: -50, y: 99999 });
-  expect(sim.pub.seismic[0]!.pick).toEqual({ x: 8, y: 1528 });
+  mc(sim, { t: 'mc:locate', eventId: 'Q', x: -99999, y: 99999 });
+  expect(sim.pub.seismic[0]!.pick).toEqual({ x: WORLD_MIN + 8, y: WORLD_MAX - 8 });
   mc(sim, { t: 'mc:locate', eventId: 'Q', x: 600, y: 600 });
   expect(sim.pub.seismic[0]!.pick).toEqual({ x: 600, y: 600 });
   sim.pub.t = 30;

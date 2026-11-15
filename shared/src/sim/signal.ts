@@ -4,6 +4,7 @@
 import { LANDER_POS, SEISMIC, SIGNAL } from '../balance';
 import { createRng } from '../rng';
 import { clampToWorld, generateSites, nearLedge } from '../terrain';
+import { roverBlockedAt } from '../world';
 import type { SeismicEvent } from '../types';
 import { dist, pushFx, pushLog } from './sim';
 import type { Sim, System } from './sim';
@@ -24,7 +25,10 @@ export function initSignal(sim: Sim): void {
     const r = rng.range(SIGNAL.sourceMinDist, SIGNAL.sourceMaxDist);
     x = Math.round(clampToWorld(LANDER_POS.x + Math.cos(angle) * r));
     y = Math.round(clampToWorld(LANDER_POS.y + Math.sin(angle) * r));
-    const clear = sites.every((s) => dist(x, y, s.x, s.y) >= SEISMIC.impactSiteClearance);
+    const clear =
+      sites.every((s) => dist(x, y, s.x, s.y) >= SEISMIC.impactSiteClearance) &&
+      sim.pub.caches.every((c) => dist(x, y, c.x, c.y) >= SEISMIC.impactSiteClearance) &&
+      !roverBlockedAt(x, y, sim.salt);
     if (clear && nearLedge(x, y, sim.salt, SEISMIC.epicentreLedgeDist)) break;
   }
   sim.hidden.signalSource = { x, y };
@@ -98,7 +102,11 @@ export function onSignalResolved(sim: Sim, event: SeismicEvent): void {
     // The source always stays inside the candidate circle.
     candidate = { x: src.x + Math.cos(angle) * offset, y: src.y + Math.sin(angle) * offset, r };
   }
+  const first = !state.zone;
   if (!state.zone || candidate.r < state.zone.r) state.zone = candidate;
+  // Big world: the network around the lander hears a far source poorly; say how to fix it.
+  if (first && sim.params.bigWorld && state.zone.r > SIGNAL.locatedR)
+    pushLog(sim, 'tulpar', 'story.signal.kit');
   // One lucky pick is not a fix: the source needs several pulses (PL 7.12, balance soak).
   if (state.zone.r <= SIGNAL.locatedR && state.pulses >= SIGNAL.minPulses) {
     state.located = true;

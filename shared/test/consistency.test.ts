@@ -63,7 +63,7 @@ it('free mission also counts per-crew oxygen and time outside for the awards', (
 it('debug next_act jumps to the next act and reveal_all opens every hidden site', () => {
   const s = sim('signal');
   debugSim(s, 'next_act');
-  expect(s.pub.t).toBe(150);
+  expect(s.pub.t).toBe(240);
   stepSim(s, 1 / 15);
   expect(s.pub.act).toBe(2);
   const hidden = s.hidden.hiddenSites.length;

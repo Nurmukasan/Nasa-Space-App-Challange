@@ -1,5 +1,20 @@
 import Phaser from 'phaser';
-import { DIG, LANDER_POS, SITES, TICK_HZ, WORLD_PX, fieldSpeed, generateSites } from '@rs/shared';
+import {
+  DIG,
+  LANDER_POS,
+  SITES,
+  TICK_HZ,
+  VIEW_H,
+  VIEW_W,
+  WORLD_MAX,
+  WORLD_MIN,
+  WORLD_PX,
+  fieldSpeed,
+  generateSites,
+  inCave,
+  roverSpeed,
+  slideMove,
+} from '@rs/shared';
 import { send } from '../net/session';
 import { snaps } from '../state/snapshots';
 import { prefs } from '../state/prefs';
@@ -13,7 +28,8 @@ import { EventFx } from './EventFx';
 import { HazardFx } from './HazardFx';
 import { StormFx } from './StormFx';
 import { SampleFx } from './SampleFx';
-import { terrainTexture } from './terrainTexture';
+import { WorldChunks } from './WorldChunks';
+import { ExpeditionLayer } from './ExpeditionLayer';
 import { EntityLayer } from './EntityLayer';
 import { preloadAssets, ensureAssets } from './assets';
 import { ensureCrewTextures } from './crewTextures';
@@ -41,6 +57,9 @@ export class FieldScene extends Phaser.Scene {
   private stormFx!: StormFx;
   private sampleFx!: SampleFx;
   private entities!: EntityLayer;
+  private chunks!: WorldChunks;
+  private expedition!: ExpeditionLayer;
+  private salt = 0;
   private keys!: FieldKeys;
   private meX = 0;
   private meY = 0;
@@ -63,8 +82,26 @@ export class FieldScene extends Phaser.Scene {
     ensureCrewTextures(this.textures);
     const room = store.getState().room;
     const salt = SITES[room?.params?.site ?? 'jezero'].terrainSalt;
-    terrainTexture(this, salt, room?.params?.scenario !== 'free', snaps.curr?.sites ?? []);
+    this.salt = salt;
+    // The world streams in 128 px chunks around the camera (5632 px would not fit one texture).
+    this.chunks = new WorldChunks(
+      this,
+      salt,
+      room?.params?.scenario !== 'free',
+      snaps.curr?.sites ?? [],
+    );
+    const started = performance.now();
+    this.chunks.fill(
+      new Phaser.Geom.Rectangle(
+        LANDER_POS.x - VIEW_W / 2,
+        LANDER_POS.y - VIEW_H / 2,
+        VIEW_W,
+        VIEW_H,
+      ),
+    );
+    this.registry.set('terrainMs', performance.now() - started);
     if (room?.params) new PropLayer(this, salt, generateSites(room.params));
+    this.expedition = new ExpeditionLayer(this);
     this.entities = new EntityLayer(this);
     this.effects = new FieldFx(this);
     this.eventFx = new EventFx(this);
@@ -85,14 +122,13 @@ export class FieldScene extends Phaser.Scene {
     this.events.once('shutdown', stopMotion);
     this.events.once('destroy', stopMotion);
 
-    this.cameras.main.setBounds(0, 0, WORLD_PX, WORLD_PX);
+    this.cameras.main.setBounds(WORLD_MIN, WORLD_MIN, WORLD_PX, WORLD_PX);
     this.cameras.main.centerOn(LANDER_POS.x, LANDER_POS.y);
     const kb = this.input.keyboard!;
     this.keys = kb.addKeys('W,A,S,D,SHIFT,E,SPACE') as FieldKeys;
-    for (const [i, kind] of ['ok', 'help', 'low_o2', 'returning', 'found'].entries())
-      kb.on(`keydown-${i + 1}`, () =>
-        send({ t: 'eva:ping', kind: kind as 'ok' | 'help' | 'low_o2' | 'returning' | 'found' }),
-      );
+    const pings = ['ok', 'help', 'low_o2', 'returning', 'found', 'shaking'] as const;
+    for (const [i, kind] of pings.entries())
+      kb.on(`keydown-${i + 1}`, () => send({ t: 'eva:ping', kind }));
     // Inside the lander the interior scene owns the E key (rooms, then the outer hatch).
     this.keys.E.on('down', () => {
       if (!this.scene.isActive('interior')) send({ t: 'eva:interact' });
@@ -136,9 +172,20 @@ export class FieldScene extends Phaser.Scene {
           const len = Math.hypot(dx, dy);
           dx /= len;
           dy /= len;
-          const speed = fieldSpeed(params, snap, this.meX, this.meY, running, mine.crewClass);
-          this.meX = Phaser.Math.Clamp(this.meX + dx * speed * dt, 8, WORLD_PX - 8);
-          this.meY = Phaser.Math.Clamp(this.meY + dy * speed * dt, 8, WORLD_PX - 8);
+          // Driving uses the rover's speed; walls (tube rims) stop both, exactly as the server.
+          const speed = mine.inRover
+            ? roverSpeed(params, snap, this.meX, this.meY)
+            : fieldSpeed(params, snap, this.meX, this.meY, running, mine.crewClass);
+          const to = slideMove(
+            this.meX,
+            this.meY,
+            Phaser.Math.Clamp(this.meX + dx * speed * dt, WORLD_MIN + 8, WORLD_MAX - 8),
+            Phaser.Math.Clamp(this.meY + dy * speed * dt, WORLD_MIN + 8, WORLD_MAX - 8),
+            this.salt,
+            mine.inRover,
+          );
+          this.meX = to.x;
+          this.meY = to.y;
           this.facing = Math.atan2(dy, dx);
         }
         this.sendAcc += dt;
@@ -165,7 +212,9 @@ export class FieldScene extends Phaser.Scene {
     this.ports.update(snap, myId, st.room?.players.find((p) => p.id === myId)?.role === 'solo');
     this.juice.update(snap, myId, this.meX, this.meY, _time);
     if (mine) this.cameras.main.centerOn(this.meX, this.meY);
+    this.chunks.update(this.cameras.main.worldView);
 
+    this.expedition.update(snap, myId, this.meX, this.meY);
     this.entities.update(snap, myId, this.meX, this.meY, performance.now());
 
     this.lightSources.length = 1;
@@ -191,6 +240,9 @@ export class FieldScene extends Phaser.Scene {
       light.r = own ? FIELD.helmetRadius : FIELD.companionRadius;
       this.lightSources.push(light);
     }
-    this.lighting.render(snap, this.lightSources, this.cameras.main);
+    // Under the rock of a lava tube it is always night: only the helmet lamp helps.
+    const sheltered =
+      !!params?.bigWorld && mine?.status === 'active' && inCave(this.meX, this.meY, this.salt);
+    this.lighting.render(snap, this.lightSources, this.cameras.main, sheltered);
   }
 }

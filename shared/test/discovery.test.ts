@@ -30,10 +30,13 @@ it('exposes only the first signal ring and deterministic fuzzed orbital hints', 
   const sim = mission();
   expect(sim.pub.sites).toHaveLength(3);
   expect(sim.pub.sites.every((s) => s.richness === 1 && s.known)).toBe(true);
-  // Five orbital-ring sites plus the RED SIGNAL source (task A6), which has no anomaly.
-  expect(sim.hidden.hiddenSites.filter((s) => s.kind !== 'signal')).toHaveLength(5);
+  // Five orbital-ring sites, the big-world biome and lava-tube sites (v2.1), plus the RED SIGNAL
+  // source (task A6), which has no anomaly.
+  const hidden = generateSites(sim.params).filter((s) => s.richness !== 1);
+  expect(hidden.length).toBeGreaterThan(5);
+  expect(sim.hidden.hiddenSites.filter((s) => s.kind !== 'signal')).toHaveLength(hidden.length);
   expect(sim.hidden.hiddenSites.filter((s) => s.kind === 'signal')).toHaveLength(1);
-  expect(sim.pub.anomalies).toHaveLength(5);
+  expect(sim.pub.anomalies).toHaveLength(hidden.length);
   expect(sim.pub.anomalies).toEqual(mission().pub.anomalies);
   for (const anomaly of sim.pub.anomalies) {
     const site = sim.hidden.hiddenSites.find((s) => s.id === anomaly.id)!;

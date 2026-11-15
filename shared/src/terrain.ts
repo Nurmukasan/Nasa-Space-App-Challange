@@ -1,10 +1,12 @@
 // Deterministic terrain. Server uses it for gameplay (ledges = rockfall risk),
 // client uses the same functions to paint the world texture. Never send terrain
 // over the network: both sides compute it from (site, seed).
-import { LANDER_POS, SAND, WORLD_PX } from './balance';
+import { BIOME, LANDER_POS, SAND, WORLD_MAX, WORLD_MIN } from './balance';
 import { SITES } from './catalog';
 import { createRng } from './rng';
 import type { MissionParams, SampleSite, SiteKind } from './types';
+import { bigWorldSites } from './bigWorld';
+import { biomeAt } from './world';
 
 export const TERRAIN_LEVELS = 5;
 
@@ -24,12 +26,18 @@ export function levelAt(x: number, y: number, salt: number): number {
   return l < 0 ? 0 : l > TERRAIN_LEVELS - 1 ? TERRAIN_LEVELS - 1 : l;
 }
 
-/** Sand fills selected low terraces; rendering and gameplay share this exact mask. */
+/**
+ * Sand fills selected low terraces, and the whole dune sea below its hard outcrops. Rendering and
+ * gameplay share this exact mask.
+ */
 export function sandAt(x: number, y: number, salt: number): boolean {
-  return (
-    levelAt(x, y, salt) === 0 &&
+  const level = levelAt(x, y, salt);
+  if (
+    level === 0 &&
     (Math.sin(x / SAND.waveX + salt) + Math.cos(y / SAND.waveY - salt)) / 2 > SAND.threshold
-  );
+  )
+    return true;
+  return level < BIOME.dunesHardLevel && biomeAt(x, y, salt) === 'dunes';
 }
 
 /** True if a terrace edge (ledge) lies within `dist` px of the point. */
@@ -44,7 +52,7 @@ export function nearLedge(x: number, y: number, salt: number, dist: number): boo
 
 export function clampToWorld(v: number): number {
   const m = 8;
-  return v < m ? m : v > WORLD_PX - m ? WORLD_PX - m : v;
+  return v < WORLD_MIN + m ? WORLD_MIN + m : v > WORLD_MAX - m ? WORLD_MAX - m : v;
 }
 
 /** Sample sites in three rings around the lander. Deterministic for (seed, site). */
@@ -80,5 +88,6 @@ export function generateSites(params: MissionParams): SampleSite[] {
       });
     }
   }
-  return sites;
+  // Big world (RED SIGNAL): biome and lava-tube sites; the classic rings above stay identical.
+  return [...sites, ...bigWorldSites(params, sites)];
 }

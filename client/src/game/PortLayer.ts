@@ -25,7 +25,7 @@ export class PortLayer {
           .setVisible(false),
       );
     }
-    this.progress = scene.add.graphics().setDepth(870);
+    this.progress = scene.add.graphics().setDepth(10870);
   }
   update(snap: EvaState, playerId: string, solo: boolean): void {
     const a = snap.astronauts.find((a) => a.id === playerId);

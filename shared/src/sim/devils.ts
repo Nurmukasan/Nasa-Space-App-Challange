@@ -1,7 +1,8 @@
 // Dust devils and terrain multipliers (docs/product-logic.md 7.1, 7.14).
-import { DEVIL, SAND, WORLD_PX } from '../balance';
+import { BIOME, DEVIL, SAND, WORLD_MAX, WORLD_MIN } from '../balance';
 import { createRng, hashString } from '../rng';
 import { sandAt } from '../terrain';
+import { biomeAt, inCave } from '../world';
 import type { EvaState, Vec2 } from '../types';
 import { clearFault } from './faults';
 import { dist, pushFx, pushLog } from './sim';
@@ -15,11 +16,17 @@ export function terrainMul(
   y: number,
 ): { speed: number; o2: number; o2Extra: number } {
   if (state.scenario === 'free') return { speed: 1, o2: 1, o2Extra: 0 };
+  // A lava-tube floor is smooth rock: no sand, no wind inside.
+  if (inCave(x, y, salt)) return { speed: 1, o2: 1, o2Extra: 0 };
   const sand = sandAt(x, y, salt);
   const devil = state.devils.some((d) => state.t < d.until && dist(x, y, d.x, d.y) <= d.r);
+  const biome = biomeAt(x, y, salt);
   return {
-    speed: (sand ? SAND.speedMul : 1) * (devil ? DEVIL.speedMul : 1),
-    o2: sand ? SAND.o2Mul : 1,
+    speed:
+      (sand ? SAND.speedMul : 1) *
+      (devil ? DEVIL.speedMul : 1) *
+      (biome === 'lava' ? BIOME.lavaSpeedMul : 1),
+    o2: (sand ? SAND.o2Mul : 1) * (biome === 'ice' ? BIOME.iceO2Mul : 1),
     o2Extra: devil ? DEVIL.o2Extra : 0,
   };
 }
@@ -39,8 +46,8 @@ export function spawnDevil(sim: Sim, near: Vec2): void {
     distance = rng.range(DEVIL.spawnMin, DEVIL.spawnMax);
   const r = rng.range(DEVIL.rMin, DEVIL.rMax),
     speed = rng.range(DEVIL.speedMin, DEVIL.speedMax);
-  const x = Math.max(r, Math.min(WORLD_PX - r, near.x + Math.cos(angle) * distance));
-  const y = Math.max(r, Math.min(WORLD_PX - r, near.y + Math.sin(angle) * distance));
+  const x = Math.max(WORLD_MIN + r, Math.min(WORLD_MAX - r, near.x + Math.cos(angle) * distance));
+  const y = Math.max(WORLD_MIN + r, Math.min(WORLD_MAX - r, near.y + Math.sin(angle) * distance));
   const heading = Math.atan2(near.y - y, near.x - x);
   sim.pub.devils.push({
     id,
@@ -71,20 +78,20 @@ export const devilSystem: System = (sim, dt) => {
     d.vy = vx * sin + d.vy * cos;
     d.x += d.vx * dt;
     d.y += d.vy * dt;
-    if (d.x < d.r) {
-      d.x = d.r;
+    if (d.x < WORLD_MIN + d.r) {
+      d.x = WORLD_MIN + d.r;
       d.vx = Math.abs(d.vx);
     }
-    if (d.x > WORLD_PX - d.r) {
-      d.x = WORLD_PX - d.r;
+    if (d.x > WORLD_MAX - d.r) {
+      d.x = WORLD_MAX - d.r;
       d.vx = -Math.abs(d.vx);
     }
-    if (d.y < d.r) {
-      d.y = d.r;
+    if (d.y < WORLD_MIN + d.r) {
+      d.y = WORLD_MIN + d.r;
       d.vy = Math.abs(d.vy);
     }
-    if (d.y > WORLD_PX - d.r) {
-      d.y = WORLD_PX - d.r;
+    if (d.y > WORLD_MAX - d.r) {
+      d.y = WORLD_MAX - d.r;
       d.vy = -Math.abs(d.vy);
     }
     if (

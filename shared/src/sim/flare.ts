@@ -1,6 +1,7 @@
 // Solar particle event and radiation dose (docs/product-logic.md 7.15).
 // Earth warns ahead; while it lasts, crew outside the lander accumulate dose.
 import { FLARE } from '../balance';
+import { inCave } from '../world';
 import { pushFx } from './sim';
 import type { Sim, System } from './sim';
 
@@ -35,9 +36,10 @@ export const flareSystem: System = (sim, dt) => {
     pushFx(sim, { type: 'flare_end' });
   }
   if (h.flarePhase !== 2) return;
-  // Only the hull protects: everyone not inside the lander soaks up dose.
+  // The hull, the rover cabin or the rock over a lava tube protects; everyone else soaks up dose.
   for (const a of sim.pub.astronauts) {
     if (a.status !== 'active' && a.status !== 'down') continue;
+    if (a.inRover || (sim.params.bigWorld && inCave(a.x, a.y, sim.salt))) continue;
     a.dose += FLARE.doseRate * dt;
     h.stats.doseMax = Math.max(h.stats.doseMax, a.dose);
   }

@@ -20,6 +20,8 @@ export const oxygenSystem: System = (sim, dt) => {
       if (a.leak) rate += O2.leakExtra;
       const environment = terrainMul(sim.pub, sim.salt, a.x, a.y);
       rate = rate * environment.o2 + environment.o2Extra;
+      // The rover cabin is pressurized: the suit is not used while driving.
+      if (a.inRover) rate = 0;
       const spent = Math.min(a.o2, rate * dt);
       a.o2 = Math.max(0, a.o2 - spent);
       if (sim.params.scenario !== 'free') {

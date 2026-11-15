@@ -4,8 +4,8 @@ import type { EvaState } from '@rs/shared';
 import { prefs } from '../state/prefs';
 
 const HAZARD_FX = {
-  depth: 1290,
-  tintDepth: 900,
+  depth: 11290,
+  tintDepth: 10900,
   tintColor: 0xa8461f,
   tintMaxAlpha: 0.2,
   rampS: 3,

@@ -4,6 +4,7 @@ import { terrainMul } from './devils';
 import type { CrewClassId, EvaState, MissionParams, WeatherState } from '../types';
 
 import { stormActive } from './weather';
+import { inCave } from '../world';
 
 /**
  * Current legal speed in px/s. Server (step clamp) and client (local movement)
@@ -23,6 +24,15 @@ export function returnCost(
   y: number,
 ): number {
   const distance = Math.max(0, Math.hypot(x - LANDER_POS.x, y - LANDER_POS.y) - O2.airlockRadius);
+  return returnCostFrom(params, weather, distance);
+}
+
+/** The same cost for any walking distance, px. */
+export function returnCostFrom(
+  params: MissionParams,
+  weather: WeatherState,
+  distance: number,
+): number {
   return (distance / moveSpeed(params, weather, false)) * O2.walk * RETURN.margin + RETURN.reserve;
 }
 
@@ -35,9 +45,13 @@ export function fieldSpeed(
   running: boolean,
   crewClass?: CrewClassId,
 ): number {
+  const salt = SITES[params.site].terrainSalt;
+  // The storm does not reach into a lava tube.
+  const sheltered = params.bigWorld && inCave(x, y, salt);
   return (
-    moveSpeed(params, state.weather, running) *
-    terrainMul(state, SITES[params.site].terrainSalt, x, y).speed *
+    (running ? params.runSpeed : params.walkSpeed) *
+    (stormActive(state.weather) && !sheltered ? WEATHER.stormSpeed : 1) *
+    terrainMul(state, salt, x, y).speed *
     (crewClass ? CREW.speedMul[crewClass] : 1)
   );
 }

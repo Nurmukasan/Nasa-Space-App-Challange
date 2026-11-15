@@ -1,9 +1,12 @@
 import type Phaser from 'phaser';
-import { DIG, WORLD_PX } from '@rs/shared';
+import { DIG } from '@rs/shared';
 import type { EvaState } from '@rs/shared';
 import { fxBus } from '../fx/FxBus';
 import { prefs } from '../state/prefs';
 import { FIELD } from './style';
+
+/** Side of the footprint sheet around the crew, px. */
+const TRACKS_PX = 1024;
 
 /** Two bounded particle pools, one persistent track texture, one progress ring. */
 export class FieldJuice {
@@ -14,8 +17,10 @@ export class FieldJuice {
   private lastStep = new Map<string, number>();
   private lastDig = new Map<string, number>();
   private trackCount = 0;
+  private placed = false;
   constructor(private scene: Phaser.Scene) {
-    this.tracks = scene.add.renderTexture(0, 0, WORLD_PX, WORLD_PX).setOrigin(0).setDepth(-50);
+    // Footprints live on a local sheet that follows the crew (the world is far too big for one).
+    this.tracks = scene.add.renderTexture(0, 0, TRACKS_PX, TRACKS_PX).setOrigin(0).setDepth(-29980);
     this.stamp = scene.make
       .image({ key: 'fx_dust', add: false })
       .setTint(0x1a0c10)
@@ -32,7 +37,7 @@ export class FieldJuice {
         maxParticles: FIELD.juiceParticles / 2,
         maxAliveParticles: FIELD.juiceParticles / 2,
       })
-      .setDepth(700);
+      .setDepth(10700);
     this.spark = scene.add
       .particles(0, 0, 'fx_spark', {
         emitting: false,
@@ -44,7 +49,7 @@ export class FieldJuice {
         maxParticles: FIELD.juiceParticles / 2,
         maxAliveParticles: FIELD.juiceParticles / 2,
       })
-      .setDepth(1400);
+      .setDepth(11400);
     const off = fxBus.on('sample', (event) => {
       if (!prefs.getState().reduceMotion) this.spark.emitParticleAt(event.x, event.y, 8);
     });
@@ -57,7 +62,25 @@ export class FieldJuice {
     scene.events.once('shutdown', cleanup);
     scene.events.once('destroy', cleanup);
   }
+  private offSheet(x: number, y: number): boolean {
+    const m = TRACKS_PX / 8;
+    return (
+      x < this.tracks.x + m ||
+      y < this.tracks.y + m ||
+      x > this.tracks.x + TRACKS_PX - m ||
+      y > this.tracks.y + TRACKS_PX - m
+    );
+  }
+  private recentre(x: number, y: number): void {
+    this.tracks.clear();
+    this.trackCount = 0;
+    this.tracks.setPosition(Math.round(x - TRACKS_PX / 2), Math.round(y - TRACKS_PX / 2));
+  }
   update(snap: EvaState, id: string, x: number, y: number, time: number): void {
+    if (!this.placed) {
+      this.placed = true;
+      this.recentre(x, y);
+    }
     const reduce = prefs.getState().reduceMotion;
     if (reduce) {
       this.dust.killAll();
@@ -72,17 +95,14 @@ export class FieldJuice {
       if (a.moving && time - (this.lastStep.get(a.id) ?? 0) >= FIELD.stepMs) {
         this.lastStep.set(a.id, time);
         if (!reduce) this.dust.emitParticleAt(ax, ay + 5, 2);
-        if (this.trackCount++ >= FIELD.maxTracks) {
-          this.tracks.clear();
-          this.trackCount = 0;
-        }
+        if (this.trackCount++ >= FIELD.maxTracks || this.offSheet(ax, ay)) this.recentre(x, y);
         // Alternate left and right foot, offset sideways from the walking direction.
         const side = (this.trackCount & 1 ? 1 : -1) * FIELD.footOffsetPx;
         this.stamp.setRotation(a.facing);
         this.tracks.draw(
           this.stamp,
-          Math.round(ax - Math.sin(a.facing) * side),
-          Math.round(ay + 5 + Math.cos(a.facing) * side),
+          Math.round(ax - Math.sin(a.facing) * side - this.tracks.x),
+          Math.round(ay + 5 + Math.cos(a.facing) * side - this.tracks.y),
         );
       }
       if (a.digging && !reduce && time - (this.lastDig.get(a.id) ?? 0) >= FIELD.digParticleMs) {

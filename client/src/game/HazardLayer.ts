@@ -12,7 +12,7 @@ export class HazardLayer {
   private dust: Phaser.GameObjects.Particles.ParticleEmitter;
   private nextDustAt = 0;
   constructor(private scene: Phaser.Scene) {
-    this.zones = scene.add.graphics().setDepth(860);
+    this.zones = scene.add.graphics().setDepth(10860);
     this.dust = scene.add
       .particles(0, 0, 'fx_dust', {
         emitting: false,
@@ -25,7 +25,7 @@ export class HazardLayer {
         maxParticles: FIELD.hazardParticles,
         maxAliveParticles: FIELD.hazardParticles,
       })
-      .setDepth(880);
+      .setDepth(10880);
   }
   update(snap: EvaState, now: number): void {
     const reduce = prefs.getState().reduceMotion;

@@ -1,12 +1,13 @@
 import '../../ui/hud.css';
 import { useEffect } from 'react';
-import { FLARE, O2, RETURN, returnCost } from '@rs/shared';
+import { FLARE, O2, RETURN, refugeCost } from '@rs/shared';
 import type { EvaState, MissionParams } from '@rs/shared';
 import { audio } from '../../audio';
 import { t } from '../../i18n';
 import { usePrefs } from '../../state/prefs';
 import { PixelIcon } from '../../ui/PixelIcon';
 import { MissionObjectives, ActTitle } from './MissionStatus';
+import { BiomeTitle, WorldStatus } from './WorldStatus';
 import { MissionFlow } from './MissionFlow';
 import { DepositCounter } from './DepositCounter';
 import '../../ui/feedback.css';
@@ -36,7 +37,8 @@ export function HelmetHud({
   const reduce = usePrefs((p) => p.reduceMotion);
   const glass = usePrefs((p) => p.visorGlass);
   const a = snap.astronauts.find((a) => a.id === playerId);
-  const needed = a ? returnCost(params, snap.weather, a.x, a.y) : 0;
+  // Nearest refuge: the airlock, a stocked cache or the parked rover (big world).
+  const needed = a ? refugeCost(params, snap, a) : 0;
   const returnNow =
     !!a && snap.t >= 0 && a.status === 'active' && a.o2 < needed + RETURN.warningUnits;
   useEffect(() => {
@@ -107,6 +109,7 @@ export function HelmetHud({
               {t('eva.act', { n: snap.act })} · {t(`eva.act.${snap.act}`)}
             </small>
           )}
+          <WorldStatus snap={snap} a={a} params={params} />
         </div>
         <div className={`helmet-block link-block ${a.linked ? '' : 'helmet-warning'}`}>
           <span className="block-head">
@@ -137,6 +140,7 @@ export function HelmetHud({
         </div>
       )}
       <ActTitle snap={snap} />
+      <BiomeTitle a={a} params={params} />
       <MissionFlow snap={snap} />
       <div className="helmet-banners" role="status">
         {banner && (

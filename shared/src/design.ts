@@ -154,6 +154,7 @@ export function deriveParams(
     kits: sc.deployStations && net ? STATIONS.kitsWithNet : 0,
     scanRange: DISCOVERY.scanRange * (gpr ? DISCOVERY.gprScanMul : 1),
     scienceFull: sc.scienceFull,
+    bigWorld: sc.bigWorld,
   };
 }
 

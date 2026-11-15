@@ -68,18 +68,18 @@ export class Lighting {
       .setOrigin(0)
       .setScrollFactor(0)
       .setBlendMode(Phaser.BlendModes.MULTIPLY)
-      .setDepth(900);
+      .setDepth(10900);
     this.brush = scene.make.image({ key: 'light-ship', add: false });
     this.tint = scene.add
       .rectangle(0, 0, VIEW_W, VIEW_H, 0xffc090, 0)
       .setOrigin(0)
       .setScrollFactor(0)
-      .setDepth(899);
+      .setDepth(10899);
     this.glow = scene.add
       .image(768, 768, 'light-ship')
       .setTint(0xffb960)
       .setBlendMode(Phaser.BlendModes.ADD)
-      .setDepth(905)
+      .setDepth(10905)
       .setAlpha(0);
     if (!scene.textures.exists('storm-haze')) {
       const canvas = document.createElement('canvas');
@@ -99,9 +99,9 @@ export class Lighting {
       .tileSprite(0, 0, VIEW_W, VIEW_H, 'storm-haze')
       .setOrigin(0)
       .setScrollFactor(0)
-      .setDepth(910)
+      .setDepth(10910)
       .setAlpha(0);
-    this.aurora = scene.add.graphics().setScrollFactor(0).setDepth(906);
+    this.aurora = scene.add.graphics().setScrollFactor(0).setDepth(10906);
     const cleanup = () => {
       scene.events.off('shutdown', cleanup);
       scene.events.off('destroy', cleanup);
@@ -110,17 +110,19 @@ export class Lighting {
     scene.events.once('shutdown', cleanup);
     scene.events.once('destroy', cleanup);
   }
-  render(snap: EvaState, lights: Light[], cam: Phaser.Cameras.Scene2D.Camera): void {
-    const ambient = snap.weather.light,
+  /** `cave`: the camera is under the rock of a lava tube — full darkness, no sky effects. */
+  render(snap: EvaState, lights: Light[], cam: Phaser.Cameras.Scene2D.Camera, cave = false): void {
+    const ambient = cave ? 0 : snap.weather.light,
       storm = snap.weather.storm;
-    const active = !!storm && snap.t >= storm.tStart && snap.t < storm.tEnd;
+    const active = !cave && !!storm && snap.t >= storm.tStart && snap.t < storm.tEnd;
     const dark = Math.min(
       0.94,
       FIELD.darkFloor +
         (1 - ambient) * FIELD.darkRange +
-        (active ? 0.12 + 0.1 * stormLevel(snap) : 0),
+        (active ? 0.12 + 0.1 * stormLevel(snap) : 0) +
+        (cave ? 0.2 : 0),
     );
-    const flare = snap.flare && snap.t >= snap.flare.tStart && snap.t < snap.flare.tEnd;
+    const flare = !cave && snap.flare && snap.t >= snap.flare.tStart && snap.t < snap.flare.tEnd;
     const reduce = prefs.getState().reduceMotion;
     const own = lights.find((l) => l.key.startsWith('light-cone-'));
     const inDevil = own && snap.devils.some((d) => Math.hypot(own.x - d.x, own.y - d.y) <= d.r);

@@ -7,10 +7,12 @@ const en: Record<string, string> = {
   'story.training.flare': 'Solar particle event inbound. Arrival in 30 seconds. Get inside.',
   'story.training.window': 'Launch window closes in 30 seconds. Everyone inside.',
   'story.signal.touchdown': 'TULPAR-1 is down. Systems green. Seismometer online.',
-  'story.signal.brief': 'Repeating quakes from one spot near you. We call it RED SIGNAL. Find it.',
+  'story.signal.brief': 'Repeating quakes out in the valley. We call it RED SIGNAL. Find it.',
+  'story.signal.rover': 'Rover charged by the hull. Old robot caches out there hold O2.',
   'story.signal.seismo': 'Deploy the seismometer kits in a wide triangle around the site.',
   'story.signal.act2': 'The signal is real. Pin it down and bring us a sample of the source.',
   'story.signal.act3': 'Sunset. Power drops from here. Watch your oxygen.',
+  'story.signal.kit': 'Zone is wide. Plant a seismometer near it to sharpen the rings.',
   'story.signal.located': 'Zone confirmed. The source is inside the red circle. Go find it.',
   'story.signal.retrieved': 'Signal sample aboard. Science team is ecstatic. Now come home.',
   'reveal.jezero': 'Fresh cracks in the old delta sediments: the delta front is still settling.',
@@ -19,7 +21,7 @@ const en: Record<string, string> = {
   'reveal.arcadia': 'Ice in cracks under a fresh crater: impact-exposed ice is creaking.',
   'reveal.partial': 'You pinned the source down but brought no sample. The mystery stays open.',
   'reveal.note': 'In-game hypothesis inspired by real InSight findings.',
-  'story.signal.flare': 'Solar particle event inbound. Get the crew inside the lander now.',
+  'story.signal.flare': 'Solar particle event inbound. Get inside: lander, rover or lava tube.',
   'story.signal.window': 'Launch window closes in 60 seconds. Get the crew aboard.',
 };
 export default en;

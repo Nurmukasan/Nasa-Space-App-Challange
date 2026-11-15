@@ -1,5 +1,5 @@
 // Applies client messages to the sim. Every value from the client is validated here.
-import { AIRLOCK, MOVE, O2, TICK_DT } from '../balance';
+import { AIRLOCK, MOVE, O2, ROVER, TICK_DT } from '../balance';
 import type { AlertKind, ClientMsg, PingKind } from '../protocol';
 
 const PING_KINDS: readonly unknown[] = [
@@ -12,6 +12,8 @@ const PING_KINDS: readonly unknown[] = [
 ] satisfies PingKind[];
 const ALERT_KINDS: readonly unknown[] = ['evac', 'return', 'hold'] satisfies AlertKind[];
 import { clampToWorld } from '../terrain';
+import { slideMove } from '../world';
+import { roverSpeed, tryCache, tryRover } from './expedition';
 import { endMission } from './endcheck';
 import { placePick, resolveEvent } from './seismic';
 import { fieldSpeed } from './movement';
@@ -39,11 +41,14 @@ export function handleSimMsg(
       const a = findAstronaut(sim, playerId);
       if (!a || a.status !== 'active') return;
       if (!num(msg.x) || !num(msg.y) || !num(msg.facing)) return;
-      const running = msg.running === true;
+      const rover = a.inRover ? sim.pub.rover : null;
+      const running = !rover && msg.running === true;
       const last = sim.hidden.lastMoveT[playerId] ?? t - TICK_DT;
       const elapsed = Math.min(0.5, Math.max(TICK_DT, t - last));
-      const maxStep =
-        fieldSpeed(sim.params, sim.pub, a.x, a.y, running, a.crewClass) * elapsed * MOVE.slack;
+      const speed = rover
+        ? roverSpeed(sim.params, sim.pub, a.x, a.y)
+        : fieldSpeed(sim.params, sim.pub, a.x, a.y, running, a.crewClass);
+      const maxStep = speed * elapsed * MOVE.slack;
       let nx = clampToWorld(msg.x);
       let ny = clampToWorld(msg.y);
       const d = dist(a.x, a.y, nx, ny);
@@ -52,24 +57,34 @@ export function handleSimMsg(
         nx = a.x + (nx - a.x) * k;
         ny = a.y + (ny - a.y) * k;
       }
-      const moved = dist(a.x, a.y, nx, ny);
-      if (running) sim.hidden.stats.distanceRun += moved;
+      // Lava-tube rims are solid; rovers keep out of tubes entirely (shared with the client).
+      const end = slideMove(a.x, a.y, nx, ny, sim.salt, rover !== null);
+      const moved = dist(a.x, a.y, end.x, end.y);
+      if (rover) sim.hidden.stats.roverDistance += moved;
+      else if (running) sim.hidden.stats.distanceRun += moved;
       else sim.hidden.stats.distanceWalked += moved;
       const mine = crewStatsOf(sim, a.id);
       if (mine) mine.distance += moved;
-      a.x = nx;
-      a.y = ny;
+      a.x = end.x;
+      a.y = end.y;
       a.facing = msg.facing;
       a.moving = msg.moving === true && moved > 0.01;
       a.running = a.moving && running;
       if (a.moving) a.digging = false;
+      if (rover) {
+        rover.x = a.x;
+        rover.y = a.y;
+        rover.facing = a.facing;
+        rover.moving = a.moving;
+        rover.charge = Math.max(0, rover.charge - moved / ROVER.rangePx);
+      }
       sim.hidden.lastMoveT[playerId] = t;
       return;
     }
     case 'eva:dig': {
       if (!canEva || t < 0) return;
       const a = findAstronaut(sim, playerId);
-      if (a && a.status === 'active') a.digging = msg.on === true;
+      if (a && a.status === 'active' && !a.inRover) a.digging = msg.on === true;
       return;
     }
     case 'eva:interact': {
@@ -82,6 +97,11 @@ export function handleSimMsg(
         return;
       }
       if (a.status !== 'active') return;
+      // In the rover, E only gets you out (docs/product-logic.md 7.4, 7.25).
+      if (a.inRover) {
+        tryRover(sim, a);
+        return;
+      }
       const down = sim.pub.astronauts.find(
         (b) =>
           b.id !== a.id &&
@@ -100,9 +120,11 @@ export function handleSimMsg(
         pushFx(sim, { type: 'rescue', playerId: down.id, x: down.x, y: down.y });
         return;
       }
-      // E order (docs/product-logic.md 7.4): rescue -> airlock -> repair -> deploy a kit.
+      // E order (docs/product-logic.md 7.4): rescue -> airlock -> rover -> repair -> cache -> kit.
       if (dist(a.x, a.y, lander.x, lander.y) > O2.airlockRadius) {
+        if (tryRover(sim, a)) return;
         if (tryStartRepair(sim, a)) return;
+        if (tryCache(sim, a)) return;
         tryDeployKit(sim, a);
         return;
       }

@@ -8,3 +8,4 @@ export { sampleValue } from './digging';
 export { buildObjectives } from './objectives';
 export { terrainMul } from './devils';
 export { faultActive, portPos } from './faults';
+export { refugeCost, roverSpeed, tryCache, tryRover } from './expedition';

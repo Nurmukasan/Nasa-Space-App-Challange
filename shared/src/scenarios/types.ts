@@ -54,6 +54,8 @@ export interface ScenarioDef {
   knownRings: number[];
   /** RED SIGNAL storyline on. */
   signal: boolean;
+  /** Big world content: biome sites, lava tubes, supply caches, the rover. */
+  bigWorld: boolean;
   scienceFull: number;
   quickPreset: PresetId;
   /** Scripted beats (training) and fixed story beats (signal). */

@@ -1,10 +1,14 @@
 import type Phaser from 'phaser';
-import { LANDER_POS, O2, PROPS, WORLD_PX, createRng } from '@rs/shared';
+import { LANDER_POS, O2, PROPS, createRng } from '@rs/shared';
 import type { Vec2 } from '@rs/shared';
 
 export interface Prop extends Vec2 {
   key: string;
 }
+/** Sprite props cover the landing area (the v1 world); chunk decor dresses the rest. */
+const AREA = 1536;
+const AREA_X0 = LANDER_POS.x - AREA / 2,
+  AREA_Y0 = LANDER_POS.y - AREA / 2;
 /** Placement is visual only: it never changes terrain, movement or the simulation. */
 export function generateProps(salt: number, sites: readonly Vec2[]): Prop[] {
   const rng = createRng(salt);
@@ -14,8 +18,8 @@ export function generateProps(salt: number, sites: readonly Vec2[]): Prop[] {
   const props: Prop[] = [];
   function add(key: string): void {
     for (let i = 0; i < PROPS.attempts; i++) {
-      const x = rng.int(PROPS.clearance, WORLD_PX - PROPS.clearance),
-        y = rng.int(PROPS.clearance, WORLD_PX - PROPS.clearance);
+      const x = AREA_X0 + rng.int(PROPS.clearance, AREA - PROPS.clearance),
+        y = AREA_Y0 + rng.int(PROPS.clearance, AREA - PROPS.clearance);
       if (clear(x, y)) {
         props.push({ key, x, y });
         return;
@@ -42,10 +46,13 @@ export class PropLayer {
   constructor(scene: Phaser.Scene, salt: number, sites: readonly Vec2[]) {
     const props = generateProps(salt, sites);
     // Bake static scenery once: adding props must not add dozens of per-frame draw objects.
-    const layer = scene.add.renderTexture(0, 0, WORLD_PX, WORLD_PX).setOrigin(0).setDepth(-95);
+    const layer = scene.add
+      .renderTexture(AREA_X0, AREA_Y0, AREA, AREA)
+      .setOrigin(0)
+      .setDepth(-29990);
     const stamp = scene.make.image({ key: 'rock_1', add: false });
     for (const p of props) {
-      stamp.setTexture(p.key).setPosition(p.x, p.y);
+      stamp.setTexture(p.key).setPosition(p.x - AREA_X0, p.y - AREA_Y0);
       layer.draw(stamp);
     }
     stamp.destroy();
