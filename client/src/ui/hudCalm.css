@@ -1,0 +1,142 @@
+/*
+ * Calmer field HUD. Loaded after hud.css / hudV2.css, so it only overrides: fewer boxes, the
+ * clock stops spanning the screen, nothing overlaps, idle widgets fade until they matter.
+ */
+.helmet-hud {
+  --h-panel: #170a0b8c;
+}
+
+/* corner brackets and heavy borders were the loudest chrome */
+.helmet-block::before,
+.helmet-block::after,
+.sample-slot::before,
+.sample-slot::after {
+  display: none;
+}
+.helmet-block,
+.sample-slot,
+.helmet-scanner,
+.helmet-radio {
+  background: #170a0b8c;
+  border: 1px solid #a84a2e55;
+  border-radius: 10px;
+  backdrop-filter: none;
+}
+
+/* top row: oxygen left, objectives right, clock as a small pill in the middle */
+.helmet-top {
+  top: 22px;
+  align-items: start;
+}
+.helmet-clock {
+  justify-self: center;
+  align-self: start;
+  padding: 3px 16px;
+  font-size: 22px;
+  background: #170a0b8c;
+  border: 1px solid #a84a2e55;
+  border-radius: 999px;
+}
+.helmet-clock small {
+  display: none;
+}
+.helmet-home {
+  top: 62px;
+}
+
+/* readable objectives and return marker (9px and 8px were unreadable) */
+.helmet-objectives {
+  font-size: 11px;
+  gap: 5px;
+  margin-top: 6px;
+}
+.helmet-dose {
+  font-size: 11px;
+}
+.return-track span {
+  font-size: 11px;
+}
+.helmet-block small {
+  font-size: 11px;
+}
+
+/* bottom: one clear action line, the rest recedes */
+.helmet-bottom {
+  inset: auto 22px 18px;
+}
+.helmet-instructions {
+  gap: 3px;
+  padding: 0;
+}
+.helmet-instructions b {
+  font-size: 15px;
+  letter-spacing: 0.06em;
+}
+.helmet-instructions > span {
+  font-size: 11px;
+  color: var(--h-dim);
+  opacity: 0.75;
+}
+.helmet-instructions .controls-hint {
+  font-size: 10px;
+  opacity: 0.55;
+}
+.helmet-scanner {
+  padding: 6px 10px;
+  opacity: 0.55;
+  transition: opacity 0.25s;
+}
+.helmet-scanner.scanner-found {
+  opacity: 1;
+}
+.helmet-scanner span,
+.helmet-scanner small {
+  font-size: 10px;
+}
+.sample-slot {
+  min-width: 0;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+/* right-hand tools: map and button dim until the mouse is over them */
+.solo-tools {
+  top: 150px;
+  width: 190px;
+  gap: 8px;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 10px;
+  max-height: calc(100% - 150px - 200px);
+}
+.wrist-map {
+  padding: 8px;
+  background: #091724a6;
+  border: 1px solid #387377aa;
+  border-radius: 10px;
+  opacity: 0.5;
+  transition: opacity 0.25s;
+}
+.wrist-map:hover {
+  opacity: 1;
+}
+.wrist-map canvas {
+  width: 104px;
+  height: 104px;
+}
+.solo-tools h2 {
+  font-size: 10px;
+  margin: 0;
+}
+.solo-tools button {
+  padding: 4px 8px;
+  font-size: 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .helmet-scanner,
+  .wrist-map {
+    transition: none;
+  }
+}

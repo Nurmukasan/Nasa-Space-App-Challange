@@ -15,11 +15,12 @@ import { RadioLine } from './RadioLine';
 import { actionHint, hudBanner } from './hudView';
 import { HUD } from './style';
 import '../../ui/hudV2.css';
+import '../../ui/hudCalm.css';
 
 const GEM_FRAME: Record<string, number> = { surface: 0, deep: 1, core: 2 };
 const GEM_PX = 24;
 /** The key reminder only matters at the start of a mission. */
-const CONTROLS_SHOWN_S = 25;
+const CONTROLS_SHOWN_S = 12;
 
 export function clock(time: number): string {
   const s = Math.max(0, Math.ceil(time));
