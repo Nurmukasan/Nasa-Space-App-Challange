@@ -15,7 +15,7 @@ export function roverSpeed(params: MissionParams, state: EvaState, x: number, y:
   const rover = state.rover;
   if (!rover || rover.charge <= 0) return 0;
   const salt = SITES[params.site].terrainSalt;
-  const ground = sandAt(x, y, salt)
+  const ground = sandAt(x, y, salt, params.bigWorld)
     ? ROVER.sandMul
     : biomeAt(x, y, salt) === 'lava'
       ? ROVER.lavaMul
@@ -49,8 +49,8 @@ export function tryRover(sim: Sim, a: Astronaut): boolean {
     rover.driver = null;
     rover.moving = false;
     // Step out beside the cab.
-    a.x = clampToWorld(rover.x - Math.sin(rover.facing) * ROVER.exitOffset);
-    a.y = clampToWorld(rover.y + Math.cos(rover.facing) * ROVER.exitOffset);
+    a.x = clampToWorld(rover.x - Math.sin(rover.facing) * ROVER.exitOffset, sim.params.bigWorld);
+    a.y = clampToWorld(rover.y + Math.cos(rover.facing) * ROVER.exitOffset, sim.params.bigWorld);
     pushFx(sim, { type: 'rover', playerId: a.id, x: rover.x, y: rover.y, s: 'exit' });
     return true;
   }

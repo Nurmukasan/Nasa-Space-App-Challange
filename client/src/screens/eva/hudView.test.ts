@@ -44,7 +44,7 @@ it('airlock interaction takes priority over deployment and explains nearby stati
   expect(actionHint(snap, a).key).toBe('eva.deploy_station');
   snap.stations.pop();
   for (let x = 1000; x < 1400; x += 8) {
-    if (!sandAt(x, 1000, SITES.jezero.terrainSalt)) {
+    if (!sandAt(x, 1000, SITES.jezero.terrainSalt, false)) {
       a.x = x;
       break;
     }

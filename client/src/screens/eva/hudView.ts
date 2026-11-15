@@ -8,6 +8,7 @@ import {
   SAMPLE,
   SITES,
   STATIONS,
+  SCENARIOS,
   sandAt,
 } from '@rs/shared';
 import type { Astronaut, EvaState } from '@rs/shared';
@@ -94,7 +95,7 @@ export function actionHint(
       return { key: 'eva.deploy_lander' };
     if (s.stations.some((st) => distance(st.x, st.y) < STATIONS.minBetween))
       return { key: 'eva.deploy_station' };
-    if (sandAt(a.x, a.y, salt)) return { key: 'eva.deploy_sand' };
+    if (sandAt(a.x, a.y, salt, SCENARIOS[s.scenario].bigWorld)) return { key: 'eva.deploy_sand' };
     return { key: 'eva.deploy' };
   }
   return { key: 'eva.explore' };

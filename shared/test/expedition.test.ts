@@ -225,15 +225,15 @@ it('first steps into a biome are announced once and counted', () => {
 it('dunes are soft sand, the ice field costs more oxygen, the lava flows are rough', () => {
   const salt = SITES.elysium.terrainSalt;
   const s = mission(['a']);
-  const dune = pointIn(salt, 'dunes', 2000, (p) => sandAt(p.x, p.y, salt));
+  const dune = pointIn(salt, 'dunes', 2000, (p) => sandAt(p.x, p.y, salt, true));
   expect(terrainMul(s.pub, salt, dune.x, dune.y).speed).toBeCloseTo(SAND.speedMul, 6);
-  const ice = pointIn(salt, 'ice', 2000, (p) => !sandAt(p.x, p.y, salt));
+  const ice = pointIn(salt, 'ice', 2000, (p) => !sandAt(p.x, p.y, salt, true));
   expect(terrainMul(s.pub, salt, ice.x, ice.y).o2).toBeCloseTo(BIOME.iceO2Mul, 6);
   const lava = pointIn(
     salt,
     'lava',
     1300,
-    (p) => !sandAt(p.x, p.y, salt) && !inCave(p.x, p.y, salt),
+    (p) => !sandAt(p.x, p.y, salt, true) && !inCave(p.x, p.y, salt),
   );
   expect(terrainMul(s.pub, salt, lava.x, lava.y).speed).toBeCloseTo(BIOME.lavaSpeedMul, 6);
 });

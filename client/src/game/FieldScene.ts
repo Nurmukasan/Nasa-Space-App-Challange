@@ -1,19 +1,18 @@
 import Phaser from 'phaser';
 import {
+  clampToWorld,
   DIG,
   LANDER_POS,
   SITES,
   TICK_HZ,
   VIEW_H,
   VIEW_W,
-  WORLD_MAX,
-  WORLD_MIN,
-  WORLD_PX,
   fieldSpeed,
   generateSites,
   inCave,
   roverSpeed,
   slideMove,
+  worldBounds,
 } from '@rs/shared';
 import { send } from '../net/session';
 import { snaps } from '../state/snapshots';
@@ -122,7 +121,14 @@ export class FieldScene extends Phaser.Scene {
     this.events.once('shutdown', stopMotion);
     this.events.once('destroy', stopMotion);
 
-    this.cameras.main.setBounds(WORLD_MIN, WORLD_MIN, WORLD_PX, WORLD_PX);
+    // Training and Free keep the v1 valley; RED SIGNAL opens the big world (PL 7.24).
+    const bounds = worldBounds(room?.params?.bigWorld ?? false);
+    this.cameras.main.setBounds(
+      bounds.min,
+      bounds.min,
+      bounds.max - bounds.min,
+      bounds.max - bounds.min,
+    );
     this.cameras.main.centerOn(LANDER_POS.x, LANDER_POS.y);
     const kb = this.input.keyboard!;
     this.keys = kb.addKeys('W,A,S,D,SHIFT,E,SPACE') as FieldKeys;
@@ -179,8 +185,8 @@ export class FieldScene extends Phaser.Scene {
           const to = slideMove(
             this.meX,
             this.meY,
-            Phaser.Math.Clamp(this.meX + dx * speed * dt, WORLD_MIN + 8, WORLD_MAX - 8),
-            Phaser.Math.Clamp(this.meY + dy * speed * dt, WORLD_MIN + 8, WORLD_MAX - 8),
+            clampToWorld(this.meX + dx * speed * dt, params.bigWorld),
+            clampToWorld(this.meY + dy * speed * dt, params.bigWorld),
             this.salt,
             mine.inRover,
           );

@@ -49,8 +49,9 @@ export function handleSimMsg(
         ? roverSpeed(sim.params, sim.pub, a.x, a.y)
         : fieldSpeed(sim.params, sim.pub, a.x, a.y, running, a.crewClass);
       const maxStep = speed * elapsed * MOVE.slack;
-      let nx = clampToWorld(msg.x);
-      let ny = clampToWorld(msg.y);
+      const big = sim.params.bigWorld;
+      let nx = clampToWorld(msg.x, big);
+      let ny = clampToWorld(msg.y, big);
       const d = dist(a.x, a.y, nx, ny);
       if (d > maxStep) {
         const k = maxStep / d;
@@ -58,7 +59,7 @@ export function handleSimMsg(
         ny = a.y + (ny - a.y) * k;
       }
       // Lava-tube rims are solid; rovers keep out of tubes entirely (shared with the client).
-      const end = slideMove(a.x, a.y, nx, ny, sim.salt, rover !== null);
+      const end = big ? slideMove(a.x, a.y, nx, ny, sim.salt, rover !== null) : { x: nx, y: ny };
       const moved = dist(a.x, a.y, end.x, end.y);
       if (rover) sim.hidden.stats.roverDistance += moved;
       else if (running) sim.hidden.stats.distanceRun += moved;
@@ -168,7 +169,11 @@ export function handleSimMsg(
     case 'mc:waypoint': {
       if (!canMc || !num(msg.x) || !num(msg.y)) return;
       const a = findAstronaut(sim, String(msg.playerId));
-      if (a) a.waypoint = { x: clampToWorld(msg.x), y: clampToWorld(msg.y) };
+      if (a)
+        a.waypoint = {
+          x: clampToWorld(msg.x, sim.params.bigWorld),
+          y: clampToWorld(msg.y, sim.params.bigWorld),
+        };
       return;
     }
     case 'mc:clearWaypoint': {
@@ -223,7 +228,8 @@ export function handleSimMsg(
     }
     case 'mc:locate': {
       if (!canMc || typeof msg.eventId !== 'string' || !num(msg.x) || !num(msg.y)) return;
-      placePick(sim, msg.eventId.slice(0, 32), clampToWorld(msg.x), clampToWorld(msg.y));
+      const big = sim.params.bigWorld;
+      placePick(sim, msg.eventId.slice(0, 32), clampToWorld(msg.x, big), clampToWorld(msg.y, big));
       return;
     }
     default:

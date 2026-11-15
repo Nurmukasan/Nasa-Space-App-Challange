@@ -31,8 +31,8 @@ const SALTS = Object.values(SITES).map((s) => s.terrainSalt);
 it('the world is ~13x larger and centred on the lander', () => {
   expect((WORLD_PX / 1536) ** 2).toBeGreaterThan(10);
   expect(WORLD_MIN + WORLD_PX / 2).toBe(LANDER_POS.x);
-  expect(clampToWorld(-1e6)).toBe(WORLD_MIN + 8);
-  expect(clampToWorld(1e6)).toBe(WORLD_MAX - 8);
+  expect(clampToWorld(-1e6, true)).toBe(WORLD_MIN + 8);
+  expect(clampToWorld(1e6, true)).toBe(WORLD_MAX - 8);
 });
 
 it('every landing site has plains around the lander and all four outer biomes', () => {

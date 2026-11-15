@@ -23,8 +23,8 @@ export function initSignal(sim: Sim): void {
   for (let attempt = 0; attempt < SEISMIC.epicentreAttempts * 2; attempt++) {
     const angle = rng.range(0, Math.PI * 2);
     const r = rng.range(SIGNAL.sourceMinDist, SIGNAL.sourceMaxDist);
-    x = Math.round(clampToWorld(LANDER_POS.x + Math.cos(angle) * r));
-    y = Math.round(clampToWorld(LANDER_POS.y + Math.sin(angle) * r));
+    x = Math.round(clampToWorld(LANDER_POS.x + Math.cos(angle) * r, sim.params.bigWorld));
+    y = Math.round(clampToWorld(LANDER_POS.y + Math.sin(angle) * r, sim.params.bigWorld));
     const clear =
       sites.every((s) => dist(x, y, s.x, s.y) >= SEISMIC.impactSiteClearance) &&
       sim.pub.caches.every((c) => dist(x, y, c.x, c.y) >= SEISMIC.impactSiteClearance) &&

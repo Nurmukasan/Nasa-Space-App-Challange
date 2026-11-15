@@ -17,7 +17,7 @@ function ground(sim: Sim, sand = false) {
       if (Math.hypot(x - LANDER_POS.x, y - LANDER_POS.y) < STATIONS.minFromLander) continue;
       if (sim.pub.stations.some((s) => Math.hypot(x - s.x, y - s.y) < STATIONS.minBetween))
         continue;
-      if (sandAt(x, y, sim.salt) === sand) return { x, y };
+      if (sandAt(x, y, sim.salt, sim.params.bigWorld) === sand) return { x, y };
     }
   throw new Error('No suitable terrain');
 }

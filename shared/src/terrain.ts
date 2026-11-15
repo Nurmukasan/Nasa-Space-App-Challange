@@ -1,7 +1,15 @@
 // Deterministic terrain. Server uses it for gameplay (ledges = rockfall risk),
 // client uses the same functions to paint the world texture. Never send terrain
 // over the network: both sides compute it from (site, seed).
-import { BIOME, LANDER_POS, SAND, WORLD_MAX, WORLD_MIN } from './balance';
+import {
+  BIOME,
+  CLASSIC_WORLD_PX,
+  LANDER_POS,
+  SAND,
+  WORLD_EDGE,
+  WORLD_MAX,
+  WORLD_MIN,
+} from './balance';
 import { SITES } from './catalog';
 import { createRng } from './rng';
 import type { MissionParams, SampleSite, SiteKind } from './types';
@@ -30,14 +38,15 @@ export function levelAt(x: number, y: number, salt: number): number {
  * Sand fills selected low terraces, and the whole dune sea below its hard outcrops. Rendering and
  * gameplay share this exact mask.
  */
-export function sandAt(x: number, y: number, salt: number): boolean {
+export function sandAt(x: number, y: number, salt: number, bigWorld: boolean): boolean {
   const level = levelAt(x, y, salt);
   if (
     level === 0 &&
     (Math.sin(x / SAND.waveX + salt) + Math.cos(y / SAND.waveY - salt)) / 2 > SAND.threshold
   )
     return true;
-  return level < BIOME.dunesHardLevel && biomeAt(x, y, salt) === 'dunes';
+  // Biomes are RED SIGNAL only; training and Free stay on the v1 plain (PL 7.24).
+  return bigWorld && level < BIOME.dunesHardLevel && biomeAt(x, y, salt) === 'dunes';
 }
 
 /** True if a terrace edge (ledge) lies within `dist` px of the point. */
@@ -50,9 +59,16 @@ export function nearLedge(x: number, y: number, salt: number, dist: number): boo
   return false;
 }
 
-export function clampToWorld(v: number): number {
-  const m = 8;
-  return v < WORLD_MIN + m ? WORLD_MIN + m : v > WORLD_MAX - m ? WORLD_MAX - m : v;
+/** The square a scenario plays in: the big world in RED SIGNAL, the v1 valley elsewhere (PL 7.24). */
+export function worldBounds(bigWorld: boolean): { min: number; max: number } {
+  if (bigWorld) return { min: WORLD_MIN, max: WORLD_MAX };
+  const min = LANDER_POS.x - CLASSIC_WORLD_PX / 2;
+  return { min, max: min + CLASSIC_WORLD_PX };
+}
+
+export function clampToWorld(v: number, bigWorld: boolean): number {
+  const { min, max } = worldBounds(bigWorld);
+  return v < min + WORLD_EDGE ? min + WORLD_EDGE : v > max - WORLD_EDGE ? max - WORLD_EDGE : v;
 }
 
 /** Sample sites in three rings around the lander. Deterministic for (seed, site). */
@@ -77,8 +93,9 @@ export function generateSites(params: MissionParams): SampleSite[] {
       const r = rng.range(ring.rMin, ring.rMax);
       sites.push({
         id: `S${idx++}`,
-        x: Math.round(clampToWorld(LANDER_POS.x + Math.cos(ang) * r)),
-        y: Math.round(clampToWorld(LANDER_POS.y + Math.sin(ang) * r)),
+        // The classic rings keep their v1 layout in every scenario.
+        x: Math.round(clampToWorld(LANDER_POS.x + Math.cos(ang) * r, false)),
+        y: Math.round(clampToWorld(LANDER_POS.y + Math.sin(ang) * r, false)),
         kind: rng.pick(kinds),
         richness: ring.rich,
         depth: 0,

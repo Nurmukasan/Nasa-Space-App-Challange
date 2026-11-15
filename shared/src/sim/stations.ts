@@ -17,7 +17,7 @@ export function tryDeployKit(sim: Sim, a: Astronaut): boolean {
     return false;
   if (dist(a.x, a.y, sim.pub.lander.x, sim.pub.lander.y) < STATIONS.minFromLander) return false;
   if (sim.pub.stations.some((s) => dist(a.x, a.y, s.x, s.y) < STATIONS.minBetween)) return false;
-  if (sandAt(a.x, a.y, sim.salt)) return false;
+  if (sandAt(a.x, a.y, sim.salt, sim.params.bigWorld)) return false;
   sim.pub.stations.push({ x: a.x, y: a.y });
   a.kits--;
   sim.hidden.stats.stationsDeployed++;

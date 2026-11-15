@@ -1,7 +1,8 @@
 // Dust devils and terrain multipliers (docs/product-logic.md 7.1, 7.14).
-import { BIOME, DEVIL, SAND, WORLD_MAX, WORLD_MIN } from '../balance';
+import { BIOME, DEVIL, SAND } from '../balance';
 import { createRng, hashString } from '../rng';
-import { sandAt } from '../terrain';
+import { SCENARIOS } from '../scenarios';
+import { sandAt, worldBounds } from '../terrain';
 import { biomeAt, inCave } from '../world';
 import type { EvaState, Vec2 } from '../types';
 import { clearFault } from './faults';
@@ -16,11 +17,13 @@ export function terrainMul(
   y: number,
 ): { speed: number; o2: number; o2Extra: number } {
   if (state.scenario === 'free') return { speed: 1, o2: 1, o2Extra: 0 };
+  // Biomes and lava tubes exist only in the big world (RED SIGNAL, PL 7.24).
+  const big = SCENARIOS[state.scenario].bigWorld;
   // A lava-tube floor is smooth rock: no sand, no wind inside.
-  if (inCave(x, y, salt)) return { speed: 1, o2: 1, o2Extra: 0 };
-  const sand = sandAt(x, y, salt);
+  if (big && inCave(x, y, salt)) return { speed: 1, o2: 1, o2Extra: 0 };
+  const sand = sandAt(x, y, salt, big);
   const devil = state.devils.some((d) => state.t < d.until && dist(x, y, d.x, d.y) <= d.r);
-  const biome = biomeAt(x, y, salt);
+  const biome = big ? biomeAt(x, y, salt) : 'plains';
   return {
     speed:
       (sand ? SAND.speedMul : 1) *
@@ -46,8 +49,9 @@ export function spawnDevil(sim: Sim, near: Vec2): void {
     distance = rng.range(DEVIL.spawnMin, DEVIL.spawnMax);
   const r = rng.range(DEVIL.rMin, DEVIL.rMax),
     speed = rng.range(DEVIL.speedMin, DEVIL.speedMax);
-  const x = Math.max(WORLD_MIN + r, Math.min(WORLD_MAX - r, near.x + Math.cos(angle) * distance));
-  const y = Math.max(WORLD_MIN + r, Math.min(WORLD_MAX - r, near.y + Math.sin(angle) * distance));
+  const { min, max } = worldBounds(sim.params.bigWorld);
+  const x = Math.max(min + r, Math.min(max - r, near.x + Math.cos(angle) * distance));
+  const y = Math.max(min + r, Math.min(max - r, near.y + Math.sin(angle) * distance));
   const heading = Math.atan2(near.y - y, near.x - x);
   sim.pub.devils.push({
     id,
@@ -68,6 +72,7 @@ export const devilSystem: System = (sim, dt) => {
     return;
   }
   sim.pub.devils = sim.pub.devils.filter((d) => sim.pub.t < d.until);
+  const { min, max } = worldBounds(sim.params.bigWorld);
   for (const d of sim.pub.devils) {
     const phase = (hashString(d.id) / 0xffffffff) * Math.PI * 2;
     const turn = Math.sin(sim.pub.t * DEVIL.turnRate + phase) * DEVIL.turnRate * dt;
@@ -78,20 +83,20 @@ export const devilSystem: System = (sim, dt) => {
     d.vy = vx * sin + d.vy * cos;
     d.x += d.vx * dt;
     d.y += d.vy * dt;
-    if (d.x < WORLD_MIN + d.r) {
-      d.x = WORLD_MIN + d.r;
+    if (d.x < min + d.r) {
+      d.x = min + d.r;
       d.vx = Math.abs(d.vx);
     }
-    if (d.x > WORLD_MAX - d.r) {
-      d.x = WORLD_MAX - d.r;
+    if (d.x > max - d.r) {
+      d.x = max - d.r;
       d.vx = -Math.abs(d.vx);
     }
-    if (d.y < WORLD_MIN + d.r) {
-      d.y = WORLD_MIN + d.r;
+    if (d.y < min + d.r) {
+      d.y = min + d.r;
       d.vy = Math.abs(d.vy);
     }
-    if (d.y > WORLD_MAX - d.r) {
-      d.y = WORLD_MAX - d.r;
+    if (d.y > max - d.r) {
+      d.y = max - d.r;
       d.vy = -Math.abs(d.vy);
     }
     if (
