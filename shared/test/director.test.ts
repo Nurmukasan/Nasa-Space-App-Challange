@@ -102,3 +102,15 @@ it('training and free missions have no director events', () => {
     expect(h.room.simulation!.hidden.schedule.some((e) => e.id.startsWith('D'))).toBe(false);
   }
 });
+
+it('director impacts land 400–650 px from the lander (docs/product-logic.md 7.17)', () => {
+  for (const seed of [3, 9, 21, 42, 77]) {
+    const { h, sim } = mission(seed);
+    until(h, 470);
+    for (const e of directed(sim).filter((x) => x.kind === 'impact')) {
+      const d = Math.hypot(e.x - sim.pub.lander.x, e.y - sim.pub.lander.y);
+      expect(d).toBeGreaterThanOrEqual(DIRECTOR.impactMinDist - 1);
+      expect(d).toBeLessThanOrEqual(DIRECTOR.impactMaxDist + 1);
+    }
+  }
+});
