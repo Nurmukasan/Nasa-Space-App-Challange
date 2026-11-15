@@ -2,6 +2,7 @@
 // Dialogue scripts can add more keys here and call assistant.say(t('...')).
 export default {
   'interior.prompt.sleep': 'E · SLEEP',
+  'interior.prompt.sit': 'E · SIT DOWN',
   'interior.prompt.work': 'E · WORK',
   'interior.prompt.tend': 'E · TEND PLANTS',
   'interior.prompt.talk': 'E · TALK TO ARIA',

@@ -57,10 +57,10 @@ PROPS = {
     'ai_monitor': ('props', 'talk'), 'lab_cabinet_small': ('props', None),
     'crate_rocks': ('props', None), 'crate_soil': ('props', None), 'crate_empty': ('props', None),
     'crate_rocks_b': ('props', None), 'crate_soil_b': ('props', None),
-    'lab_pc_side': ('props', 'work'), 'lab_chair': ('props', None),
+    'lab_pc_side': ('props', 'work'), 'lab_chair': ('props', 'sit'),
     'lab_table_rocks': ('props', 'work'), 'lab_table_jars': ('props', 'work'),
     'bio_tank_a': ('props', None), 'floor_vent': ('floor', None), 'bio_tank_b': ('props', None),
-    'pipes_floor': ('floor', None), 'lab_locker_tall': ('props', None),
+    'lab_locker_tall': ('props', None),
     'lab_bench_corner': ('props', 'work'), 'lab_box_green': ('props', None),
     'lab_bench_scope': ('props', 'work'), 'lab_bench_soil': ('props', 'work'),
     # hall
@@ -80,13 +80,13 @@ PROPS = {
     'kitchen_hood': ('wall', None), 'kitchen_cabinet': ('wall', None),
     'kitchen_stove': ('props', None), 'kitchen_sink': ('props', None),
     'kitchen_fridge': ('props', None), 'plant_big': ('props', None),
-    'dining_chair_l': ('props', None), 'dining_table': ('props', None),
-    'dining_chair_r': ('props', None), 'poster_octopus': ('wall', None),
+    'dining_chair_l': ('props', 'sit'), 'dining_table': ('props', None),
+    'dining_chair_r': ('props', 'sit'), 'poster_octopus': ('wall', None),
     'poster_tree': ('wall', None), 'wall_shelf': ('wall', None),
     'wall_screen': ('wall', None), 'side_plant': ('props', None),
     'lounge_sofa': ('props', 'sleep'), 'lounge_arcade': ('props', 'work'),
-    'armchair_l': ('props', 'sleep'), 'coffee_table': ('props', None),
-    'armchair_r': ('props', 'sleep'), 'lounge_sofa_b': ('props', 'sleep'),
+    'armchair_l': ('props', 'sit'), 'coffee_table': ('props', None),
+    'armchair_r': ('props', 'sit'), 'lounge_sofa_b': ('props', 'sleep'),
     # engine room
     'engine_wall_pipes': ('wall', None), 'engine_wall_panel': ('props', 'work'),
     'box_cardboard': ('props', None), 'box_wrench': ('props', None), 'box_tools': ('props', None),
@@ -100,6 +100,8 @@ COLLIDERS = {
     'reactor': (912, 900, 1004, 958, 'work'),
     'reactor_pipework': (1004, 868, 1146, 1062, None),
 }
+# Side-view chairs: the way a seated astronaut faces (away from the backrest).
+FACING = {'lab_chair': 'left', 'dining_chair_l': 'right', 'dining_chair_r': 'left'}
 # Depth override (base y) for sprites without a base of their own.
 DEPTH = {'engine_core': 958}
 # Doors: the wall_door sprite at the reference position (px) of each doorway.
@@ -123,6 +125,8 @@ def prop(name, layer, lid, frame, action, oid):
     if layer in ('wall', 'floor'):
         # Hangs on the back wall or lies flat on the floor: always drawn behind the astronaut.
         o['properties'].append({'name': 'mount', 'type': 'string', 'value': layer})
+    if name in FACING:
+        o['properties'].append({'name': 'facing', 'type': 'string', 'value': FACING[name]})
     if name in DEPTH:
         o['properties'].append({'name': 'depth', 'type': 'float', 'value': DEPTH[name]})
     if fp:

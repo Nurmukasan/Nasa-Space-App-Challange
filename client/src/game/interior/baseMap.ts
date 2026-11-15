@@ -16,7 +16,7 @@ export interface Frame {
   w: number;
   h: number;
 }
-export type ActionKind = 'sleep' | 'work' | 'tend' | 'talk' | 'exit';
+export type ActionKind = 'sleep' | 'sit' | 'work' | 'tend' | 'talk' | 'exit';
 export interface MapProp {
   id: string;
   /** Atlas frame name, or null for an invisible collider (a base inside a bigger sprite). */
@@ -34,6 +34,8 @@ export interface MapProp {
   wall: boolean;
   /** Lies flat on the floor (mount=floor: vents, floor cables): walked over, drawn under. */
   floor: boolean;
+  /** Side-view chair: which way a seated astronaut faces, or null for a front-facing seat. */
+  facing: 'left' | 'right' | null;
   /** Depth line (map px y): the astronaut is drawn in front of the prop once below it. */
   depth: number;
 }
@@ -128,6 +130,7 @@ function toProp(o: TmjObject, overlay: boolean): MapProp {
     overlay: overlay && !mount,
     wall: mount === 'wall',
     floor: mount === 'floor',
+    facing: (prop(o, 'facing') as 'left' | 'right' | undefined) ?? null,
     depth: depth !== undefined ? Number(depth) : foot ? foot.y1 : o.y + o.height,
   };
 }
