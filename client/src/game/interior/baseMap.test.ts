@@ -30,7 +30,7 @@ const reached = reachable();
 
 describe('lander interior map (base.tmj)', () => {
   it('uses only sprites that exist in the atlas', () => {
-    for (const p of PROPS) expect(ATLAS[p.sprite], p.sprite).toBeDefined();
+    for (const p of PROPS) if (p.sprite) expect(ATLAS[p.sprite], p.sprite).toBeDefined();
     expect(ATLAS.wall_door).toBeDefined();
   });
 
@@ -71,6 +71,26 @@ describe('lander interior map (base.tmj)', () => {
       );
       expect(onIt, `${p.id} at ${onIt}`).toBeUndefined();
     }
+  });
+
+  it('draws floor decor and wall decor under the astronaut, never over', () => {
+    const vent = PROPS.find((p) => p.id === 'floor_vent')!;
+    expect(vent.floor && !vent.overlay && !vent.foot).toBe(true);
+    for (const p of PROPS.filter((q) => q.wall || q.floor)) expect(p.overlay, p.id).toBe(false);
+    // Nothing in the base is drawn on top of the astronaut regardless of where they stand.
+    expect(PROPS.filter((p) => p.overlay).map((p) => p.id)).toEqual([]);
+  });
+
+  it('sorts every standing prop by a depth line inside its own sprite', () => {
+    for (const p of PROPS.filter((q) => !q.wall && !q.floor && q.sprite)) {
+      expect(p.depth, p.id).toBeGreaterThan(p.y);
+      expect(p.depth, p.id).toBeLessThanOrEqual(p.y + p.h);
+    }
+  });
+
+  it('gives chairs and sprinklers a base, so the astronaut cannot walk into them', () => {
+    for (const id of ['lab_chair', 'dining_chair_l', 'dining_chair_r', 'sprinkler_a'])
+      expect(PROPS.find((p) => p.id === id)?.foot, id).not.toBeNull();
   });
 
   it('stops at walls and slides along them', () => {

@@ -132,7 +132,8 @@
     "footprint": [0, 0.3, 1, 1]
   },
   "lab_chair": {
-    "box": [216, 425, 261, 501]
+    "box": [216, 425, 261, 501],
+    "footprint": [0.1, 0.7, 0.9, 0.95]
   },
   "lab_table_rocks": {
     "box": [333, 375, 453, 501],
@@ -185,7 +186,9 @@
     "footprint": [0.1, 0.65, 0.9, 1]
   },
   "pipes_floor": {
-    "box": [574, 569, 704, 636],
+    "src": "clean",
+    "file": "floor_cables.png",
+    "at": [825, 820],
     "kind": "floorprop"
   },
   "lab_locker_tall": {
@@ -359,7 +362,8 @@
     "footprint": [0, 0.4, 1, 1]
   },
   "sprinkler_a": {
-    "box": [1658, 381, 1711, 433]
+    "box": [1658, 381, 1711, 433],
+    "footprint": [0.25, 0.7, 0.75, 1]
   },
   "flower_purple": {
     "box": [1809, 389, 1841, 436]
@@ -397,10 +401,12 @@
     "footprint": [0, 0.4, 1, 1]
   },
   "sprinkler_b": {
-    "box": [1658, 514, 1711, 563]
+    "box": [1658, 514, 1711, 563],
+    "footprint": [0.25, 0.7, 0.75, 1]
   },
   "sprinkler_c": {
-    "box": [1658, 641, 1711, 693]
+    "box": [1658, 641, 1711, 693],
+    "footprint": [0.25, 0.7, 0.75, 1]
   },
   "pot_a": {
     "box": [1799, 509, 1846, 563],
@@ -442,19 +448,6 @@
     "box": [775, 894, 826, 951],
     "footprint": [0, 0.4, 1, 1]
   },
-  "reactor": {
-    "box": [905, 766, 1008, 956],
-    "kind": "core",
-    "footprint": [0.05, 0.55, 0.95, 1]
-  },
-  "reactor_pipes": {
-    "box": [1008, 755, 1152, 1063],
-    "footprint": [0, 0.35, 1, 1]
-  },
-  "generator": {
-    "box": [796, 958, 906, 1046],
-    "footprint": [0, 0.3, 1, 1]
-  },
   "kitchen_hood": {
     "box": [149, 841, 198, 884],
     "kind": "wallprop"
@@ -480,14 +473,16 @@
     "footprint": [0.15, 0.7, 0.85, 1]
   },
   "dining_chair_l": {
-    "box": [211, 979, 254, 1046]
+    "box": [211, 979, 254, 1046],
+    "footprint": [0.1, 0.7, 0.9, 0.95]
   },
   "dining_table": {
     "box": [259, 976, 331, 1056],
     "footprint": [0, 0.3, 1, 0.9]
   },
   "dining_chair_r": {
-    "box": [339, 979, 381, 1046]
+    "box": [339, 979, 381, 1046],
+    "footprint": [0.1, 0.7, 0.9, 0.95]
   },
   "poster_octopus": {
     "box": [476, 844, 511, 887],
@@ -596,5 +591,17 @@
     "box": [1022, 385, 1216, 505],
     "keepBackground": true,
     "kind": "wallface"
+  },
+  "engine_core": {
+    "src": "clean",
+    "file": "reactor_assembly.png",
+    "at": [1298, 1086],
+    "kind": "core"
+  },
+  "generator": {
+    "src": "clean",
+    "file": "generator.png",
+    "at": [1143, 1379],
+    "footprint": [0, 0.3, 1, 1]
   }
 }

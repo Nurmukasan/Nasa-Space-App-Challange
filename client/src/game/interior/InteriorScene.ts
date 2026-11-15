@@ -10,7 +10,7 @@ import { snaps } from '../../state/snapshots';
 import { prefs } from '../../state/prefs';
 import { store } from '../../state/store';
 import { t } from '../../i18n';
-import { CREW_FRAME } from '../crewArt';
+import { CREW_FRAME, CREW_SIT, CREW_SLEEP } from '../crewArt';
 import { crewCanvas } from '../crewTextures';
 import { ATLAS, DOORS, PROPS, SPAWN, nearestAction, step } from './baseMap';
 import type { MapProp } from './baseMap';
@@ -18,7 +18,7 @@ import { alarmFor, assistant } from './assistant';
 import type { AlarmKind } from './assistant';
 import { AiScreen } from './AiScreen';
 import { AI_SCREEN } from './interiorProps';
-import { InteriorView, drawSprite, picturesReady } from './InteriorView';
+import { InteriorView, drawSprite, pictures, picturesReady } from './InteriorView';
 
 /** Walking speed inside, map px/s (the engine does not track it). */
 const SPEED = 240;
@@ -38,12 +38,22 @@ const SUBTITLE = { color: '#9af7f0', background: 'rgba(16,26,40,0.9)' };
 const HULL = { color: '#e2ecff', textShadow: '0 1px 2px #000' };
 const DIM = { ...HULL, color: '#9aa4b4' };
 const ARIA = PROPS.find((p) => p.action === 'talk')!;
-const WALL_DECOR = PROPS.filter((p) => p.wall);
-const SOLID = PROPS.filter((p) => !p.overlay && !p.wall).sort((a, b) => base(a) - base(b));
+const BACKDROP = PROPS.filter((p) => p.wall || p.floor);
+const SOLID = PROPS.filter((p) => !p.overlay && !p.wall && !p.floor).sort(
+  (a, b) => a.depth - b.depth,
+);
 const OVERLAY = PROPS.filter((p) => p.overlay);
 /** Furniture narrower than this (map px) is sat on rather than lain on. */
 const LIE_MIN_W = 90;
+/** Seat points as fractions of the furniture sprite: boots of a seated astronaut, and the middle
+ * of the body lying on a sofa. Below SEAT_FRONT the armchair's front is drawn over the legs. */
+const SEAT = { sitY: 0.9, lieY: 0.6, front: 0.72 };
+/** Row of the 24-px frame at the middle of the lying body (crewArt sleep frame). */
+const LIE_MID_ROW = 15.5;
 const DOOR_W = ATLAS.wall_door?.w ?? 0;
+/** Soft additive light over the reactor drum (the sheet's own glow is cut away as dirt). */
+const REACTOR = PROPS.find((p) => p.id === 'reactor');
+const GLOW = { radius: 150, alpha: 0.22, pulse: 0.06, periodMs: 900, rise: 70, rgb: '90,200,255' };
 
 type Mode = 'free' | 'sleep' | 'work' | 'exiting';
 type Keys = Record<'W' | 'A' | 'S' | 'D' | 'E', Phaser.Input.Keyboard.Key>;
@@ -142,7 +152,8 @@ export class InteriorScene extends Phaser.Scene {
     }
     // Same frame layout as the field (crewArt.ts).
     // Lie down on a sofa; on a narrow armchair, sit (the idle frame).
-    if (this.mode === 'sleep') this.frame = this.bed && this.bed.w < LIE_MIN_W ? 0 : 8;
+    if (this.mode === 'sleep')
+      this.frame = this.bed && this.bed.w < LIE_MIN_W ? CREW_SIT : CREW_SLEEP;
     else if (this.mode === 'work') this.frame = 6 + (Math.floor(time / ANIM_WORK_MS) % 2);
     else if (moving) this.frame = 2 + (Math.floor(time / ANIM_WALK_MS) % 4);
     else this.frame = Math.floor(time / 600) % 2;
@@ -158,7 +169,7 @@ export class InteriorScene extends Phaser.Scene {
       if (next) assistant.say(t(`interior.alarm.${next}`), { mood: 'alarm' });
     }
     this.face.update(time);
-    this.view.sync(time);
+    this.view.sync(time, this.bed ? this.restPoint(this.bed) : { x: this.x, y: this.y });
     this.view.paintBase();
     if (picturesReady()) this.draw(time);
     this.texts(snap, time);
@@ -176,24 +187,40 @@ export class InteriorScene extends Phaser.Scene {
     });
   }
 
-  /** Wall decor, then props and the astronaut sorted by their base, then doors and the overlay. */
+  /** Wall and floor decor, then props and the astronaut sorted by their base, then doors and the overlay. */
   private draw(time: number): void {
     const g = this.view.ctx;
     g.clearRect(0, 0, g.canvas.width, g.canvas.height);
-    for (const p of WALL_DECOR) drawSprite(g, p.sprite, p.x, p.y);
+    for (const p of BACKDROP) if (p.sprite) drawSprite(g, p.sprite, p.x, p.y);
     // A resting astronaut is drawn right after (on top of) the furniture it rests on.
     const me = this.bed ? this.restPoint(this.bed) : { x: this.x, y: this.y };
     let drawnMe = false;
     for (const p of SOLID) {
-      if (!drawnMe && !this.bed && base(p) > me.y) {
+      if (!drawnMe && !this.bed && p.depth > me.y) {
         this.drawMe(g, me);
         drawnMe = true;
       }
-      drawSprite(g, p.sprite, p.x, p.y);
+      if (p.sprite) drawSprite(g, p.sprite, p.x, p.y);
       if (p === ARIA) this.drawFace(g);
       if (p === this.bed) {
         this.drawMe(g, me);
         drawnMe = true;
+        // Seated: the armchair's front and armrests stay in front of the legs.
+        if (p.sprite && this.frame === CREW_SIT) {
+          const f = ATLAS[p.sprite]!,
+            cut = Math.round(f.h * SEAT.front);
+          g.drawImage(
+            pictures.atlas,
+            f.x,
+            f.y + cut,
+            f.w,
+            f.h - cut,
+            p.x,
+            p.y + cut,
+            f.w,
+            f.h - cut,
+          );
+        }
       }
     }
     if (!drawnMe) this.drawMe(g, me);
@@ -204,14 +231,31 @@ export class InteriorScene extends Phaser.Scene {
       drawSprite(g, 'wall_door', d.x, d.y, { from: 0, width: half - open });
       drawSprite(g, 'wall_door', d.x, d.y, { from: half + open, width: half - open });
     });
-    for (const p of OVERLAY) drawSprite(g, p.sprite, p.x, p.y);
+    for (const p of OVERLAY) if (p.sprite) drawSprite(g, p.sprite, p.x, p.y);
+    this.drawGlow(g, time);
     const reduce = prefs.getState().reduceMotion;
     this.view.setAlarm(this.alarm ? (reduce ? 0.1 : 0.1 + 0.06 * Math.sin(time / 140)) : 0);
   }
 
+  private drawGlow(g: CanvasRenderingContext2D, time: number): void {
+    if (!REACTOR) return;
+    const reduce = prefs.getState().reduceMotion;
+    const a = GLOW.alpha + (reduce ? 0 : GLOW.pulse * Math.sin((time / GLOW.periodMs) * Math.PI));
+    const cx = REACTOR.x + REACTOR.w / 2,
+      cy = REACTOR.y - GLOW.rise;
+    const grad = g.createRadialGradient(cx, cy, 0, cx, cy, GLOW.radius);
+    grad.addColorStop(0, `rgba(${GLOW.rgb},${a})`);
+    grad.addColorStop(1, `rgba(${GLOW.rgb},0)`);
+    g.save();
+    g.globalCompositeOperation = 'lighter';
+    g.fillStyle = grad;
+    g.fillRect(cx - GLOW.radius, cy - GLOW.radius, GLOW.radius * 2, GLOW.radius * 2);
+    g.restore();
+  }
+
   /** Feet point for resting on `p`: centred on the seat. */
   private restPoint(p: MapProp): { x: number; y: number } {
-    return { x: p.x + p.w / 2, y: p.y + p.h * (p.w < LIE_MIN_W ? 0.78 : 0.7) };
+    return { x: p.x + p.w / 2, y: p.y + p.h * (p.w < LIE_MIN_W ? SEAT.sitY : SEAT.lieY) };
   }
 
   private drawFace(g: CanvasRenderingContext2D): void {
@@ -223,7 +267,10 @@ export class InteriorScene extends Phaser.Scene {
   private drawMe(g: CanvasRenderingContext2D, at: { x: number; y: number }): void {
     const size = CREW_FRAME * CREW_SCALE;
     g.save();
-    g.translate(at.x, at.y - size * ORIGIN_Y);
+    // Lying: the middle of the body sits on the cushion; otherwise the boots stand on `at`.
+    const top =
+      this.frame === CREW_SLEEP ? at.y - LIE_MID_ROW * CREW_SCALE : at.y - size * ORIGIN_Y;
+    g.translate(at.x, top);
     if (this.flip) g.scale(-1, 1);
     const src = crewCanvas(this.crew);
     g.drawImage(src, this.frame * CREW_FRAME, 0, CREW_FRAME, CREW_FRAME, -size / 2, 0, size, size);
@@ -241,24 +288,22 @@ export class InteriorScene extends Phaser.Scene {
     const near = this.mode === 'free' ? nearestAction(this.x, this.y) : null;
     const busy = this.mode === 'sleep' || this.mode === 'work';
     const key = busy ? 'interior.prompt.stand' : near ? `interior.prompt.${near.action}` : '';
-    const head = CREW_FRAME * CREW_SCALE * ORIGIN_Y;
-    const below = this.y - head < PROMPT_TOP;
-    const py = below ? this.y + 12 : this.y - head - 4;
-    const anchor = below ? 'translate(-50%, 0)' : 'translate(-50%, -100%)';
-    v.label('prompt', key ? { text: t(key), x: this.x, y: py } : null, PROMPT, true, anchor);
     const rest = this.bed ? this.restPoint(this.bed) : null;
-    const zzz =
-      this.mode === 'sleep' && rest
-        ? { text: 'Z z', x: rest.x + 30, y: rest.y - 80 + Math.sin(time / 400) * 6 }
-        : null;
+    const lying = this.frame === CREW_SLEEP && rest;
+    // The prompt goes under the astronaut, clear of the head, Zs and wall screens.
+    const me = lying ? { x: rest.x, y: rest.y + 30 } : (rest ?? { x: this.x, y: this.y });
+    const head = CREW_FRAME * CREW_SCALE * ORIGIN_Y;
+    const below = !!rest || me.y - head < PROMPT_TOP;
+    const py = below ? me.y + 12 : me.y - head - 4;
+    const anchor = below ? 'translate(-50%, 0)' : 'translate(-50%, -100%)';
+    v.label('prompt', key ? { text: t(key), x: me.x, y: py } : null, PROMPT, true, anchor);
+    // Zs rise from the helmet (head to the left) only while lying down.
+    const zzz = lying
+      ? { text: 'Z z z', x: rest.x - 30, y: rest.y - 78 + Math.sin(time / 400) * 6 }
+      : null;
     v.label('zzz', zzz, { color: '#e2ecff' }, true, '');
     const line = this.face.text ? `${t('interior.ai.name')}: ${this.face.text}` : null;
     const sub = line ? { text: line, x: 240, y: 262 } : null;
     v.label('subtitle', sub, SUBTITLE, false, 'translate(-50%, -100%)');
   }
-}
-
-/** Depth of a prop: the bottom of its base (or of the sprite when it has none). */
-function base(p: MapProp): number {
-  return p.foot ? p.foot.y1 : p.y + p.h;
 }
