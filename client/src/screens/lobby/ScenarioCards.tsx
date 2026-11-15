@@ -1,3 +1,4 @@
+import { SCENARIOS as DEFS } from '@rs/shared';
 import type { ScenarioId } from '@rs/shared';
 import { FEATURES } from '../../ui/features';
 import { send } from '../../net/session';
@@ -26,7 +27,10 @@ export function ScenarioCards({ selected, isHost }: { selected: ScenarioId; isHo
             </span>
             <b>{t(`lobby.scenario.${id}.title`)}</b>
             <small>{t(`lobby.scenario.${id}.brief`)}</small>
-            <small>{t(`lobby.scenario.${id}.duration`)}</small>
+            {/* The length comes from the scenario data, so the card never goes stale. */}
+            <small>
+              {t(`lobby.scenario.${id}.duration`, { n: Math.round(DEFS[id].durationS / 60) })}
+            </small>
           </button>
         ))}
       </div>

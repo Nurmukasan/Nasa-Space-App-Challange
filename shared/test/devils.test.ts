@@ -66,7 +66,7 @@ it('inside a devil slows movement and adds 0.8 oxygen per second, even while idl
   const a = sim.pub.astronauts[0]!;
   // Deliberately choose firm terrain so the additive devil cost is isolated.
   for (let x = 300; x < 1400; x += 8)
-    if (!sandAt(x, 500, sim.salt)) {
+    if (!sandAt(x, 500, sim.salt, sim.params.bigWorld)) {
       a.x = x;
       a.y = 500;
       break;

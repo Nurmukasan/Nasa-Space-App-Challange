@@ -55,7 +55,7 @@ it('sand slows the shared legal speed and costs more suit oxygen', () => {
   let point: { x: number; y: number } | null = null;
   for (let y = 100; y < 1400 && !point; y += 8)
     for (let x = 100; x < 1400; x += 8)
-      if (sandAt(x, y, sim.salt)) {
+      if (sandAt(x, y, sim.salt, sim.params.bigWorld)) {
         point = { x, y };
         break;
       }

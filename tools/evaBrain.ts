@@ -172,7 +172,7 @@ export class EvaBrain {
       (!keepKit || byZone) &&
       dist(a, s.lander) >= STATIONS.minFromLander + 4 &&
       s.stations.every((st) => dist(a, st) >= STATIONS.minBetween + 4) &&
-      !sandAt(a.x, a.y, this.salt(p))
+      !sandAt(a.x, a.y, this.salt(p), p.bigWorld)
     )
       return [{ t: 'eva:interact' }];
     const target = this.target(s, p, a);

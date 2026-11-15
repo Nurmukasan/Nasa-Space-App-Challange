@@ -60,8 +60,8 @@ export function placeEvent(
         ? rng.range(DIRECTOR.nearCrewMin, DIRECTOR.nearCrewMax)
         : rng.range(DIRECTOR.impactMinDist, DIRECTOR.impactMaxDist));
     best = {
-      x: clampToWorld(centre.x + Math.cos(angle) * r),
-      y: clampToWorld(centre.y + Math.sin(angle) * r),
+      x: clampToWorld(centre.x + Math.cos(angle) * r, sim.params.bigWorld),
+      y: clampToWorld(centre.y + Math.sin(angle) * r, sim.params.bigWorld),
     };
     const ok =
       kind === 'quake'

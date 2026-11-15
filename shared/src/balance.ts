@@ -382,6 +382,14 @@ export const AWARDS = {
 
 // ----- owner: A · big world (docs/product-logic.md 7.1, 7.24–7.27) -----------------------
 
+/**
+ * Training and Free keep the v1 valley (docs/product-logic.md 7.24): 96 tiles (1536 px) square
+ * around the same lander position, so their layout and edges are exactly v1.
+ */
+export const CLASSIC_WORLD_PX = TILE * 96;
+/** Nobody walks closer than this to the world edge, px. */
+export const WORLD_EDGE = 8;
+
 /** Biome layout and lava tubes. Geography is fixed per landing site (terrain salt). */
 export const WORLD = {
   /** Radius of the landing plains around the lander, px (wavy edge). */
