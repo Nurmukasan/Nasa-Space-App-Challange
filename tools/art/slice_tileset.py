@@ -153,6 +153,8 @@ def tiles(sprites, out):
                      'W': (5, 0, 6, TILE - 1), 'E': (TILE - 7, 0, TILE - 6, TILE - 1)}[ch]
             d.rectangle(inner, fill=WALL_EDGE)
         cells.append((f'wall_{sides or "dark"}', cell))
+    # Invisible collider for a room's back wall: the wall art is drawn by props on top of the floor.
+    cells.append(('wall_back', Image.new('RGBA', (TILE, TILE))))
     cols = 8
     rows = (len(cells) + cols - 1) // cols
     grid = Image.new('RGBA', (cols * TILE, rows * TILE))
