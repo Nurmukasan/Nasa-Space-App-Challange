@@ -81,6 +81,13 @@ const en: Record<string, string> = {
   'eva.waypoint': 'BEACON {n} m',
   'eva.move': 'WASD · MOVE',
   'eva.dig': 'HOLD SPACE · DIG',
+  // Digging mini-game (PL 7.5.1).
+  'eva.dig_start': 'SPACE · DIG',
+  'eva.dig_aim': 'SPACE WHEN THE MARKER IS IN THE GOLD',
+  'eva.dig_combo': 'STREAK ×{n}',
+  'eva.dig_perfect': 'PERFECT',
+  'eva.dig_good': 'GOOD',
+  'eva.dig_miss': 'MISS',
   'eva.return': 'PRESS E AT THE LANDER',
   'controls.title': 'CONTROLS',
   'controls.move': 'Move',

@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import {
   clampToWorld,
+  digGameOn,
   DIG,
   LANDER_POS,
   SITES,
@@ -30,6 +31,7 @@ import { StormFx } from './StormFx';
 import { SampleFx } from './SampleFx';
 import { WorldChunks } from './WorldChunks';
 import { ExpeditionLayer } from './ExpeditionLayer';
+import { DigMeter } from './DigMeter';
 import { EntityLayer } from './EntityLayer';
 import { preloadAssets, ensureAssets } from './assets';
 import { ensureCrewTextures } from './crewTextures';
@@ -60,6 +62,7 @@ export class FieldScene extends Phaser.Scene {
   private entities!: EntityLayer;
   private chunks!: WorldChunks;
   private expedition!: ExpeditionLayer;
+  private digMeter!: DigMeter;
   private salt = 0;
   private keys!: FieldKeys;
   private meX = 0;
@@ -103,6 +106,7 @@ export class FieldScene extends Phaser.Scene {
     this.registry.set('terrainMs', performance.now() - started);
     if (room?.params) new PropLayer(this, salt, generateSites(room.params));
     this.expedition = new ExpeditionLayer(this);
+    this.digMeter = new DigMeter(this);
     this.entities = new EntityLayer(this);
     this.effects = new FieldFx(this);
     this.eventFx = new EventFx(this);
@@ -142,8 +146,19 @@ export class FieldScene extends Phaser.Scene {
     this.keys.E.on('down', () => {
       if (!this.scene.isActive('interior')) send({ t: 'eva:interact' });
     });
-    this.keys.SPACE.on('down', () => send({ t: 'eva:dig', on: true }));
-    this.keys.SPACE.on('up', () => send({ t: 'eva:dig', on: false }));
+    // Free mission digs while SPACE is held (v1); training and RED SIGNAL strike the bar (PL 7.5.1).
+    const strikes = () => {
+      const params = store.getState().room?.params;
+      return !!params && digGameOn(params);
+    };
+    this.keys.SPACE.on('down', () => {
+      if (!strikes()) return send({ t: 'eva:dig', on: true });
+      const mine = snaps.curr?.astronauts.find((a) => a.id === store.getState().playerId);
+      send({ t: 'eva:strike', phase: this.digMeter.phase(mine) });
+    });
+    this.keys.SPACE.on('up', () => {
+      if (!strikes()) send({ t: 'eva:dig', on: false });
+    });
   }
 
   /** Show the lander interior while our astronaut is inside; hide it when they cycle out. */
@@ -225,6 +240,8 @@ export class FieldScene extends Phaser.Scene {
     this.chunks.update(this.cameras.main.worldView);
 
     this.expedition.update(snap, myId, this.meX, this.meY);
+    // Before the entity layer: it flushes the world labels this frame.
+    this.digMeter.update(snap, mine, params ?? undefined, this.meX, this.meY);
     this.entities.update(snap, myId, this.meX, this.meY, performance.now());
 
     this.lightSources.length = 1;

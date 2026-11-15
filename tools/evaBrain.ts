@@ -19,6 +19,9 @@ import {
   roverSpeed,
   sandAt,
   slideMove,
+  DIG_GAME,
+  digGameOn,
+  digMarker,
 } from '@rs/shared';
 import type { Astronaut, ClientMsg, EvaState, MissionParams, Vec2 } from '@rs/shared';
 
@@ -35,6 +38,9 @@ const NO_BOARD_S = 25;
 const HOME_SPARE_S = 30;
 const STUCK_CHECK_S = 2;
 const STUCK_PX = 8;
+
+/** Bots strike inside this fraction of the GOOD zone: steady, not perfect. */
+const BOT_AIM = 0.6;
 
 export class EvaBrain {
   private returning = false;
@@ -196,9 +202,19 @@ export class EvaBrain {
       };
       return this.boardOrWalk(s, p, a);
     }
-    if ('depth' in target && dist(a, target) < DIG.reach)
-      return [this.stop(a), { t: 'eva:dig', on: true }];
+    if ('depth' in target && dist(a, target) < DIG.reach) return this.dig(s, p, a);
     return [{ t: 'eva:dig', on: false }, this.move(s, p, a, target)];
+  }
+
+  /** Hold SPACE in Free; in the mini-game strike when the marker is well inside the zone. */
+  private dig(s: EvaState, p: MissionParams, a: Astronaut): ClientMsg[] {
+    if (!digGameOn(p)) return [this.stop(a), { t: 'eva:dig', on: true }];
+    const dig = a.dig;
+    if (!dig) return [this.stop(a), { t: 'eva:strike', phase: 0 }];
+    const phase = digMarker(dig, s.t);
+    if (s.t >= dig.lockUntil && Math.abs(phase - dig.zone) <= DIG_GAME.goodHalf * BOT_AIM)
+      return [this.stop(a), { t: 'eva:strike', phase }];
+    return [this.stop(a)];
   }
 
   private boardOrWalk(s: EvaState, p: MissionParams, a: Astronaut): ClientMsg[] {

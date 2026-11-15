@@ -47,6 +47,8 @@ export type ClientMsg =
   | { t: 'design:launch' }
   | { t: 'eva:move'; x: number; y: number; facing: number; moving: boolean; running: boolean }
   | { t: 'eva:dig'; on: boolean }
+  /** Digging mini-game stroke; phase = marker position (0..1) the player saw (PL 7.5.1). */
+  | { t: 'eva:strike'; phase: number }
   | { t: 'eva:interact' }
   | { t: 'eva:ping'; kind: PingKind }
   | { t: 'mc:waypoint'; playerId: string; x: number; y: number }

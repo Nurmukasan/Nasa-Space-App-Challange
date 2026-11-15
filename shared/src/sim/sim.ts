@@ -165,6 +165,7 @@ export function emptyStats(crew: number, ids: string[] = []): MissionStats {
     devilSeconds: 0,
     doseMax: 0,
     signalRetrieved: false,
+    digStrokes: { perfect: 0, good: 0, miss: 0 },
     roverDistance: 0,
     cacheRefills: 0,
     caveSeconds: 0,
@@ -217,6 +218,7 @@ export function createSim(
       scan: null,
       dose: 0,
       inRover: false,
+      dig: null,
     };
   });
   const stations: Vec2[] = [];

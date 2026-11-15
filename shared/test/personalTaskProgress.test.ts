@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
-import { CREW, DIG, LANDER_POS, PRESETS, checkDesign } from '../src';
-import { diggingSystem } from '../src/sim/digging';
+import { DIG, LANDER_POS, PRESETS, checkDesign } from '../src';
+import { excavate } from '../src/sim/digging';
 import { discoverySystem } from '../src/sim/discovery';
 import { endMission } from '../src/sim/endcheck';
 import { handleSimMsg } from '../src/sim/input';
@@ -20,8 +20,9 @@ it('credits actual owner collection and deposit exactly once, with no extra miss
   expect(first!.state).toBe('active');
   a.x = first!.target!.x;
   a.y = first!.target!.y;
-  a.digging = true;
-  diggingSystem(sim, DIG.surfaceDepth / (sim.params.digRate * CREW.digMul[a.crewClass]) + 0.001);
+  // Training digs by strokes (PL 7.5.1); collect through the shared excavation path.
+  const site = sim.pub.sites.find((s) => s.id === first!.target!.id)!;
+  excavate(sim, a, site, DIG.surfaceDepth + 0.001);
   expect(first!.state).toBe('done');
   expect(second!.state).toBe('active');
   expect(second!.kind).toBe('deliver');
