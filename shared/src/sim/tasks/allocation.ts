@@ -61,7 +61,7 @@ function deploymentTarget(sim: Sim, index: number): TaskTarget | undefined {
     const x = Math.round(sim.pub.lander.x + Math.cos(angle) * TASKS.stationRadius);
     const y = Math.round(sim.pub.lander.y + Math.sin(angle) * TASKS.stationRadius);
     if (
-      !sandAt(x, y, sim.salt) &&
+      !sandAt(x, y, sim.salt, sim.params.bigWorld) &&
       sim.pub.stations.every((s) => dist(x, y, s.x, s.y) >= STATIONS.minBetween) &&
       (sim.pub.taskBoard?.tasks ?? []).every(
         (t) =>
