@@ -68,3 +68,116 @@ select {
 .console-screen meter::-webkit-meter-bar {
   border-radius: 6px;
 }
+.helmet-scanner,
+.score-bar,
+.seal-wrap,
+.stamp-ink {
+  border-radius: 10px;
+}
+.gem {
+  border-radius: 5px;
+}
+.score-bar > * {
+  border-radius: 6px;
+}
+
+/* ---- Even sizes: blocks that sit in the same column share one width / height ---- */
+.report-grid {
+  align-items: stretch;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  box-sizing: border-box;
+}
+.report-grid > .panel,
+.report-details > .panel {
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+}
+.report-details {
+  width: 100%;
+}
+.screen > .roster,
+.screen > .crew-picker,
+.screen > .scenario-picker,
+.screen > .role-grid {
+  box-sizing: border-box;
+  width: min(780px, 96vw);
+}
+.screen > .role-grid {
+  justify-content: center;
+}
+.screen > .roster {
+  min-width: 0;
+}
+
+/* ---- Mission design: every card in a column has the same width and height ---- */
+.fields {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  align-items: start;
+}
+.fields .choice-cards,
+.fields .site-cards {
+  grid-template-columns: 1fr;
+  grid-auto-rows: 1fr;
+}
+.fields:has(> :only-child) .choice-cards,
+.fields:has(> :only-child) .site-cards {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+.fields .choice-cards button,
+.fields .site-cards button {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-height: 92px;
+}
+.fields .site-card {
+  grid-template-columns: 96px 1fr;
+  justify-items: start;
+  align-items: center;
+  column-gap: 14px;
+  row-gap: 4px;
+  text-align: left;
+}
+.fields .site-card canvas {
+  grid-row: 1 / span 4;
+  align-self: center;
+}
+.design-indicators {
+  grid-auto-rows: 1fr;
+}
+.gauge {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+.gauge output {
+  white-space: nowrap;
+  font-size: clamp(15px, 1.15vw, 19px);
+}
+.gauge .resource-why {
+  margin-top: auto;
+}
+
+/* ---- Mission cards in the lobby: compact, equal height ---- */
+.scenario-cards {
+  grid-auto-rows: 1fr;
+}
+.scenario-cards button {
+  box-sizing: border-box;
+  align-content: start;
+  padding: 12px 14px;
+  gap: 6px 12px;
+}
+.scenario-cards small {
+  font-size: 16px;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+.scenario-cards small:last-of-type {
+  margin-top: auto;
+  opacity: 0.8;
+}
+.scenario-icon {
+  font-size: 22px;
+}
