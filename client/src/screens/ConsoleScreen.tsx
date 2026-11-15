@@ -62,6 +62,16 @@ export function ConsoleScreen() {
       () => targetRef.current,
       () => locatingRef.current,
     );
+    // Keep the canvas the same shape as its pane so the radar fills it without stretching.
+    const el = canvas.current;
+    const fit = () => {
+      const b = el.getBoundingClientRect();
+      if (b.width > 0 && b.height > 0)
+        el.width = Math.max(MAP_SIZE, Math.round((MAP_SIZE * b.width) / b.height));
+    };
+    fit();
+    const watch = new ResizeObserver(fit);
+    watch.observe(el);
     const key = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement).closest('input,select,textarea,button')) return;
       const a = snaps.curr?.astronauts[Number(e.key) - 1];
@@ -70,6 +80,7 @@ export function ConsoleScreen() {
     window.addEventListener('keydown', key);
     return () => {
       map.current?.destroy();
+      watch.disconnect();
       window.removeEventListener('keydown', key);
     };
   }, []);

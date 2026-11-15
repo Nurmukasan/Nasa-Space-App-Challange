@@ -10,6 +10,7 @@ import {
   blipAlpha,
   crossed,
   drawBlipRing,
+  drawBackdrop,
   drawCompass,
   drawCrewMark,
   drawLander,
@@ -36,6 +37,8 @@ export class TacticalMap {
   private terrain: HTMLCanvasElement;
   private telemetry = new Telemetry();
   private trails = new Map<string, { x: number; y: number }[]>();
+  /** Left offset of the square world inside a wider canvas, so the radar fills its pane. */
+  private ox = 0;
   private prevAngle: number | null = null;
   private pinged = new Map<string, number>();
   private roster = store.getState().room?.players ?? [];
@@ -55,8 +58,9 @@ export class TacticalMap {
   }
   point(clientX: number, clientY: number) {
     const b = this.canvas.getBoundingClientRect();
+    const wx = (((clientX - b.left) / b.width) * this.canvas.width - this.ox) / MAP_SIZE;
     return {
-      x: Math.max(0, Math.min(WORLD_PX, ((clientX - b.left) / b.width) * WORLD_PX)),
+      x: Math.max(0, Math.min(WORLD_PX, wx * WORLD_PX)),
       y: Math.max(0, Math.min(WORLD_PX, ((clientY - b.top) / b.height) * WORLD_PX)),
     };
   }
@@ -92,6 +96,11 @@ export class TacticalMap {
     const now = still ? 0 : performance.now();
     const cx = px(s.lander.x),
       cy = px(s.lander.y);
+    const wide = this.canvas.width;
+    this.ox = Math.round((wide - MAP_SIZE) / 2);
+    drawBackdrop(ctx, wide, MAP_SIZE, this.ox, this.terrain);
+    ctx.save();
+    ctx.translate(this.ox, 0);
     ctx.drawImage(this.terrain, 0, 0);
     const room = store.getState().room;
     const params = room?.params;
@@ -105,7 +114,7 @@ export class TacticalMap {
     }
     // The arm sweeps the whole map; sites light up and chirp as it passes over them.
     const angle = sweepAngle(now);
-    if (!still) drawSweep(ctx, cx, cy, MAP_SIZE, angle);
+    if (!still) drawSweep(ctx, cx, cy, wide, angle);
     drawCompass(ctx, cx, cy, px(RINGS[RINGS.length - 1]! / METERS_PER_PX));
     if (!still) drawPing(ctx, cx, cy, px(RINGS[RINGS.length - 1]! / METERS_PER_PX), now);
     const storm = s.weather.storm;
@@ -319,6 +328,7 @@ export class TacticalMap {
         60,
       );
     }
+    ctx.restore();
     recordFrame(
       performance.now() - start,
       s.sites.length + s.stations.length + this.telemetry.contacts.size + 1,

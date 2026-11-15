@@ -224,3 +224,38 @@ export function crossed(prev: number, cur: number, bearing: number): boolean {
   const b = ((bearing % TAU) + TAU) % TAU;
   return prev <= cur ? b > prev && b <= cur : b > prev || b <= cur;
 }
+
+/** Fills the strips left and right of the square world with a dim grid, and frames the world. */
+export function drawBackdrop(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  ox: number,
+  terrain: CanvasImageSource,
+) {
+  ctx.fillStyle = RADAR.bg;
+  ctx.fillRect(0, 0, w, h);
+  if (ox <= 0) return;
+  // Past the edge of the world the relief just carries on, dimmed.
+  ctx.globalAlpha = 0.4;
+  for (let x = ox - h; x > -h; x -= h) ctx.drawImage(terrain, x, 0);
+  for (let x = ox + h; x < w; x += h) ctx.drawImage(terrain, x, 0);
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = RADAR.grid;
+  ctx.globalAlpha = 0.25;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let x = ox % 40; x < w; x += 40) {
+    ctx.moveTo(x + 0.5, 0);
+    ctx.lineTo(x + 0.5, h);
+  }
+  for (let y = 0; y < h; y += 40) {
+    ctx.moveTo(0, y + 0.5);
+    ctx.lineTo(w, y + 0.5);
+  }
+  ctx.stroke();
+  ctx.globalAlpha = 0.7;
+  ctx.strokeStyle = RADAR.gridBright;
+  ctx.strokeRect(ox + 0.5, 0.5, h - 1, h - 1);
+  ctx.globalAlpha = 1;
+}
