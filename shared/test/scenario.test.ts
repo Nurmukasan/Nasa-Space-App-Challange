@@ -86,13 +86,14 @@ it('solo gets a longer decision window in v2 scenarios only', () => {
 it('signal story beats switch acts and warn about the launch window', () => {
   const { h } = solo('signal');
   const sim = h.room.simulation!;
-  at(h, 149);
+  // 12-minute big-world mission (v2.1): act II at 4:00, act III at 8:30, window at 11:00.
+  at(h, 239);
   expect(sim.pub.act).toBe(1);
-  at(h, 151);
+  at(h, 241);
   expect(sim.pub.act).toBe(2);
-  at(h, 331);
+  at(h, 511);
   expect(sim.pub.act).toBe(3);
-  at(h, 421);
+  at(h, 661);
   const acts = sim.hidden.timeline.filter((e) => e.type === 'act').map((e) => e.n);
   expect(acts).toEqual([2, 3]);
   expect(sim.hidden.timeline.some((e) => e.type === 'window_closing')).toBe(true);

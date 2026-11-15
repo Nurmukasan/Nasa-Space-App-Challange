@@ -4,6 +4,7 @@ import {
   LAUNCH_COUNTDOWN_S,
   POWER,
   REPORT,
+  ROVER,
   SEISMIC,
   STATIONS,
   WEATHER,
@@ -12,6 +13,7 @@ import { createRng } from '../rng';
 import { SITES, defaultCrewClass } from '../catalog';
 import { buildSchedule } from './schedule';
 import { generateSites } from '../terrain';
+import { generateCaches } from '../bigWorld';
 import { initDiscovery } from './discovery';
 import { initSignal } from './signal';
 import { buildObjectives } from './objectives';
@@ -113,6 +115,7 @@ const TIMELINE_TYPES: ReadonlySet<FxType> = new Set<FxType>([
   'objective_done',
   'window_closing',
   'liftoff',
+  'biome',
 ]);
 
 export interface Sim {
@@ -159,6 +162,10 @@ export function emptyStats(crew: number, ids: string[] = []): MissionStats {
     devilSeconds: 0,
     doseMax: 0,
     signalRetrieved: false,
+    roverDistance: 0,
+    cacheRefills: 0,
+    caveSeconds: 0,
+    biomesVisited: [],
     crewStats: ids.map((id) => ({
       id,
       distance: 0,
@@ -206,6 +213,7 @@ export function createSim(
       repairing: null,
       scan: null,
       dose: 0,
+      inRover: false,
     };
   });
   const stations: Vec2[] = [];
@@ -254,7 +262,20 @@ export function createSim(
     devils: [],
     flare: null,
     signal: { zone: null, pulses: 0, located: false, found: false, retrieved: false },
+    // Big world: the rover is parked next to the lander; caches hold O2 out in the biomes.
+    rover: params.bigWorld
+      ? {
+          x: LANDER_POS.x + ROVER.parkOffset.x,
+          y: LANDER_POS.y + ROVER.parkOffset.y,
+          facing: 0,
+          driver: null,
+          charge: 1,
+          moving: false,
+        }
+      : null,
+    caches: [],
   };
+  pub.caches = generateCaches(params, pub.sites);
   // Classic schedule and random storm belong to the free mission; v2 scenarios use beats/director.
   const classic = params.scenario === 'free';
   const rng = createRng(params.seed ^ 0x570a);

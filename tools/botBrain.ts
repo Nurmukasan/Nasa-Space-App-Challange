@@ -1,31 +1,9 @@
 // Decision logic for headless players (docs/phases.md, task A12). Pure: snapshot in, messages out.
 // Shared by the socket bots (tools/bots.ts) and the in-process soak (tools/mission-soak.ts).
-import {
-  DIG,
-  FAULTS,
-  O2,
-  SITES,
-  STATIONS,
-  TICK_HZ,
-  WORLD_PX,
-  fieldSpeed,
-  portPos,
-  returnCost,
-  sandAt,
-} from '@rs/shared';
-import type {
-  Astronaut,
-  ClientMsg,
-  EvaState,
-  EventKind,
-  MissionParams,
-  SeismicEvent,
-  Vec2,
-} from '@rs/shared';
+import { LANDER_POS, WORLD_MAX, WORLD_MIN, WORLD_PX, portPos } from '@rs/shared';
+import type { ClientMsg, EvaState, EventKind, MissionParams, SeismicEvent, Vec2 } from '@rs/shared';
 
 const dist = (a: Vec2, b: Vec2) => Math.hypot(a.x - b.x, a.y - b.y);
-/** Leave the lander only with this share of a tank in the store (one refill). */
-const EVA_STORE_MUL = 0.6;
 
 /** Signature reading, as an operator would from the seismograph (PL 7.11). */
 export function classifyBySignature(e: SeismicEvent): EventKind {
@@ -58,7 +36,7 @@ export function pickEpicentre(e: SeismicEvent, stations: Vec2[]): Vec2 | null {
     if (fromBearing) c += 0.02 * ((x - fromBearing.x) ** 2 + (y - fromBearing.y) ** 2);
     return c;
   };
-  let best = { x: WORLD_PX / 2, y: WORLD_PX / 2 };
+  let best = { x: LANDER_POS.x, y: LANDER_POS.y };
   let bestC = Infinity;
   for (const step of [32, 8, 2]) {
     const span = step === 32 ? WORLD_PX / 2 : step * 6;
@@ -66,7 +44,7 @@ export function pickEpicentre(e: SeismicEvent, stations: Vec2[]): Vec2 | null {
       cy = best.y;
     for (let y = cy - span; y <= cy + span; y += step)
       for (let x = cx - span; x <= cx + span; x += step) {
-        if (x < 0 || y < 0 || x > WORLD_PX || y > WORLD_PX) continue;
+        if (x < WORLD_MIN || y < WORLD_MIN || x > WORLD_MAX || y > WORLD_MAX) continue;
         const c = cost(x, y);
         if (c < bestC) {
           bestC = c;
@@ -121,131 +99,4 @@ export class McBrain {
   }
 }
 
-/** Astronaut bot: dig, scout anomalies, deploy kits, repair at ports, shelter, chase the signal. */
-export class EvaBrain {
-  private returning = false;
-  private restUntil = 0;
-  constructor(
-    private me: string,
-    /** Index among the crew: the first astronaut chases RED SIGNAL. */
-    private slot: number,
-  ) {}
-
-  private move(s: EvaState, p: MissionParams, a: Astronaut, to: Vec2): ClientMsg {
-    const d = dist(a, to);
-    const ang = Math.atan2(to.y - a.y, to.x - a.x);
-    const step = Math.min(d, fieldSpeed(p, s, a.x, a.y, false, a.crewClass) / TICK_HZ);
-    return {
-      t: 'eva:move',
-      x: a.x + Math.cos(ang) * step,
-      y: a.y + Math.sin(ang) * step,
-      facing: ang,
-      moving: step > 0,
-      running: false,
-    };
-  }
-  private stop(a: Astronaut): ClientMsg {
-    return { t: 'eva:move', x: a.x, y: a.y, facing: a.facing, moving: false, running: false };
-  }
-
-  decide(s: EvaState, p: MissionParams): ClientMsg[] {
-    const a = s.astronauts.find((x) => x.id === this.me);
-    if (!a || a.status === 'lost' || a.status === 'down' || s.t < 0) return [];
-    const flare = s.flare && s.t >= s.flare.warnAt && s.t < s.flare.tEnd ? s.flare : null;
-    const late = s.t > s.durationS - 45;
-    if (a.status === 'inside') {
-      const work = s.sites.some((x) => x.depth < p.maxDepth) || s.anomalies.length > 0;
-      // With an empty store the airlock cannot refill anyone, and E will not let a part-full
-      // suit back in: only go out with enough in the store for one refill.
-      const store = s.lander.o2Store >= a.o2Max * EVA_STORE_MUL;
-      return !flare && !late && store && s.t >= this.restUntil && work
-        ? [{ t: 'eva:interact' }]
-        : [];
-    }
-    // Rescue a downed crewmate first.
-    const down = s.astronauts.find((b) => b.status === 'down' && b.id !== a.id);
-    if (down && a.o2 > O2.shareAmount + O2.shareReserve + returnCost(p, s.weather, a.x, a.y)) {
-      if (dist(a, down) <= O2.shareRange - 2) return [this.stop(a), { t: 'eva:interact' }];
-      return [this.move(s, p, a, down)];
-    }
-    // Repair: Mission Control's waypoint on a faulted port.
-    if (a.repairing) return [this.stop(a)];
-    const fault = s.lander.faults.find((f) => a.waypoint && dist(a.waypoint, portPos(f.port)) < 1);
-    if (fault && !flare && a.o2 > returnCost(p, s.weather, a.x, a.y) + 15) {
-      const port = portPos(fault.port);
-      // Stand just outside the port, beyond the airlock radius.
-      const k = (FAULTS.portDist + 6) / FAULTS.portDist;
-      const spot = {
-        x: s.lander.x + (port.x - s.lander.x) * k,
-        y: s.lander.y + (port.y - s.lander.y) * k,
-      };
-      if (dist(a, spot) < 3) return [this.stop(a), { t: 'eva:interact' }];
-      return [{ t: 'eva:dig', on: false }, this.move(s, p, a, spot)];
-    }
-    const signalSample = a.carrying.some((x) => x.kind === 'signal' && x.tier !== 'surface');
-    if (
-      flare ||
-      late ||
-      signalSample ||
-      a.o2 < returnCost(p, s.weather, a.x, a.y) + 12 ||
-      a.carrying.length >= p.carryCap
-    )
-      this.returning = true;
-    if (this.returning) {
-      if (dist(a, s.lander) < O2.airlockRadius - 2) {
-        const out: ClientMsg[] = [{ t: 'eva:dig', on: false }, this.stop(a), { t: 'eva:interact' }];
-        if (a.o2 >= a.o2Max * 0.98 && a.carrying.length === 0) {
-          this.returning = false;
-          const rate = p.moxieRate * s.lander.power.eff.moxie;
-          // Let MOXIE refill the store a little before heading out again.
-          this.restUntil = flare ? flare.tEnd : s.t + (rate > 0 ? Math.min(30, 60 / rate) : 30);
-        }
-        return out;
-      }
-      return [{ t: 'eva:dig', on: false }, this.move(s, p, a, s.lander)];
-    }
-    // Deploy a kit as soon as the spot is legal (the server re-checks).
-    const fromLander = dist(a, s.lander);
-    if (
-      a.kits > 0 &&
-      fromLander >= STATIONS.minFromLander + 4 &&
-      s.stations.every((st) => dist(a, st) >= STATIONS.minBetween + 4) &&
-      !sandAt(a.x, a.y, SITES[p.site].terrainSalt)
-    )
-      return [{ t: 'eva:interact' }];
-    const target = this.target(s, p, a);
-    if (!target) {
-      this.returning = true;
-      return [this.move(s, p, a, s.lander)];
-    }
-    if ('depth' in target && dist(a, target) < DIG.reach)
-      return [this.stop(a), { t: 'eva:dig', on: true }];
-    return [{ t: 'eva:dig', on: false }, this.move(s, p, a, target)];
-  }
-
-  private target(
-    s: EvaState,
-    p: MissionParams,
-    a: Astronaut,
-  ): Vec2 | (Vec2 & { depth: number }) | null {
-    const sig = s.signal;
-    const source = s.sites.find((x) => x.kind === 'signal');
-    // The signal chaser: zone, then scanner, then dig the source deep.
-    if (this.slot === 0 && sig.located && !sig.retrieved) {
-      if (source && source.depth < p.maxDepth) return source;
-      if (a.scan)
-        return { x: a.x + Math.cos(a.scan.bearing) * 40, y: a.y + Math.sin(a.scan.bearing) * 40 };
-      if (sig.zone) return sig.zone;
-    }
-    const live = s.sites.filter(
-      (x) =>
-        x.kind !== 'signal' && (x.expiresAt === null || x.expiresAt > s.t) && x.depth < p.maxDepth,
-    );
-    const site = live.sort((x, y) => dist(a, x) - dist(a, y))[0];
-    if (a.scan && (!site || dist(a, site) > 120))
-      return { x: a.x + Math.cos(a.scan.bearing) * 40, y: a.y + Math.sin(a.scan.bearing) * 40 };
-    if (site) return site;
-    const anomaly = [...s.anomalies].sort((x, y) => dist(a, x) - dist(a, y))[0];
-    return anomaly ?? null;
-  }
-}
+export { EvaBrain } from './evaBrain';

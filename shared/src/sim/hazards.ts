@@ -22,6 +22,7 @@ export const hazardSystem: System = (sim) => {
     for (const a of sim.pub.astronauts) {
       if (
         a.status !== 'active' ||
+        a.inRover ||
         dist(a.x, a.y, hazard.x, hazard.y) > hazard.r ||
         !nearLedge(a.x, a.y, sim.salt, SEISMIC.ledgeHitDist)
       )

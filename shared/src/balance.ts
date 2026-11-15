@@ -7,12 +7,20 @@ export const TICK_HZ = 15;
 export const TICK_DT = 1 / TICK_HZ;
 
 export const TILE = 16;
-export const WORLD_TILES = 96;
-export const WORLD_PX = TILE * WORLD_TILES; // 1536
+/**
+ * The world is a square around the lander. v1 was 96 tiles (1536 px); the big world is 352 tiles
+ * (5632 px, 13.4x the area). The lander keeps its v1 position, so the world reaches into negative
+ * coordinates: every scenario keeps the exact terrain and layout around the landing site.
+ */
+export const WORLD_TILES = 352;
+export const WORLD_PX = TILE * WORLD_TILES; // 5632, the side length
 export const VIEW_W = 480;
 export const VIEW_H = 270;
 export const METERS_PER_PX = 0.25;
-export const LANDER_POS = { x: WORLD_PX / 2, y: WORLD_PX / 2 };
+export const LANDER_POS = { x: 768, y: 768 };
+/** World bounds (inclusive min, exclusive max), centred on the lander. */
+export const WORLD_MIN = LANDER_POS.x - WORLD_PX / 2; // -2048
+export const WORLD_MAX = WORLD_MIN + WORLD_PX; // 3584
 
 export const MAX_PLAYERS = 4;
 export const MAX_EVA = 3;
@@ -261,13 +269,14 @@ export const LOCATE = {
 };
 
 export const SIGNAL = {
-  firstS: 80,
-  gapMinS: 50,
-  gapMaxS: 70,
-  lastS: 360,
+  firstS: 90,
+  gapMinS: 55,
+  gapMaxS: 75,
+  lastS: 600,
   windowMul: 1.5,
-  sourceMinDist: 500,
-  sourceMaxDist: 680,
+  /** Big world: the source lies out in the biomes (RED SIGNAL is the only big-world scenario). */
+  sourceMinDist: 1500,
+  sourceMaxDist: 2400,
   amp: 0.55,
   signature: { riseS: 0.6, decayS: 6, freqHz: 2.8, noise: 0.06, pressureDip: 0 },
   zoneErrMul: 1.2,
@@ -304,8 +313,8 @@ export const DIRECTOR = {
   firstWindMinS: 45,
   firstWindMaxS: 60,
   /** Third-act crisis start window, seconds. */
-  crisisMinS: 330,
-  crisisMaxS: 345,
+  crisisMinS: 510,
+  crisisMaxS: 525,
   /** Postpone events while someone is below this O2 fraction or down. */
   tensionO2Frac: 0.25,
   postponeS: 8,
@@ -369,4 +378,83 @@ export const AWARDS = {
   order: ['rock_hound', 'explorer', 'lifeguard', 'mechanic', 'pathfinder', 'iron_lungs'] as const,
   ironLungsMinS: 60,
   seismologistPicks: 2,
+};
+
+// ----- owner: A · big world (docs/product-logic.md 7.1, 7.24–7.27) -----------------------
+
+/** Biome layout and lava tubes. Geography is fixed per landing site (terrain salt). */
+export const WORLD = {
+  /** Radius of the landing plains around the lander, px (wavy edge). */
+  plainsR: 1150,
+  /** Outer sectors: delta, dunes, ice, lava; weights = landing-site mix + 1, dunes fixed. */
+  duneWeight: 2.5,
+  /** Lava tubes in the lava sector. */
+  tubeCount: 3,
+  tubeMinDist: 1450,
+  tubeMaxDist: 2350,
+  tubeSegments: 16,
+  tubeSegLen: 60,
+  tubeTurn: 0.28,
+  tubeMinPoints: 7,
+  tubeHalfWidthMin: 34,
+  tubeHalfWidthMax: 44,
+  /** Rock rim (impassable) around the tube floor, px. */
+  rimPx: 12,
+  /** Skylights: gaps in the rim, radius px. Two per tube. */
+  entranceR: 22,
+  /** Collision sampling step along a move, px (thinner than the rim). */
+  sampleStep: 3,
+  tubeAttempts: 40,
+  /** Keep this far from the world edge, px. */
+  edgeMargin: 160,
+};
+
+/** Big-world sample sites beyond the classic three rings. */
+export const BIG_SITES = {
+  /** Per outer biome. */
+  perBiome: 3,
+  minDist: 1250,
+  maxDist: 2500,
+  /** Clearance from tubes and other sites, px. */
+  clearance: 90,
+  attempts: 30,
+};
+
+/** Biome effects on walking (v2 scenarios). Dunes are soft sand everywhere below level 3. */
+export const BIOME = {
+  dunesHardLevel: 3,
+  /** Suit heaters in the ice field. */
+  iceO2Mul: 1.15,
+  /** Rough basalt in the lava flows. */
+  lavaSpeedMul: 0.9,
+};
+
+/** Pressurized rover: fast, shielded, a radio relay; one seat. */
+export const ROVER = {
+  speed: 120,
+  /** Speed multiplier on soft sand and in the lava flows. */
+  sandMul: 0.8,
+  lavaMul: 0.85,
+  boardDist: 24,
+  exitOffset: 18,
+  /** Parked next to the lander at the start. */
+  parkOffset: { x: 70, y: 40 },
+  /** Px of driving on a full battery. */
+  rangePx: 7500,
+  /** Seconds from empty to full when parked near the lander. */
+  rechargeS: 60,
+  dockDist: 110,
+  /** Rover antenna: links astronauts near it while it is this many comms ranges from home. */
+  antennaMul: 3,
+  /** Rovers stay this far outside a tube rim (no skylight fits them; exits land on open ground). */
+  tubeClearance: 20,
+};
+
+/** Supply caches: oxygen depots of an earlier robotic mission. */
+export const CACHES = {
+  perBiome: 2,
+  minDist: 1050,
+  maxDist: 2300,
+  o2: 120,
+  useDist: 20,
 };

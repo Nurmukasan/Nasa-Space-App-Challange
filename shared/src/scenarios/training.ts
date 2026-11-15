@@ -10,6 +10,7 @@ export const TRAINING: ScenarioDef = {
   deployStations: true,
   knownRings: [1, 2, 3],
   signal: false,
+  bigWorld: false,
   // Bot soak (A12): near-perfect bots score ~270 raw science; full marks at ~80% of that.
   scienceFull: 220,
   quickPreset: 'balanced',

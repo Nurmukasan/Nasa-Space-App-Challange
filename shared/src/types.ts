@@ -198,6 +198,8 @@ export interface MissionParams {
   scanRange: number;
   /** Raw science that maps to the full Science score in this scenario. */
   scienceFull: number;
+  /** Big world content: biome sites, lava tubes, supply caches and the rover (RED SIGNAL). */
+  bigWorld: boolean;
 }
 
 // ----- EVA (the real-time phase) --------------------------------------------
@@ -267,6 +269,8 @@ export interface Astronaut {
   scan: ScanReading | null;
   /** Radiation dose accumulated outside during solar flares (game units). */
   dose: number;
+  /** Driving the rover: position follows it, the cabin supplies air. */
+  inRover: boolean;
 }
 
 /** Distance and direction to the nearest undiscovered site in scanner range. */
@@ -321,6 +325,31 @@ export interface Fault {
   since: number;
   /** 0..1, kept if the repair is interrupted. */
   progress: number;
+}
+
+/** Large regions of the big world (docs/product-logic.md 7.1). */
+export type BiomeId = 'plains' | 'delta' | 'dunes' | 'ice' | 'lava';
+
+/** Oxygen depot left by an earlier robotic mission: E refills a suit until it runs dry. */
+export interface SupplyCache {
+  id: string;
+  x: number;
+  y: number;
+  /** O2 units left. */
+  o2: number;
+}
+
+/** Single-seat pressurized rover (big world only). */
+export interface RoverState {
+  x: number;
+  y: number;
+  /** Radians, 0 = +x. */
+  facing: number;
+  /** Astronaut id at the wheel, or null when parked. */
+  driver: string | null;
+  /** Battery 0..1; recharges when parked at the lander. */
+  charge: number;
+  moving: boolean;
 }
 
 export interface DustDevil {
@@ -473,7 +502,10 @@ export type FxType =
   | 'act'
   | 'objective_done'
   | 'window_closing'
-  | 'liftoff';
+  | 'liftoff'
+  | 'rover'
+  | 'cache'
+  | 'biome';
 
 /** One-shot effect. Clients play each id once (dedupe by id). */
 export interface FxEvent {
@@ -521,6 +553,9 @@ export interface EvaState {
   devils: DustDevil[];
   flare: FlareState | null;
   signal: SignalState;
+  /** Big world only, otherwise null / empty. */
+  rover: RoverState | null;
+  caches: SupplyCache[];
 }
 
 // ----- Report ----------------------------------------------------------------
@@ -557,6 +592,11 @@ export interface MissionStats {
   devilSeconds: number;
   doseMax: number;
   signalRetrieved: boolean;
+  /** Big world: px driven, suit refills at caches, seconds in lava tubes, biomes reached. */
+  roverDistance: number;
+  cacheRefills: number;
+  caveSeconds: number;
+  biomesVisited: BiomeId[];
   crewStats: CrewStats[];
 }
 

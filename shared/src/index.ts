@@ -6,5 +6,7 @@ export * from './rng';
 export * from './design';
 export * from './scenarios';
 export * from './terrain';
+export * from './world';
+export * from './bigWorld';
 export * from './sim';
 export * from './engine/GameRoom';

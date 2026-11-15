@@ -5,6 +5,7 @@ import { diggingSystem } from './digging';
 import { directorSystem } from './director';
 import { discoverySystem } from './discovery';
 import { endCheckSystem } from './endcheck';
+import { expeditionSystem } from './expedition';
 import { faultSystem } from './faults';
 import { flareSystem } from './flare';
 import { hazardSystem } from './hazards';
@@ -26,6 +27,7 @@ const PIPELINE: System[] = [
   commsSystem,
   devilSystem,
   oxygenSystem,
+  expeditionSystem,
   diggingSystem,
   discoverySystem,
   faultSystem,

@@ -11,6 +11,7 @@ export const FREE: ScenarioDef = {
   deployStations: false,
   knownRings: [1, 2, 3],
   signal: false,
+  bigWorld: false,
   scienceFull: SCORE.scienceFull,
   quickPreset: 'balanced',
   beats: [],
