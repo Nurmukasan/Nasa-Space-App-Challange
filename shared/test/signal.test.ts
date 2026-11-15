@@ -36,7 +36,7 @@ it('places a deterministic hidden source in range, at a ledge, as a hidden site'
   expect(createSim(deriveParams(PRESETS.balanced, 42), ['x']).hidden.signalSource).toBeNull();
 });
 
-it('pulses start at 1:35 and are never classified', () => {
+it('pulses start at SIGNAL.firstS and are never classified', () => {
   const { sim, until } = mission();
   until(SIGNAL.firstS - 1);
   expect(pulses(sim)).toHaveLength(0);
@@ -116,4 +116,16 @@ it('debug event_signal queues a pulse', () => {
   until(5);
   h.send(h.room.state.hostId, { t: 'debug', cmd: 'event_signal' });
   expect(pulses(sim)).toHaveLength(1);
+});
+
+it('with a full station network the computer alone never locates the source: MC must pick', () => {
+  const { sim, until } = mission(11);
+  // Two deployed kits plus the lander station.
+  sim.pub.stations.push({ x: 300, y: 300 }, { x: 1200, y: 400 });
+  expect(SIGNAL.autoR3).toBeGreaterThan(SIGNAL.locatedR);
+  until(SIGNAL.firstS + 1);
+  const e = sim.pub.seismic.find((x) => x.signal)!;
+  until(e.deadline + 1);
+  expect(sim.pub.signal.zone!.r).toBe(SIGNAL.autoR3);
+  expect(sim.pub.signal.located).toBe(false);
 });
