@@ -85,6 +85,10 @@ The lander interior is built from the team's AI-generated tileset and base refer
 sprite atlas and 64-px tiles, laid out the Tiled map `client/src/game/interior/data/base.tmj` after the
 reference, and added collisions, sliding doors, room actions and the ARIA assistant's talking face and
 alarm screen on top of it (`client/src/game/interior/`).
+Claude Code drew the shared in-base action animations (console work, watering plants, talking to
+ARIA, sitting, sleeping) for every crew class.
+Claude Code added the start screen and lobby motion (`client/src/ui/menuMotion.css`), following the
+open design skills impeccable (`animate`) and Anthropic's `frontend-design`.
 The built-in fallback sprites and sounds are procedural; NASA audio is not bundled.
 Additional asset contributions must be credited by their authors before submission.
 

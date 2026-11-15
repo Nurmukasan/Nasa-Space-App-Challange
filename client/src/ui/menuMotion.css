@@ -1,0 +1,142 @@
+/* Motion for the start screen and the lobby. One authored moment: the title locks onto the
+   signal like a radio tuning in (scan bar, stepped jitter, clip reveal), then the menu powers
+   on in order. In the lobby, a crew member who joins arrives as a received signal.
+   Everything is visible in its resting state; the keyframes only describe the way in.
+   The in-game "reduce motion" setting turns these off (theme.css), and the OS setting gets a
+   gentle fade instead. */
+
+.screen {
+  --m-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --m-lock: 760ms;
+  --m-power: 240ms;
+  --m-stagger: 70ms;
+}
+
+/* ---- Title: signal lock ---- */
+.logo h1 {
+  position: relative;
+  animation: signal-lock var(--m-lock) steps(10, jump-end) both;
+}
+.logo h1::after {
+  content: '';
+  position: absolute;
+  inset: -6px -12px;
+  pointer-events: none;
+  background: linear-gradient(transparent 46%, #ffd0a0cc 48%, #ff7a4a66 52%, transparent 54%) 0 0 /
+    100% 300% no-repeat;
+  mix-blend-mode: screen;
+  opacity: 0;
+  animation: signal-scan var(--m-lock) var(--m-ease) both;
+}
+.logo-tag {
+  animation: power-on var(--m-power) var(--m-ease) calc(var(--m-lock) - 160ms) both;
+}
+
+@keyframes signal-lock {
+  0% {
+    clip-path: inset(0 100% 0 0);
+    transform: translateX(-6px);
+    filter: brightness(2.2) saturate(0.4);
+  }
+  30% {
+    clip-path: inset(0 55% 0 0);
+    transform: translateX(5px);
+  }
+  55% {
+    clip-path: inset(0 20% 0 0);
+    transform: translateX(-3px);
+    filter: brightness(1.6) saturate(0.7);
+  }
+  80% {
+    clip-path: inset(0 0 0 0);
+    transform: translateX(1px);
+  }
+  100% {
+    clip-path: inset(0 0 0 0);
+    transform: none;
+    filter: none;
+  }
+}
+@keyframes signal-scan {
+  0% {
+    opacity: 1;
+    background-position: 0 100%;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    background-position: 0 0;
+  }
+}
+
+/* ---- Menu: powers on in order once the title has locked ---- */
+.menu-col > * {
+  animation: power-on var(--m-power) var(--m-ease) both;
+}
+.menu-col > :nth-child(1) {
+  animation-delay: calc(var(--m-lock) - 120ms);
+}
+.menu-col > :nth-child(2) {
+  animation-delay: calc(var(--m-lock) - 120ms + var(--m-stagger));
+}
+.menu-col > :nth-child(3) {
+  animation-delay: calc(var(--m-lock) - 120ms + 2 * var(--m-stagger));
+}
+.menu-col > :nth-child(n + 4) {
+  animation-delay: calc(var(--m-lock) - 120ms + 3 * var(--m-stagger));
+}
+
+/* A panel powering up: dark, a short overexposed flash, then its own colours. */
+@keyframes power-on {
+  0% {
+    opacity: 0;
+    filter: brightness(0.3);
+  }
+  45% {
+    opacity: 1;
+    filter: brightness(1.7);
+  }
+  100% {
+    opacity: 1;
+    filter: none;
+  }
+}
+
+/* ---- Lobby: a crew member joins as a received signal ---- */
+.roster-row {
+  animation: signal-received 420ms var(--m-ease) both;
+}
+@keyframes signal-received {
+  0% {
+    clip-path: inset(0 100% 0 0);
+    background-color: #ffb03055;
+  }
+  45% {
+    clip-path: inset(0 0 0 0);
+    background-color: #ffb03040;
+  }
+  100% {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* ---- OS reduced motion: no movement or scanning, a short fade that keeps the order ---- */
+@media (prefers-reduced-motion: reduce) {
+  .logo h1,
+  .logo-tag,
+  .menu-col > *,
+  .roster-row {
+    animation: fade-in 200ms ease-out both;
+    animation-delay: 0ms;
+  }
+  .logo h1::after {
+    animation: none;
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
