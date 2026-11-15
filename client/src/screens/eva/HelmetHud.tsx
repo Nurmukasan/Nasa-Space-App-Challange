@@ -10,6 +10,7 @@ import { MissionObjectives, ActTitle } from './MissionStatus';
 import { MissionFlow } from './MissionFlow';
 import { DepositCounter } from './DepositCounter';
 import '../../ui/feedback.css';
+import { ActionLine } from './ActionLine';
 import { Scanner } from './Scanner';
 import { RadioLine } from './RadioLine';
 import { actionHint, hudBanner } from './hudView';
@@ -20,7 +21,7 @@ import '../../ui/hudCalm.css';
 const GEM_FRAME: Record<string, number> = { surface: 0, deep: 1, core: 2 };
 const GEM_PX = 24;
 /** The key reminder only matters at the start of a mission. */
-const CONTROLS_SHOWN_S = 12;
+const CONTROLS_SHOWN_S = 8;
 
 export function clock(time: number): string {
   const s = Math.max(0, Math.ceil(time));
@@ -70,6 +71,9 @@ export function HelmetHud({
             ? 'eva.return'
             : ''
       : '';
+  // While nothing else needs doing, the first-minute lesson takes the place of the idle hint.
+  const shownHint =
+    hint.key === 'eva.explore' && lesson ? { key: lesson } : { ...hint, params: hintParams };
   const log = snap.log.at(-1);
   const storm = snap.weather.storm;
   const stormOn = !!storm && snap.t >= storm.tStart && snap.t < storm.tEnd;
@@ -214,13 +218,7 @@ export function HelmetHud({
             })}
           </div>
         )}
-        <div className="helmet-instructions">
-          <b>{t(hint.key, hintParams)}</b>
-          {lesson && t(lesson) !== t(hint.key, hint.params) && <span>{t(lesson)}</span>}
-          {snap.t < CONTROLS_SHOWN_S && (
-            <small className="controls-hint">{t('eva.controls')}</small>
-          )}
-        </div>
+        <ActionLine hint={shownHint} showControls={snap.t < CONTROLS_SHOWN_S} />
         {log && a.linked && <RadioLine entry={log} />}
       </footer>
     </div>
