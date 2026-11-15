@@ -14,6 +14,8 @@ const ALERT_KINDS: readonly unknown[] = ['evac', 'return', 'hold'] satisfies Ale
 import { clampToWorld } from '../terrain';
 import { slideMove } from '../world';
 import { roverSpeed, tryCache, tryRover } from './expedition';
+import { digGameOn, stopDig } from './digging';
+import { digStrike } from './digGame';
 import { endMission } from './endcheck';
 import { placePick, resolveEvent } from './seismic';
 import { fieldSpeed } from './movement';
@@ -71,7 +73,7 @@ export function handleSimMsg(
       a.facing = msg.facing;
       a.moving = msg.moving === true && moved > 0.01;
       a.running = a.moving && running;
-      if (a.moving) a.digging = false;
+      if (a.moving) stopDig(a);
       if (rover) {
         rover.x = a.x;
         rover.y = a.y;
@@ -85,7 +87,17 @@ export function handleSimMsg(
     case 'eva:dig': {
       if (!canEva || t < 0) return;
       const a = findAstronaut(sim, playerId);
-      if (a && a.status === 'active' && !a.inRover) a.digging = msg.on === true;
+      if (!a || a.status !== 'active' || a.inRover) return;
+      // In the mini-game (training, RED SIGNAL) strokes dig, not holding SPACE.
+      if (digGameOn(sim.params)) return;
+      a.digging = msg.on === true;
+      return;
+    }
+    case 'eva:strike': {
+      if (!canEva || t < 0 || !digGameOn(sim.params)) return;
+      if (!num(msg.phase) || msg.phase < 0 || msg.phase > 1) return;
+      const a = findAstronaut(sim, playerId);
+      if (a) digStrike(sim, a, msg.phase);
       return;
     }
     case 'eva:interact': {

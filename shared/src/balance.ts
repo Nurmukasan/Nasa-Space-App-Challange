@@ -466,3 +466,38 @@ export const CACHES = {
   o2: 120,
   useDist: 20,
 };
+
+// ----- owner: A · digging mini-game (docs/product-logic.md 7.5.1) -----------------------
+
+/** Timing-bar digging in training and RED SIGNAL. Free mission keeps hold-SPACE (v1). */
+export const DIG_GAME = {
+  /** Seconds for the marker to cross the bar once; it sweeps back and forth. */
+  sweepS: 0.9,
+  /** Half-widths of the GOOD and PERFECT zones, fractions of the bar. */
+  goodHalf: 0.12,
+  perfectHalf: 0.05,
+  /** Zone centres keep this far from the bar ends. */
+  zoneMargin: 0.2,
+  /** One stroke digs as deep as this many seconds of v1 continuous digging (x digRate). */
+  strokeS: 0.8,
+  /** Depth multiplier per grade. */
+  mul: { perfect: 1.4, good: 1, miss: 0.1 },
+  /** Each good stroke in a row adds this much depth, up to comboMax steps (x1.4). */
+  comboStep: 0.1,
+  comboMax: 4,
+  /** A miss jars the suit: O2 lost, and a longer pause before the next stroke. */
+  missO2: 1,
+  cooldownS: 0.35,
+  missLockS: 0.8,
+  /** The session ends after this long without a stroke. */
+  idleS: 4,
+  /**
+   * The client draws the marker about one network trip behind the server. A stroke is judged at
+   * the marker position the player saw if the marker was there within this many seconds.
+   */
+  lagWindowS: 0.4,
+  /** Strokes are judged at the last tick, up to one tick before the key press. */
+  leadS: 0.07,
+  lagStepS: 0.02,
+  phaseEps: 0.02,
+};

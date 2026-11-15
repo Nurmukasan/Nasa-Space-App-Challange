@@ -188,7 +188,8 @@ export class FieldFx {
     const low = mine.o2 / mine.o2Max < O2.lowFrac && mine.status === 'active';
     if (low) audio.loop('heartbeat_loop');
     else audio.stop('heartbeat_loop');
-    if (mine.digging && !mine.repairing) audio.loop('dig_loop');
+    // The mini-game plays one sound per stroke (DigMeter) instead of the loop.
+    if (mine.digging && !mine.dig && !mine.repairing) audio.loop('dig_loop');
     else audio.stop('dig_loop');
     if (mine.wantsRefill && (!snap.lander.ration || mine.refillGranted)) audio.loop('refill_loop');
     else audio.stop('refill_loop');

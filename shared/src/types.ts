@@ -271,6 +271,32 @@ export interface Astronaut {
   dose: number;
   /** Driving the rover: position follows it, the cabin supplies air. */
   inRover: boolean;
+  /** Digging mini-game in progress (training and RED SIGNAL; PL 7.5.1), or null. */
+  dig: DigGame | null;
+}
+
+/** Grade of one shovel stroke in the digging mini-game. */
+export type DigGrade = 'perfect' | 'good' | 'miss';
+
+/**
+ * Timing-bar dig session (docs/product-logic.md 7.5.1). The marker position is a pure function of
+ * mission time (`digMarker`), so the server, the client and the bots all see the same bar.
+ */
+export interface DigGame {
+  /** Mission time the marker started sweeping. */
+  t0: number;
+  /** Centre of the target zone along the bar, 0..1. Moves after every stroke. */
+  zone: number;
+  /** Strokes made in this session (seeds the next zone). */
+  n: number;
+  /** Good or perfect strokes in a row. */
+  combo: number;
+  /** Mission time of the last stroke (or of the start). */
+  lastT: number;
+  /** Grade of the last stroke, null before the first one. */
+  last: DigGrade | null;
+  /** No stroke counts before this mission time (cool-down, longer after a miss). */
+  lockUntil: number;
 }
 
 /** Distance and direction to the nearest undiscovered site in scanner range. */
@@ -592,6 +618,8 @@ export interface MissionStats {
   devilSeconds: number;
   doseMax: number;
   signalRetrieved: boolean;
+  /** Digging mini-game strokes by grade (PL 7.5.1). */
+  digStrokes: Record<DigGrade, number>;
   /** Big world: px driven, suit refills at caches, seconds in lava tubes, biomes reached. */
   roverDistance: number;
   cacheRefills: number;
