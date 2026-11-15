@@ -9,6 +9,7 @@ A cooperative Mars mission design game for 1–4 players, built for the
 | --- | --- |
 | ▶ **Play now (solo, in the browser)** | https://nurmukasan.github.io/Nasa-Space-App-Challange/ |
 | 🎬 **30-second demo video** | [`media/red-signal-promo-30s.mp4`](media/red-signal-promo-30s.mp4) |
+| 📊 **Presentation (7 slides)** | [`media/red-signal-slides.pdf`](media/red-signal-slides.pdf) · [PowerPoint](media/red-signal-slides.pptx) |
 | 🌐 **Online multiplayer server** | http://redsignal0aaf5d.centralindia.cloudapp.azure.com (temporary event server) |
 | 📄 **Game design and science** | [`docs/product-logic.md`](docs/product-logic.md) · [`docs/REFERENCES.md`](docs/REFERENCES.md) |
 
@@ -128,7 +129,7 @@ Add `?debug=1` to the URL to get `window.rs` (send, store, snaps) in the browser
 - `client/` – React UI, Phaser field view, canvas Mission Control console.
 - `tools/` – headless bots, soak tests, art tools, Azure server scripts.
 - `docs/` – product logic, architecture, work plan (`phases.md`), asset guide (`assets.md`), references.
-- `media/` – demo video and screenshots.
+- `media/` – demo video, presentation and screenshots.
 
 ## Deploy
 
@@ -188,6 +189,14 @@ Additional asset contributions must be credited by their authors before submissi
 NASA data and resources, fonts, libraries, tools and their licenses: [`docs/REFERENCES.md`](docs/REFERENCES.md).
 No NASA logos, flags or mission emblems are used anywhere in the game or the video.
 
-## Team
+## Team — OPUS AND ASTRA
 
-Built by our team for NASA Space Apps Challenge 2026.
+| Member | Role |
+| --- | --- |
+| Маркабаев Нурмукасан | Product Manager, Backend |
+| Омаров Ансар | Backend and Databases |
+| Макарим Санжар | Frontend |
+| Магауия Анель | Frontend |
+| Камалбек Алтай | Frontend |
+
+Built for NASA Space Apps Challenge 2026.
