@@ -54,11 +54,15 @@ for g in $(az group list --query "[?starts_with(name, 'red-signal-vm_group')].na
   az group delete -n "$g" --yes --no-wait
 done
 
-if [ "$(az vm show -g "$GROUP" -n "$VM" --query name -o tsv 2>/dev/null)" = "$VM" ]; then
-  say "VM already exists, skipping creation"
+# One group per region ("red-signal-eastus"...): a failed try is deleted whole, nothing collides.
+EXISTING=$(az vm list --query "[?name=='$VM' && starts_with(resourceGroup, '$GROUP-')].resourceGroup | [0]" -o tsv 2>/dev/null)
+if [ -n "$EXISTING" ]; then
+  say "VM already exists in $EXISTING, skipping creation"
+  GROUP="$EXISTING"
   CREATED=1
 else
   CREATED=0
+  BASE="$GROUP"
   for region in $REGIONS; do
     # Skip regions without any free regional cores.
     free=$(az vm list-usage -l "$region" --query "[?name.value=='cores'] | [0].[limit, currentValue]" -o tsv 2>/dev/null | paste -sd' ' | awk '{print $1-$2}')
@@ -66,6 +70,7 @@ else
       echo "  $region: no free cores, skip"
       continue
     fi
+    GROUP="$BASE-$region"
     for size in $SIZES; do
       say "Trying $size in $region"
       az group create -n "$GROUP" -l "$region" -o none || continue
