@@ -39,6 +39,7 @@ it('does not promise duplicate finite sample opportunities or require missing eq
     const collect = sim.pub.taskBoard!.tasks.filter((t) => t.kind === 'collect');
     const keys = collect.map((t) => `${t.target!.id}:${t.target!.tier}`);
     expect(new Set(keys).size).toBe(keys.length);
+    expect(new Set(collect.map((t) => t.target!.id)).size).toBe(collect.length);
     if (preset !== 'science') expect(collect.every((t) => t.target!.tier === 'surface')).toBe(true);
   }
 });

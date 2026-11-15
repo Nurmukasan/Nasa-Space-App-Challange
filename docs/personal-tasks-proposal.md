@@ -1,7 +1,8 @@
 # Proposal: personal tasks and crew-size scaling
 
-Status: design for review; no gameplay or contract changes in this PR. Do not merge
-without the user's review. Based on main `18af70b` (including the big-world mission).
+Status: historical design merged in #84. The follow-up implementation is described in
+[personal-tasks.md](personal-tasks.md); consult that file for the current opt-in behavior
+and validation status. The design below was based on main `18af70b`.
 
 ## Goal and scope
 

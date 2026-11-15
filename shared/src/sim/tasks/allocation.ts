@@ -32,7 +32,8 @@ function reserved(sim: Sim, ignoreIds: readonly string[] = []): Set<string> {
   return new Set(
     (sim.pub.taskBoard?.tasks ?? [])
       .filter((t) => !ignoreIds.includes(t.id) && t.kind !== 'guide' && t.target)
-      .map((t) => `${t.target!.id}:${t.target!.tier ?? 'surface'}`),
+      // Deep digging also yields the surface tier: reserve the whole site for one chain.
+      .map((t) => t.target!.id),
   );
 }
 
@@ -49,9 +50,7 @@ export function sampleTarget(
     .map((s) => ({ site: s, target: targetOf(s, deep) }))
     .filter(
       ({ site, target }) =>
-        !used.has(`${site.id}:${target.tier}`) &&
-        !site.taken.includes(target.tier!) &&
-        reachable(sim, target, crew),
+        !used.has(site.id) && !site.taken.includes(target.tier!) && reachable(sim, target, crew),
     );
   return candidates.length ? candidates[variant % candidates.length]!.target : undefined;
 }
@@ -84,7 +83,7 @@ function preferredTarget(sim: Sim, crew: TaskCrew, variant: number): TaskTarget 
     if (
       site.known &&
       !site.taken.includes('surface') &&
-      !reserved(sim).has(`${site.id}:surface`) &&
+      !reserved(sim).has(site.id) &&
       reachable(sim, candidate, crew)
     )
       return candidate;
@@ -110,7 +109,7 @@ function chain(
   if (kind === 'survey' && sim.params.scenario === 'signal') {
     const used = reserved(sim);
     const candidates = sim.pub.anomalies.filter(
-      (a) => !used.has(`${a.id}:surface`) && reachable(sim, { ...a, tier: 'surface' }, crew),
+      (a) => !used.has(a.id) && reachable(sim, { ...a, tier: 'surface' }, crew),
     );
     const anomaly = candidates[variant % candidates.length];
     if (anomaly) {
