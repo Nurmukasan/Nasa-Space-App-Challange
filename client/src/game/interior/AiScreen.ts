@@ -23,13 +23,18 @@ export class AiScreen {
         (scene.textures.get('ai_screen') as Phaser.Textures.CanvasTexture)) ||
       scene.textures.createCanvas('ai_screen', SCREEN_W, SCREEN_H)!;
     scene.add
-      .image(SCREEN_PROP.col * TILE, SCREEN_PROP.row * TILE - 6, 'ai_screen')
+      .image(
+        SCREEN_PROP.col * TILE - 4,
+        (SCREEN_PROP.row + SCREEN_PROP.h) * TILE - SCREEN_H,
+        'ai_screen',
+      )
       .setOrigin(0)
-      .setDepth(SCREEN_PROP.row * TILE);
+      .setDepth((SCREEN_PROP.row + SCREEN_PROP.h) * TILE);
     this.subtitle = makeText('9px', '#9af7f0')
       .setOrigin(0.5, 0)
       .setWordWrapWidth(300)
-      .setPosition(scene.scale.width / 2, (SCREEN_PROP.row + SCREEN_PROP.h) * TILE + 2);
+      .setPosition(scene.scale.width / 2, scene.scale.height - 2 * TILE)
+      .setOrigin(0.5, 1);
   }
 
   update(time: number): void {

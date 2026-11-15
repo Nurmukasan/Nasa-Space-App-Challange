@@ -24,8 +24,8 @@ const ANIM_WALK_MS = 120;
 const ANIM_WORK_MS = 260;
 /** Keeps the E prompt fully on screen next to the walls, px. */
 const PROMPT_MARGIN = 44;
-/** Above this line (px) the E prompt moves under the astronaut. */
-const PROMPT_TOP = 40;
+/** Near the top rows (wall screens, ARIA) the E prompt moves under the astronaut. */
+const PROMPT_TOP = 5 * TILE;
 const HATCH = DOORS.find((d) => d.outer)!;
 
 type Mode = 'free' | 'sleep' | 'work' | 'exiting';
@@ -72,7 +72,7 @@ export class InteriorScene extends Phaser.Scene {
     }));
     const core = PROPS.find((p) => p.kind === 'core')!;
     this.coreGlow = this.add
-      .rectangle((core.col + 1) * TILE, (core.row + 0.6) * TILE, 18, 22, 0x50e6f0, 0.8)
+      .rectangle((core.col + 1) * TILE, (core.row + 0.5) * TILE - 3, 22, 30, 0x40c8ff, 0.85)
       .setDepth(core.row * TILE + 1)
       .setBlendMode(Phaser.BlendModes.ADD);
     if (!prefs.getState().reduceMotion)
@@ -126,7 +126,10 @@ export class InteriorScene extends Phaser.Scene {
         })
         .setOrigin(0.5)
         .setDepth(2000);
-    this.header = hullText(TILE / 2);
+    // Over the surface left of the bridge, so the bridge monitors stay visible.
+    this.header = hullText(TILE / 2)
+      .setOrigin(0, 0.5)
+      .setX(6);
     this.footer = hullText((ROWS - 0.5) * TILE).setColor('#9aa4b4');
     const solo =
       store.getState().room?.players.find((p) => p.id === store.getState().playerId)?.role ===

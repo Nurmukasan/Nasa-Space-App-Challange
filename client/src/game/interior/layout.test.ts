@@ -47,8 +47,8 @@ describe('lander interior layout', () => {
     expect([...reachableRooms()].sort()).toEqual(ROOMS.map((r) => r.id).sort());
   });
 
-  it('has six inner doors and one outer hatch that is never walked through', () => {
-    expect(DOORS.filter((d) => !d.outer)).toHaveLength(6);
+  it('has four inner doors and one outer hatch that is never walked through', () => {
+    expect(DOORS.filter((d) => !d.outer)).toHaveLength(4);
     const hatch = DOORS.filter((d) => d.outer);
     expect(hatch).toHaveLength(1);
     expect(walkable(hatch[0]!.x, hatch[0]!.y)).toBe(false);
@@ -67,10 +67,12 @@ describe('lander interior layout', () => {
       const pr = PROPS.find((p) => p.id === id)!;
       return nearestAction((pr.col + pr.w / 2) * TILE, (pr.row + pr.h) * TILE + 4)?.action;
     };
-    expect(near('bunk_b')).toBe('sleep');
+    expect(near('q_bunk')).toBe('sleep');
+    expect(near('q_sofa')).toBe('sleep');
     expect(near('ai_screen')).toBe('talk');
     expect(near('core')).toBe('work');
-    expect(near('planter_c')).toBe('tend');
+    expect(near('gh_pots_a')).toBe('tend');
+    expect(near('console')).toBe('work');
     expect(near('hatch')).toBe('exit');
     expect(nearestAction(15 * TILE, 8 * TILE)).toBeNull(); // middle of the hall
   });
