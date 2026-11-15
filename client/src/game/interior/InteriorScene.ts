@@ -10,7 +10,15 @@ import { snaps } from '../../state/snapshots';
 import { prefs } from '../../state/prefs';
 import { store } from '../../state/store';
 import { t } from '../../i18n';
-import { CREW_FRAME, CREW_SIT, CREW_SLEEP } from '../crewArt';
+import {
+  CREW_CONSOLE,
+  CREW_FRAME,
+  CREW_SIT,
+  CREW_SIT_SIDE,
+  CREW_SLEEP,
+  CREW_TALK,
+  CREW_TEND,
+} from '../crewArt';
 import { crewCanvas } from '../crewTextures';
 import { ATLAS, DOORS, PROPS, SPAWN, nearestAction, step } from './baseMap';
 import type { MapProp } from './baseMap';
@@ -28,7 +36,6 @@ const DOOR_STEP_MS = 30;
 const DOOR_RANGE = 110;
 const AIRLOCK_MS = 900;
 const ANIM_WALK_MS = 120;
-const ANIM_WORK_MS = 260;
 /** Astronaut origin: boots sit just below the feet point (same as the field). */
 const ORIGIN_Y = 0.92;
 /** Above this line (map px) the E prompt moves under the astronaut, clear of wall screens. */
@@ -43,11 +50,10 @@ const SOLID = PROPS.filter((p) => !p.overlay && !p.wall && !p.floor).sort(
   (a, b) => a.depth - b.depth,
 );
 const OVERLAY = PROPS.filter((p) => p.overlay);
-/** Furniture narrower than this (map px) is sat on rather than lain on. */
-const LIE_MIN_W = 90;
 /** Seat points as fractions of the furniture sprite: boots of a seated astronaut, and the middle
- * of the body lying on a sofa. Below SEAT_FRONT the armchair's front is drawn over the legs. */
-const SEAT = { sitY: 0.9, lieY: 0.6, front: 0.72 };
+ * of the body lying on a sofa. Below `front` an armchair's front is drawn over the legs. On a
+ * side-view chair the astronaut sits in profile, boots at `sideY`, hips over the seat. */
+const SEAT = { sitY: 0.9, lieY: 0.6, front: 0.72, sideY: 0.92 };
 /** Row of the 24-px frame at the middle of the lying body (crewArt sleep frame). */
 const LIE_MID_ROW = 15.5;
 const DOOR_W = ATLAS.wall_door?.w ?? 0;
@@ -55,7 +61,14 @@ const DOOR_W = ATLAS.wall_door?.w ?? 0;
 const REACTOR = PROPS.find((p) => p.id === 'reactor');
 const GLOW = { radius: 150, alpha: 0.22, pulse: 0.06, periodMs: 900, rise: 70, rgb: '90,200,255' };
 
-type Mode = 'free' | 'sleep' | 'work' | 'exiting';
+/** 'rest' sits on a chair or lies on a sofa (`bed`); work, tend and talk loop their animation. */
+type Mode = 'free' | 'rest' | 'work' | 'tend' | 'talk' | 'exiting';
+/** Animation per mode: first frame of a two-frame loop and its beat (ms). Same for every class. */
+const LOOPS: Partial<Record<Mode, { frame: number; ms: number }>> = {
+  work: { frame: CREW_CONSOLE, ms: 180 },
+  tend: { frame: CREW_TEND, ms: 320 },
+  talk: { frame: CREW_TALK, ms: 260 },
+};
 type Keys = Record<'W' | 'A' | 'S' | 'D' | 'E', Phaser.Input.Keyboard.Key>;
 
 export class InteriorScene extends Phaser.Scene {
@@ -68,7 +81,9 @@ export class InteriorScene extends Phaser.Scene {
   private flip = false;
   private frame = 0;
   private mode: Mode = 'free';
-  /** The sofa or armchair the astronaut rests on, while sleeping. */
+  /** The planter being watered (the can is drawn over it). */
+  private tending: MapProp | null = null;
+  /** The chair or sofa the astronaut rests on. */
   private bed: MapProp | null = null;
   /** Px each door's leaves have slid into the wall. */
   private doors = DOORS.map(() => ({ open: 0, acc: 0 }));
@@ -89,6 +104,7 @@ export class InteriorScene extends Phaser.Scene {
     this.y = SPAWN.y;
     this.mode = 'free';
     this.bed = null;
+    this.tending = null;
     this.exitAt = 0;
     this.exitSent = false;
     this.doors = DOORS.map(() => ({ open: 0, acc: 0 }));
@@ -120,19 +136,26 @@ export class InteriorScene extends Phaser.Scene {
       assistant.say(t(alarm ? `interior.ai.status.${alarm}` : 'interior.ai.status.clear'), {
         mood: alarm ? 'worried' : 'happy',
       });
-    } else if (p.action === 'sleep') {
-      this.mode = 'sleep';
-      this.bed = p;
+      this.mode = 'talk';
       this.flip = false;
+    } else if (p.action === 'sleep' || p.action === 'sit') {
+      this.mode = 'rest';
+      this.bed = p;
+      this.flip = p.facing === 'left';
+    } else if (p.action === 'tend') {
+      this.mode = 'tend';
+      this.tending = p;
+      this.flip = p.x + p.w / 2 < this.x;
     } else {
       this.mode = 'work';
-      this.flip = p.x + p.w / 2 < this.x;
+      this.flip = false;
     }
   }
 
   private stand(): void {
     this.mode = 'free';
     this.bed = null;
+    this.tending = null;
   }
 
   override update(time: number, deltaMs: number): void {
@@ -142,7 +165,9 @@ export class InteriorScene extends Phaser.Scene {
     const dx = (this.keys.D.isDown ? 1 : 0) - (this.keys.A.isDown ? 1 : 0);
     const dy = (this.keys.S.isDown ? 1 : 0) - (this.keys.W.isDown ? 1 : 0);
     const moving = (dx !== 0 || dy !== 0) && this.mode !== 'exiting';
-    if (moving && (this.mode === 'sleep' || this.mode === 'work')) this.stand();
+    if (moving && this.mode !== 'free') this.stand();
+    // Talking ends when ARIA has finished her line.
+    if (this.mode === 'talk' && !assistant.speaking) this.stand();
     if (moving) {
       const len = Math.hypot(dx, dy);
       const next = step(this.x, this.y, (dx / len) * SPEED * dt, (dy / len) * SPEED * dt);
@@ -150,11 +175,10 @@ export class InteriorScene extends Phaser.Scene {
       this.y = next.y;
       if (dx !== 0) this.flip = dx < 0;
     }
-    // Same frame layout as the field (crewArt.ts).
-    // Lie down on a sofa; on a narrow armchair, sit (the idle frame).
-    if (this.mode === 'sleep')
-      this.frame = this.bed && this.bed.w < LIE_MIN_W ? CREW_SIT : CREW_SLEEP;
-    else if (this.mode === 'work') this.frame = 6 + (Math.floor(time / ANIM_WORK_MS) % 2);
+    // Frame layout: crewArt.ts. Sit on chairs, lie down on sofas.
+    const loop = LOOPS[this.mode];
+    if (this.mode === 'rest') this.frame = restFrame(this.bed!);
+    else if (loop) this.frame = loop.frame + (Math.floor(time / loop.ms) % 2);
     else if (moving) this.frame = 2 + (Math.floor(time / ANIM_WALK_MS) % 4);
     else this.frame = Math.floor(time / 600) % 2;
     this.stepDoors(deltaMs);
@@ -194,15 +218,17 @@ export class InteriorScene extends Phaser.Scene {
     for (const p of BACKDROP) if (p.sprite) drawSprite(g, p.sprite, p.x, p.y);
     // A resting astronaut is drawn right after (on top of) the furniture it rests on.
     const me = this.bed ? this.restPoint(this.bed) : { x: this.x, y: this.y };
+    // Drawn right after this prop: the seat it rests on, or the planter it waters.
+    const after = this.bed ?? this.tending;
     let drawnMe = false;
     for (const p of SOLID) {
-      if (!drawnMe && !this.bed && p.depth > me.y) {
+      if (!drawnMe && !after && p.depth > me.y) {
         this.drawMe(g, me);
         drawnMe = true;
       }
       if (p.sprite) drawSprite(g, p.sprite, p.x, p.y);
       if (p === ARIA) this.drawFace(g);
-      if (p === this.bed) {
+      if (p === after) {
         this.drawMe(g, me);
         drawnMe = true;
         // Seated: the armchair's front and armrests stay in front of the legs.
@@ -255,7 +281,8 @@ export class InteriorScene extends Phaser.Scene {
 
   /** Feet point for resting on `p`: centred on the seat. */
   private restPoint(p: MapProp): { x: number; y: number } {
-    return { x: p.x + p.w / 2, y: p.y + p.h * (p.w < LIE_MIN_W ? SEAT.sitY : SEAT.lieY) };
+    const sit = p.facing ? SEAT.sideY : SEAT.sitY;
+    return { x: p.x + p.w / 2, y: p.y + p.h * (p.action === 'sit' ? sit : SEAT.lieY) };
   }
 
   private drawFace(g: CanvasRenderingContext2D): void {
@@ -286,7 +313,7 @@ export class InteriorScene extends Phaser.Scene {
     const controls = t(this.solo ? 'interior.controls_solo' : 'interior.controls');
     v.label('footer', { text: controls, x: 476, y: 3 }, DIM, false, 'translate(-100%, 0)');
     const near = this.mode === 'free' ? nearestAction(this.x, this.y) : null;
-    const busy = this.mode === 'sleep' || this.mode === 'work';
+    const busy = this.mode !== 'free' && this.mode !== 'exiting';
     const key = busy ? 'interior.prompt.stand' : near ? `interior.prompt.${near.action}` : '';
     const rest = this.bed ? this.restPoint(this.bed) : null;
     const lying = this.frame === CREW_SLEEP && rest;
@@ -306,4 +333,10 @@ export class InteriorScene extends Phaser.Scene {
     const sub = line ? { text: line, x: 240, y: 262 } : null;
     v.label('subtitle', sub, SUBTITLE, false, 'translate(-50%, -100%)');
   }
+}
+
+/** Pose on a seat: profile on side-view chairs, front on armchairs, lying on sofas. */
+function restFrame(p: MapProp): number {
+  if (p.action !== 'sit') return CREW_SLEEP;
+  return p.facing ? CREW_SIT_SIDE : CREW_SIT;
 }

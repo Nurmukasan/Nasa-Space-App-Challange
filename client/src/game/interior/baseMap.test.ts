@@ -93,6 +93,14 @@ describe('lander interior map (base.tmj)', () => {
       expect(PROPS.find((p) => p.id === id)?.foot, id).not.toBeNull();
   });
 
+  it('lets the astronaut sit on every chair and armchair, facing away from side backrests', () => {
+    for (const id of ['lab_chair', 'dining_chair_l', 'dining_chair_r', 'armchair_l', 'armchair_r'])
+      expect(PROPS.find((p) => p.id === id)?.action, id).toBe('sit');
+    expect(PROPS.find((p) => p.id === 'dining_chair_l')?.facing).toBe('right');
+    expect(PROPS.find((p) => p.id === 'dining_chair_r')?.facing).toBe('left');
+    expect(PROPS.some((p) => p.id === 'pipes_floor')).toBe(false);
+  });
+
   it('stops at walls and slides along them', () => {
     expect(step(SPAWN.x, SPAWN.y, 0, -400)).toEqual(SPAWN);
     expect(step(SPAWN.x, SPAWN.y, 4, 0).x).toBe(SPAWN.x + 4);
