@@ -24,6 +24,15 @@ export function returnCost(
   y: number,
 ): number {
   const distance = Math.max(0, Math.hypot(x - LANDER_POS.x, y - LANDER_POS.y) - O2.airlockRadius);
+  return returnCostFrom(params, weather, distance);
+}
+
+/** The same cost for any walking distance, px. */
+export function returnCostFrom(
+  params: MissionParams,
+  weather: WeatherState,
+  distance: number,
+): number {
   return (distance / moveSpeed(params, weather, false)) * O2.walk * RETURN.margin + RETURN.reserve;
 }
 

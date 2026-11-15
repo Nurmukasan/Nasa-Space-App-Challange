@@ -120,8 +120,10 @@ export function ConsoleScreen() {
             if (locating) setLocating(null);
             else if (target) send({ t: 'mc:clearWaypoint', playerId: target });
           }}
+          onWheel={(e) => map.current?.zoomBy(e.deltaY)}
         />
         <p>{t(locating ? 'console.helpLocate' : 'console.help')}</p>
+        {params?.bigWorld && <p>{t('console.helpZoom')}</p>}
       </section>
       <aside className="console-side">
         {hud && (

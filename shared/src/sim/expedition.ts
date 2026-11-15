@@ -6,6 +6,7 @@ import { biomeAt, inCave } from '../world';
 import { clampToWorld, sandAt } from '../terrain';
 import { SITES } from '../catalog';
 import { stormActive } from './weather';
+import { returnCost, returnCostFrom } from './movement';
 import { dist, pushFx, pushLog } from './sim';
 import type { Sim, System } from './sim';
 
@@ -20,6 +21,23 @@ export function roverSpeed(params: MissionParams, state: EvaState, x: number, y:
       ? ROVER.lavaMul
       : 1;
   return ROVER.speed * ground * (stormActive(state.weather) ? WEATHER.stormSpeed : 1);
+}
+
+/**
+ * O2 needed to reach the nearest place to breathe again (docs/product-logic.md 7.3, 7.26): the
+ * airlock, a stocked supply cache or a parked rover. Zero while driving: the cabin supplies air.
+ * Classic scenarios have only the airlock, so this equals returnCost there.
+ */
+export function refugeCost(params: MissionParams, state: EvaState, a: Astronaut): number {
+  if (a.inRover) return 0;
+  let best = returnCost(params, state.weather, a.x, a.y);
+  const walk = (x: number, y: number) =>
+    returnCostFrom(params, state.weather, dist(a.x, a.y, x, y));
+  for (const c of state.caches) if (c.o2 > 0) best = Math.min(best, walk(c.x, c.y));
+  const rover = state.rover;
+  if (rover && rover.driver === null && rover.charge > 0)
+    best = Math.min(best, walk(rover.x, rover.y));
+  return best;
 }
 
 /** E-key step: get in (near a parked rover) or out (while driving). */

@@ -2,8 +2,8 @@ import { FIELD } from './style';
 
 export const EVENT_FX = {
   /** Depth above terrain and crew, below the lighting layer. */
-  depth: 1300,
-  stormDepth: 908,
+  depth: 11300,
+  stormDepth: 10908,
   stormRampS: 3,
   stormMaxPerFrame: 6,
   stormSpeed: { min: 520, max: 900 },

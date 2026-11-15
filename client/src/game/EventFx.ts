@@ -105,7 +105,7 @@ export class EventFx {
     const cfg = EVENT_FX.impact;
     const scorch = this.scene.add
       .circle(x, y, cfg.scorchPx, 0x1c0e14, cfg.scorchAlpha)
-      .setDepth(-40);
+      .setDepth(-29970);
     this.scene.tweens.add({
       targets: scorch,
       alpha: 0,
@@ -165,7 +165,7 @@ export class EventFx {
     });
     const crater = this.scene.add
       .circle(x, y, cfg.craterPx, EVENT_FX.colors.orange, 0.5)
-      .setDepth(-39)
+      .setDepth(-29969)
       .setBlendMode(Phaser.BlendModes.ADD);
     this.scene.tweens.add({
       targets: crater,

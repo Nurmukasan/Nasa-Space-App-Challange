@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { prefs } from '../state/prefs';
-import { LANDER_POS, LAUNCH_COUNTDOWN_S, O2 } from '@rs/shared';
+import { CACHES, LANDER_POS, LAUNCH_COUNTDOWN_S, O2, ROVER } from '@rs/shared';
 import type { Astronaut, EvaState } from '@rs/shared';
 import { snaps } from '../state/snapshots';
 import { store } from '../state/store';
@@ -52,7 +52,7 @@ export class EntityLayer {
     this.beacon = scene.add
       .sprite(0, 0, 'beacon')
       .setOrigin(0.5, BEACON_ORIGIN_Y)
-      .setDepth(1200)
+      .setDepth(11200)
       .setVisible(false);
     this.labels = worldLabels(scene);
   }
@@ -134,7 +134,7 @@ export class EntityLayer {
         .setPosition(px, py)
         .setFrame(frame)
         .setDepth(py)
-        .setVisible(snap.t >= 0 && a.status !== 'inside')
+        .setVisible(snap.t >= 0 && a.status !== 'inside' && !a.inRover)
         .setAlpha(a.status === 'lost' ? 0.4 : 1);
       if (snap.t >= 0 && a.status !== 'inside')
         this.labels.set(
@@ -168,15 +168,27 @@ export class EntityLayer {
       (a) => a.id !== myId && a.status === 'down' && Math.hypot(a.x - x, a.y - y) <= O2.shareRange,
     );
     const airlock = Math.hypot(x - snap.lander.x, y - snap.lander.y) <= O2.airlockRadius;
-    // Inside the lander the interior scene shows its own prompts.
+    const rover = snap.rover;
+    const nearRover =
+      !!rover && rover.driver === null && Math.hypot(x - rover.x, y - rover.y) <= ROVER.boardDist;
+    const cache = snap.caches.find(
+      (c) => c.o2 > 0 && Math.hypot(x - c.x, y - c.y) <= CACHES.useDist,
+    );
+    // Inside the lander the interior scene shows its own prompts. Same order as the E key.
     const hintText =
       mine?.status === 'inside'
         ? ''
-        : rescue
-          ? evaText('eva.rescue')
-          : airlock
-            ? evaText('eva.airlock')
-            : '';
+        : mine?.inRover
+          ? evaText('eva.rover_exit', { n: Math.round((rover?.charge ?? 0) * 100) })
+          : rescue
+            ? evaText('eva.rescue')
+            : airlock
+              ? evaText('eva.airlock')
+              : nearRover
+                ? evaText('eva.rover_board', { n: Math.round(rover!.charge * 100) })
+                : cache && mine && mine.o2 < mine.o2Max - 0.5
+                  ? evaText('eva.cache', { n: Math.round(cache.o2) })
+                  : '';
     if (hintText) this.labels.set('hint', hintText, x, y + 22, 'hint');
     this.labels.flush();
   }

@@ -223,3 +223,18 @@
     top: 33%;
   }
 }
+
+/* Big world (v2.1): biome under the clock, a title card on entering a new region. */
+.helmet-world {
+  display: block;
+  margin-top: 2px;
+  letter-spacing: 2px;
+  color: #a4ec9c;
+}
+.helmet-world.helmet-warning {
+  color: #ffce72;
+}
+.helmet-biome-title {
+  inset: 22% 15% auto;
+  color: #a4ec9c;
+}

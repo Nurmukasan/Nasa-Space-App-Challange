@@ -9,7 +9,7 @@ import { FIELD } from './style';
 import { worldLabels } from './WorldLabels';
 
 const SAMPLE_FX = {
-  depth: 1100,
+  depth: 11100,
   gaugeR: 17,
   spinnerR: 22,
   spinnerSegs: 10,

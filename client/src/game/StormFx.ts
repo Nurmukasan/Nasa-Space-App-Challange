@@ -6,10 +6,10 @@ import { prefs } from '../state/prefs';
 import { gust, stormLevel } from './stormMath';
 
 const STORM_FX = {
-  farDepth: 909,
-  nearDepth: 911,
-  wallDepth: 912,
-  flashDepth: 1400,
+  farDepth: 10909,
+  nearDepth: 10911,
+  wallDepth: 10912,
+  flashDepth: 11400,
   farAlpha: 0.16,
   nearAlpha: 0.12,
   gustAlpha: 0.34,

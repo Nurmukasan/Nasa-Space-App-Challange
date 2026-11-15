@@ -1,4 +1,14 @@
-import { COMMS, METERS_PER_PX, PLAYER_COLORS, SITES, WEATHER, WORLD_PX } from '@rs/shared';
+import {
+  COMMS,
+  LANDER_POS,
+  METERS_PER_PX,
+  PLAYER_COLORS,
+  SITES,
+  WEATHER,
+  WORLD_MAX,
+  WORLD_MIN,
+  WORLD_PX,
+} from '@rs/shared';
 import { snaps } from '../state/snapshots';
 import { store } from '../state/store';
 import { t } from '../i18n';
@@ -27,11 +37,24 @@ import { drawSite } from './radarSites';
 import { drawPending, drawStormBar, mmss, returnBudget, tiersTotal } from './radarPanels';
 import { drawAnomalies, drawLocate } from './locateOverlay';
 import { drawDevils } from './radarHazards';
+import { drawExpedition, drawValley } from './radarValley';
 import { audio } from '../audio';
 export const MAP_SIZE = 640;
-const SCALE = MAP_SIZE / WORLD_PX;
+/** The classic landing area: what the radar always showed (and still shows outside the big world). */
+const LANDING_SPAN = 1536;
+/** Big-world zoom levels, world px across the map: landing area, half the valley, all of it. */
+const SPANS = [LANDING_SPAN, WORLD_PX / 2, WORLD_PX];
+/** Click radius for picking a crew member, screen px. */
+const HIT_PX = 14;
+/** Map px per world px for the current frame (zoom). */
+let SCALE = MAP_SIZE / LANDING_SPAN;
 const RINGS = [50, 100, 150];
 const px = (value: number) => Math.round(value * SCALE);
+interface View {
+  x0: number;
+  y0: number;
+  span: number;
+}
 export class TacticalMap {
   private frame = 0;
   private terrain: HTMLCanvasElement;
@@ -43,6 +66,13 @@ export class TacticalMap {
   private pinged = new Map<string, number>();
   private roster = store.getState().room?.players ?? [];
   private colors = PLAYER_COLORS.map((color) => `#${color.toString(16).padStart(6, '0')}`);
+  /** Big-world zoom level, an index into SPANS. */
+  private zoom = 0;
+  private view: View = {
+    x0: LANDER_POS.x - LANDING_SPAN / 2,
+    y0: LANDER_POS.y - LANDING_SPAN / 2,
+    span: LANDING_SPAN,
+  };
   constructor(
     private canvas: HTMLCanvasElement,
     private selected: () => string | null,
@@ -56,16 +86,40 @@ export class TacticalMap {
   }
   point(clientX: number, clientY: number) {
     const b = this.canvas.getBoundingClientRect();
-    const wx = (((clientX - b.left) / b.width) * this.canvas.width) / this.kx / MAP_SIZE;
+    // The square map is stretched across the pane (kx); the view picks the world window.
+    const fx = (((clientX - b.left) / b.width) * this.canvas.width) / this.kx / MAP_SIZE;
+    const fy = (clientY - b.top) / b.height;
+    const { x0, y0, span } = this.view;
     return {
-      x: Math.max(0, Math.min(WORLD_PX, wx * WORLD_PX)),
-      y: Math.max(0, Math.min(WORLD_PX, ((clientY - b.top) / b.height) * WORLD_PX)),
+      x: Math.max(WORLD_MIN, Math.min(WORLD_MAX, x0 + fx * span)),
+      y: Math.max(WORLD_MIN, Math.min(WORLD_MAX, y0 + fy * span)),
     };
   }
   hitAt(x: number, y: number): string | null {
     for (const [id, p] of this.telemetry.contacts)
-      if (Math.hypot(p.crew.x - x, p.crew.y - y) < 35) return id;
+      if (Math.hypot(p.crew.x - x, p.crew.y - y) < HIT_PX / SCALE) return id;
     return null;
+  }
+  /** Big world only: wheel or buttons step through the zoom levels. */
+  zoomBy(step: number): void {
+    if (!store.getState().room?.params?.bigWorld) return;
+    this.zoom = Math.max(0, Math.min(SPANS.length - 1, this.zoom + Math.sign(step)));
+  }
+  /** Classic: the landing area. Big world: follow the selected crew member, or show it all. */
+  private frameView(): View {
+    const bigWorld = store.getState().room?.params?.bigWorld ?? false;
+    const span = bigWorld ? SPANS[this.zoom]! : LANDING_SPAN;
+    if (!bigWorld || span >= WORLD_PX) {
+      const centre = bigWorld
+        ? { x: WORLD_MIN + WORLD_PX / 2, y: WORLD_MIN + WORLD_PX / 2 }
+        : LANDER_POS;
+      return { x0: centre.x - span / 2, y0: centre.y - span / 2, span };
+    }
+    const id = this.selected();
+    const crew = id ? this.telemetry.contacts.get(id)?.crew : undefined;
+    const c = crew ?? LANDER_POS;
+    const clamp = (v: number) => Math.max(WORLD_MIN, Math.min(WORLD_MAX - span, v));
+    return { x0: clamp(c.x - span / 2), y0: clamp(c.y - span / 2), span };
   }
   private circle(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, color: string) {
     ctx.strokeStyle = color;
@@ -92,6 +146,8 @@ export class TacticalMap {
     this.telemetry.observe(s);
     const still = prefs.getState().reduceMotion;
     const now = still ? 0 : performance.now();
+    this.view = this.frameView();
+    SCALE = MAP_SIZE / this.view.span;
     const cx = px(s.lander.x),
       cy = px(s.lander.y);
     const wide = this.canvas.width;
@@ -102,13 +158,19 @@ export class TacticalMap {
     ctx.drawImage(this.terrain, 0, 0);
     const room = store.getState().room;
     const params = room?.params;
+    if (params?.bigWorld) drawValley(ctx, SITES[params.site].terrainSalt, this.view);
+    // World layer: everything below is placed in world px through px(); screen overlays follow.
+    ctx.save();
+    ctx.translate(-px(this.view.x0), -px(this.view.y0));
     if (room) this.roster = room.players;
     ctx.font = RADAR.font;
     ctx.lineWidth = 1;
+    // Ring labels only while the rings are far enough apart to read (zoomed-out big world).
+    const ringLabels = px(RINGS[0]! / METERS_PER_PX) >= 40;
     for (const m of RINGS) {
       this.circle(ctx, s.lander.x, s.lander.y, m / METERS_PER_PX, RADAR.grid);
       ctx.fillStyle = RADAR.text;
-      ctx.fillText(`${m}m`, px(s.lander.x + m / METERS_PER_PX) + 3, cy - 3);
+      if (ringLabels) ctx.fillText(`${m}m`, px(s.lander.x + m / METERS_PER_PX) + 3, cy - 3);
     }
     // The arm sweeps the whole map; sites light up and chirp as it passes over them.
     const angle = sweepAngle(now);
@@ -270,6 +332,8 @@ export class TacticalMap {
         ctx.fillText(player.name, px(a.waypoint.x) + 8, px(a.waypoint.y));
       }
     }
+    drawExpedition(ctx, s, px, SCALE);
+    ctx.restore();
     drawScaleBar(
       ctx,
       14,
