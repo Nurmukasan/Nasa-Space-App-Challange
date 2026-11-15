@@ -244,3 +244,17 @@ select {
 .module-card {
   align-content: start;
 }
+
+/* report: every block is exactly as wide as the score row; the timeline wraps instead of widening the page */
+.report-details {
+  grid-template-columns: minmax(0, 1fr);
+}
+.report-timeline ol {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  overflow: visible;
+}
+.report-timeline li {
+  min-width: 0;
+  align-content: start;
+}
