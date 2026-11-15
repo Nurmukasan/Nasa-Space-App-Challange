@@ -8,8 +8,8 @@ set -uo pipefail
 GROUP="${GROUP:-red-signal}"
 VM="${VM:-red-signal-vm}"
 REPO="${REPO:-https://github.com/Nurmukasan/Nasa-Space-App-Challange.git}"
-REGIONS="${REGIONS:-eastus westus2 centralus eastus2 westeurope northeurope swedencentral uksouth polandcentral germanywestcentral francecentral}"
-SIZES="${SIZES:-Standard_D2as_v5 Standard_D2s_v5 Standard_B2s Standard_B2ms Standard_D2ads_v5 Standard_B2ats_v2 Standard_B1s Standard_F2s_v2}"
+REGIONS="${REGIONS:-eastus westus2 centralus eastus2 westus3 southcentralus northcentralus westus canadacentral westeurope northeurope swedencentral uksouth polandcentral germanywestcentral francecentral italynorth switzerlandnorth uaenorth centralindia southeastasia japaneast koreacentral australiaeast brazilsouth}"
+SIZES="${SIZES:-Standard_D2as_v5 Standard_D2s_v5 Standard_B2s Standard_B2ms Standard_D2ads_v5 Standard_D2ls_v5 Standard_D2als_v6 Standard_D2as_v6 Standard_D2s_v6 Standard_B2ats_v2 Standard_B2als_v2 Standard_B1s Standard_F2s_v2}"
 IMAGE="Canonical:ubuntu-24_04-lts:server:latest"
 
 INIT="$(mktemp)"
@@ -71,9 +71,16 @@ else
       continue
     fi
     GROUP="$BASE-$region"
+    az group create -n "$GROUP" -l "$region" -o none || continue
     for size in $SIZES; do
-      say "Trying $size in $region"
-      az group create -n "$GROUP" -l "$region" -o none || continue
+      # Preflight first: it is quick and rejects sizes the region has no capacity for.
+      if ! az vm create -g "$GROUP" -n "$VM" -l "$region" --image "$IMAGE" --size "$size" \
+        --admin-username redsignal --generate-ssh-keys --public-ip-sku Standard --validate \
+        -o none >/dev/null 2>&1; then
+        echo "  $region / $size: not available, skip"
+        continue
+      fi
+      say "Creating $size in $region"
       if az vm create -g "$GROUP" -n "$VM" -l "$region" --image "$IMAGE" --size "$size" \
         --admin-username redsignal --generate-ssh-keys --public-ip-sku Standard \
         --os-disk-size-gb 64 --custom-data "$INIT" -o none; then
@@ -82,7 +89,9 @@ else
       fi
       say "Failed, cleaning up and trying the next option"
       az group delete -n "$GROUP" --yes
+      az group create -n "$GROUP" -l "$region" -o none || continue 2
     done
+    az group delete -n "$GROUP" --yes --no-wait
   done
 fi
 
