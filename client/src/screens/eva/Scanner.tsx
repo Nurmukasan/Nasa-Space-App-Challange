@@ -24,27 +24,20 @@ export function Scanner({ astronaut }: { astronaut: Astronaut }) {
     ping();
     return () => clearTimeout(timer);
   }, [enabled]);
+  // Nothing to point at: no box at all, the scanner only appears while it has a contact.
+  if (!enabled || !astronaut.scan) return null;
   return (
-    <aside
-      className={`helmet-scanner ${enabled ? 'scanner-found' : ''}`}
-      aria-label={t('eva.scanner')}
-    >
+    <aside className="helmet-scanner scanner-found" aria-label={t('eva.scanner')}>
       <small>{t('eva.scanner')}</small>
-      {enabled && astronaut.scan ? (
-        <>
-          <b
-            className="scanner-arrow"
-            style={{ transform: `rotate(${astronaut.scan.bearing - astronaut.facing}rad)` }}
-          >
-            ↑
-          </b>
-          <strong>
-            {t('eva.scanner_distance', { n: Math.ceil(astronaut.scan.dist * HUD.metresPerPx) })}
-          </strong>
-        </>
-      ) : (
-        <span>{t('eva.scanner_clear')}</span>
-      )}
+      <b
+        className="scanner-arrow"
+        style={{ transform: `rotate(${astronaut.scan.bearing - astronaut.facing}rad)` }}
+      >
+        ↑
+      </b>
+      <strong>
+        {t('eva.scanner_distance', { n: Math.ceil(astronaut.scan.dist * HUD.metresPerPx) })}
+      </strong>
     </aside>
   );
 }
