@@ -60,20 +60,13 @@ if [ "$(az vm show -g "$GROUP" -n "$VM" --query name -o tsv 2>/dev/null)" = "$VM
 else
   CREATED=0
   for region in $REGIONS; do
-    # Skip regions without at least 2 free regional cores.
-    free=$(az vm list-usage -l "$region" --query "[?name.value=='cores'] | [0].[limit, currentValue]" -o tsv 2>/dev/null | awk '{print $1-$2}')
+    # Skip regions without any free regional cores.
+    free=$(az vm list-usage -l "$region" --query "[?name.value=='cores'] | [0].[limit, currentValue]" -o tsv 2>/dev/null | paste -sd' ' | awk '{print $1-$2}')
     if [ -z "$free" ] || [ "$free" -lt 1 ]; then
       echo "  $region: no free cores, skip"
       continue
     fi
     for size in $SIZES; do
-      blocked=$(az vm list-skus -l "$region" --size "$size" --resource-type virtualMachines \
-        --query "[?name=='$size'] | [0].restrictions[].reasonCode" -o tsv 2>/dev/null)
-      exists=$(az vm list-skus -l "$region" --size "$size" --resource-type virtualMachines --query "length([?name=='$size'])" -o tsv 2>/dev/null)
-      if [ "$exists" != "1" ] || [ -n "$blocked" ]; then
-        echo "  $region / $size: not offered ($blocked), skip"
-        continue
-      fi
       say "Trying $size in $region"
       az group create -n "$GROUP" -l "$region" -o none || continue
       if az vm create -g "$GROUP" -n "$VM" -l "$region" --image "$IMAGE" --size "$size" \
