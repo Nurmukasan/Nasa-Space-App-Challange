@@ -4,6 +4,9 @@
 // "contract PR" (see docs/architecture.md, section "Hot files").
 // =============================================================================
 
+import type { TaskBoard } from './taskTypes';
+export type * from './taskTypes';
+
 export interface Vec2 {
   x: number;
   y: number;
@@ -530,6 +533,8 @@ export interface LogEntry {
 }
 
 export interface EvaState {
+  /** Opt-in, crew-size-scaled assignments; separate from mission success objectives. */
+  taskBoard?: TaskBoard;
   /** Mission time in seconds. Starts negative (launch countdown). */
   t: number;
   durationS: number;
@@ -653,6 +658,8 @@ export interface Insight {
 }
 
 export interface MissionReport {
+  /** Final assignment states and bounded ownership history. */
+  taskBoard?: TaskBoard;
   score: ScoreBreakdown;
   stats: MissionStats;
   insights: Insight[];
@@ -669,6 +676,8 @@ export interface MissionReport {
 // ----- Room state (low frequency) -------------------------------------------
 
 export interface RoomState {
+  /** Host choice for training/signal. Does not alter the classic free mission. */
+  personalTasks?: boolean;
   code: string;
   phase: Phase;
   seed: number;
