@@ -48,9 +48,7 @@ export class TacticalMap {
     private selected: () => string | null,
     private locating: () => string | null = () => null,
   ) {
-    const params = store.getState().room?.params;
-    const salt = SITES[params?.site ?? 'jezero'].terrainSalt;
-    this.terrain = buildBasemap(MAP_SIZE, salt, !!params && params.scenario !== 'free');
+    this.terrain = buildBasemap(MAP_SIZE);
     this.draw();
   }
   destroy(): void {
@@ -98,7 +96,7 @@ export class TacticalMap {
       cy = px(s.lander.y);
     const wide = this.canvas.width;
     this.ox = Math.round((wide - MAP_SIZE) / 2);
-    drawBackdrop(ctx, wide, MAP_SIZE, this.ox, this.terrain);
+    drawBackdrop(ctx, wide, MAP_SIZE, this.ox);
     ctx.save();
     ctx.translate(this.ox, 0);
     ctx.drawImage(this.terrain, 0, 0);
