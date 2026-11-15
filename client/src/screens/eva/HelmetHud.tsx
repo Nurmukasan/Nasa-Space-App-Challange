@@ -1,6 +1,6 @@
 import '../../ui/hud.css';
-import { useEffect, useRef } from 'react';
-import { FLARE, O2, RETURN, SITES, returnCost } from '@rs/shared';
+import { useEffect } from 'react';
+import { FLARE, O2, RETURN, returnCost } from '@rs/shared';
 import type { EvaState, MissionParams } from '@rs/shared';
 import { audio } from '../../audio';
 import { t } from '../../i18n';
@@ -10,18 +10,15 @@ import { MissionObjectives, ActTitle } from './MissionStatus';
 import { MissionFlow } from './MissionFlow';
 import { DepositCounter } from './DepositCounter';
 import '../../ui/feedback.css';
-import { ActionLine } from './ActionLine';
 import { Scanner } from './Scanner';
 import { RadioLine } from './RadioLine';
-import { actionHint, hudBanner } from './hudView';
+import { hudBanner } from './hudView';
 import { HUD } from './style';
 import '../../ui/hudV2.css';
 import '../../ui/hudCalm.css';
 
 const GEM_FRAME: Record<string, number> = { surface: 0, deep: 1, core: 2 };
 const GEM_PX = 24;
-/** The key reminder only matters at the start of a mission. */
-const CONTROLS_SHOWN_S = 8;
 
 export function clock(time: number): string {
   const s = Math.max(0, Math.ceil(time));
@@ -38,7 +35,6 @@ export function HelmetHud({
 }) {
   const reduce = usePrefs((p) => p.reduceMotion);
   const glass = usePrefs((p) => p.visorGlass);
-  const tutorial = useRef({ moved: false, dug: false, returned: false, x: NaN, y: NaN });
   const a = snap.astronauts.find((a) => a.id === playerId);
   const needed = a ? returnCost(params, snap.weather, a.x, a.y) : 0;
   const returnNow =
@@ -47,33 +43,8 @@ export function HelmetHud({
     if (returnNow) audio.sfx('radio_in');
   }, [returnNow]);
   if (!a) return null;
-  const first = tutorial.current;
-  if (Number.isNaN(first.x)) {
-    first.x = a.x;
-    first.y = a.y;
-  }
-  first.moved ||= Math.hypot(a.x - first.x, a.y - first.y) > 12;
-  first.dug ||= a.carrying.length > 0 || snap.lander.cache.length > 0;
-  first.returned ||= snap.lander.cache.length > 0;
   const frac = a.o2 / a.o2Max;
   const banner = hudBanner(snap, a, needed);
-  const hint = actionHint(snap, a, SITES[params.site].terrainSalt);
-  const hintParams = hint.params?.fault
-    ? { ...hint.params, fault: t(`eva.fault.${hint.params.fault}`) }
-    : hint.params;
-  const lesson =
-    snap.t >= 0 && snap.t < 60
-      ? !first.moved
-        ? 'eva.move'
-        : !first.dug
-          ? 'eva.dig'
-          : !first.returned
-            ? 'eva.return'
-            : ''
-      : '';
-  // While nothing else needs doing, the first-minute lesson takes the place of the idle hint.
-  const shownHint =
-    hint.key === 'eva.explore' && lesson ? { key: lesson } : { ...hint, params: hintParams };
   const log = snap.log.at(-1);
   const storm = snap.weather.storm;
   const stormOn = !!storm && snap.t >= storm.tStart && snap.t < storm.tEnd;
@@ -218,7 +189,6 @@ export function HelmetHud({
             })}
           </div>
         )}
-        <ActionLine hint={shownHint} showControls={snap.t < CONTROLS_SHOWN_S} />
         {log && a.linked && <RadioLine entry={log} />}
       </footer>
     </div>

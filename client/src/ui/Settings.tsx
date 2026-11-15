@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { prefs, usePrefs } from '../state/prefs';
 import { me, useApp } from '../state/store';
 import { LiftoffControl } from '../screens/eva/LiftoffControl';
+import { ControlsHelp } from '../screens/eva/ControlsHelp';
 import { endSession } from '../net/session';
 import { t } from '../i18n';
 import './menu.css';
@@ -84,6 +85,7 @@ export function Settings() {
             />
             {t('settings.visorGlass')}
           </label>
+          {inMission && <ControlsHelp />}
           {inMission && solo && <LiftoffControl />}
           <button onClick={() => setOpen(false)}>
             {t(inMission ? 'settings.resume' : 'settings.close')}

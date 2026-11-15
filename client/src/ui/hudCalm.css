@@ -60,26 +60,9 @@
   font-size: 11px;
 }
 
-/* bottom: one clear action line, the rest recedes */
+/* bottom: only inventory, scanner and radio */
 .helmet-bottom {
   inset: auto 22px 18px;
-}
-.helmet-instructions {
-  gap: 3px;
-  padding: 0;
-}
-.helmet-instructions b {
-  font-size: 15px;
-  letter-spacing: 0.06em;
-}
-.helmet-instructions > span {
-  font-size: 11px;
-  color: var(--h-dim);
-  opacity: 0.75;
-}
-.helmet-instructions .controls-hint {
-  font-size: 10px;
-  opacity: 0.55;
 }
 .helmet-scanner {
   padding: 6px 10px;

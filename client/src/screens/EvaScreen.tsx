@@ -42,11 +42,7 @@ export function EvaScreen({ active = true }: { active?: boolean }) {
     <div className={`stage ${down ? 'is-down' : ''}`}>
       <div ref={host} style={{ width: '100%', height: '100%' }} />
       {hud && myId && params && !inside && <HelmetHud snap={hud} playerId={myId} params={params} />}
-      {solo && hud && myId && !inside && (
-        <aside className="solo-tools">
-          <SoloSeismic snap={hud} playerId={myId} />
-        </aside>
-      )}
+      {solo && hud && myId && !inside && <SoloSeismic snap={hud} playerId={myId} />}
     </div>
   );
 }
