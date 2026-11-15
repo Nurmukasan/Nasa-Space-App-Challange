@@ -57,6 +57,22 @@ export function playSynth(ctx: Ctx, out: AudioNode, name: SfxName, v: number): b
       }
       n({ dur: 1, vol: 0.2, type: 'lowpass', f0: 140, q: 0.5, attack: 0.3 });
       break;
+    case 'storm_gust':
+      // A wall of wind: low roar swelling in, a hissing grit layer riding on top.
+      n({ dur: 2.6, vol: 0.5, type: 'lowpass', f0: 260, f1: 620, q: 0.6, attack: 0.9 });
+      n({ dur: 2.2, vol: 0.28, type: 'bandpass', f0: 1100, f1: 2600, q: 0.9, attack: 0.7 });
+      break;
+    case 'storm_crack':
+      // Static discharge: a sharp snap, a rumble, and a fizzing tail.
+      n({ dur: 0.08, vol: 0.6, type: 'highpass', f0: 2600, q: 0.7 });
+      s({ dur: 0.18, vol: 0.18, type: 'sawtooth', f0: 900, f1: 70 });
+      n({ at: 0.06, dur: 1.2, vol: 0.34, type: 'lowpass', f0: 180, f1: 70, q: 0.5, attack: 0.05 });
+      n({ at: 0.1, dur: 0.5, vol: 0.14, type: 'bandpass', f0: 3200, q: 2 });
+      break;
+    case 'radar_ping':
+      s({ dur: 0.28, vol: 0.13, f0: 1900, f1: 1500 });
+      s({ at: 0.09, dur: 0.22, vol: 0.05, f0: 1900, f1: 1500 });
+      break;
     case 'ui_click':
       s({ dur: 0.05, vol: 0.18, f0: 1200, f1: 900 });
       break;

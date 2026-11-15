@@ -9,6 +9,7 @@ import { restoreSession, send } from './net/session';
 import { snaps } from './state/snapshots';
 import { store } from './state/store';
 import './ui/theme.css';
+import './ui/rounded.css';
 
 // No <StrictMode>: its double-mount in dev would create two Phaser games.
 const dev = new URLSearchParams(location.search).get('dev');

@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { VIEW_H, VIEW_W } from '@rs/shared';
 import type { EvaState } from '@rs/shared';
+import { stormLevel } from './stormMath';
 import { prefs } from '../state/prefs';
 import { FIELD } from './style';
 const BAYER4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
@@ -115,7 +116,9 @@ export class Lighting {
     const active = !!storm && snap.t >= storm.tStart && snap.t < storm.tEnd;
     const dark = Math.min(
       0.94,
-      FIELD.darkFloor + (1 - ambient) * FIELD.darkRange + (active ? 0.12 : 0),
+      FIELD.darkFloor +
+        (1 - ambient) * FIELD.darkRange +
+        (active ? 0.12 + 0.1 * stormLevel(snap) : 0),
     );
     const flare = snap.flare && snap.t >= snap.flare.tStart && snap.t < snap.flare.tEnd;
     const reduce = prefs.getState().reduceMotion;
@@ -134,6 +137,7 @@ export class Lighting {
         this.aurora.strokePath();
       }
     }
+    const shrink = active ? 1 - 0.45 * stormLevel(snap) : 1;
     this.rt.clear();
     this.tint.setFillStyle(
       flare ? 0x80c291 : ambient > 0.5 ? 0xffb36a : 0x283b88,
@@ -145,7 +149,7 @@ export class Lighting {
       for (const light of lights) {
         this.brush
           .setTexture(light.key)
-          .setDisplaySize(light.r * 2 * (active ? 0.65 : 1), light.r * 2 * (active ? 0.65 : 1))
+          .setDisplaySize(light.r * 2 * shrink, light.r * 2 * shrink)
           .setPosition(Math.round(light.x - cam.scrollX), Math.round(light.y - cam.scrollY));
         this.rt.erase(this.brush);
       }

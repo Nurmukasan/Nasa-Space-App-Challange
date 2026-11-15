@@ -4,6 +4,7 @@ import { fxBus } from '../fx/FxBus';
 import { prefs } from '../state/prefs';
 import { FIELD } from './style';
 import { EVENT_FX } from './eventStyle';
+import { gust } from './stormMath';
 
 /** Tuning for the big world events. Visual only, gameplay lives in @rs/shared. */
 
@@ -94,7 +95,7 @@ export class EventFx {
     const ramp = EVENT_FX.stormRampS;
     const level = Math.min(1, (snap.t - storm.tStart) / ramp, (storm.tEnd - snap.t) / ramp);
     const view = this.scene.cameras.main;
-    const count = Math.round(level * EVENT_FX.stormMaxPerFrame);
+    const count = Math.round(level * EVENT_FX.stormMaxPerFrame * (1 + 1.5 * gust(snap.t)));
     for (let i = 0; i < count; i++)
       this.stormDust.emitParticleAt(-20, Math.random() * view.height, 1);
   }

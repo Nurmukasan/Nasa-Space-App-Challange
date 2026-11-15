@@ -62,6 +62,16 @@ export function ConsoleScreen() {
       () => targetRef.current,
       () => locatingRef.current,
     );
+    // Keep the canvas the same shape as its pane so the radar fills it without stretching.
+    const el = canvas.current;
+    const fit = () => {
+      const b = el.getBoundingClientRect();
+      if (b.width > 0 && b.height > 0)
+        el.width = Math.max(MAP_SIZE, Math.round((MAP_SIZE * b.width) / b.height));
+    };
+    fit();
+    const watch = new ResizeObserver(fit);
+    watch.observe(el);
     const key = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement).closest('input,select,textarea,button')) return;
       const a = snaps.curr?.astronauts[Number(e.key) - 1];
@@ -70,12 +80,13 @@ export function ConsoleScreen() {
     window.addEventListener('keydown', key);
     return () => {
       map.current?.destroy();
+      watch.disconnect();
       window.removeEventListener('keydown', key);
     };
   }, []);
   return (
     <main className="screen console-screen">
-      <section>
+      <section className="console-radar">
         <h1 className="console-title">
           {t('console.title')}
           {hud && (
@@ -128,29 +139,29 @@ export function ConsoleScreen() {
             <PowerPanel snap={hud} />
           </>
         )}
+        <footer className="console-footer panel">
+          <Commands
+            target={target}
+            crew={hud?.astronauts.map((a) => a.id) ?? []}
+            outside={(hud?.astronauts ?? [])
+              .filter((a) => a.status !== 'inside' && a.status !== 'lost')
+              .map((a) => players?.find((p) => p.id === a.id)?.name ?? a.id)}
+          />
+          <h2 className="panel-title">
+            <PixelIcon name="icon_antenna_hg" scale={1} />
+            {t('console.radio')}
+          </h2>
+          <div className="radio-log">
+            {hud?.log.map((entry) => (
+              <div key={entry.id} className={`voice-${voice(entry.from)}`}>
+                {Math.floor(entry.t)} · {speaker(entry.from, players ?? [])}
+                {entry.from === 'earth' && ` (${t('console.earthDelay')})`} ·{' '}
+                {t(entry.key, entry.params)}
+              </div>
+            ))}
+          </div>
+        </footer>
       </aside>
-      <footer className="console-footer panel">
-        <Commands
-          target={target}
-          crew={hud?.astronauts.map((a) => a.id) ?? []}
-          outside={(hud?.astronauts ?? [])
-            .filter((a) => a.status !== 'inside' && a.status !== 'lost')
-            .map((a) => players?.find((p) => p.id === a.id)?.name ?? a.id)}
-        />
-        <h2 className="panel-title">
-          <PixelIcon name="icon_antenna_hg" scale={1} />
-          {t('console.radio')}
-        </h2>
-        <div className="radio-log">
-          {hud?.log.map((entry) => (
-            <div key={entry.id} className={`voice-${voice(entry.from)}`}>
-              {Math.floor(entry.t)} · {speaker(entry.from, players ?? [])}
-              {entry.from === 'earth' && ` (${t('console.earthDelay')})`} ·{' '}
-              {t(entry.key, entry.params)}
-            </div>
-          ))}
-        </div>
-      </footer>
     </main>
   );
 }

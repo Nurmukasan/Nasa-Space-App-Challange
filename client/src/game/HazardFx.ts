@@ -6,8 +6,8 @@ import { prefs } from '../state/prefs';
 const HAZARD_FX = {
   depth: 1290,
   tintDepth: 900,
-  tintColor: 0x8a3a1c,
-  tintMaxAlpha: 0.1,
+  tintColor: 0xa8461f,
+  tintMaxAlpha: 0.2,
   rampS: 3,
   pulseMs: 110,
   fillColor: 0xff5a3c,

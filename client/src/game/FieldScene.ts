@@ -11,6 +11,7 @@ import { FieldJuice } from './FieldJuice';
 import { FieldFx } from './fieldFx';
 import { EventFx } from './EventFx';
 import { HazardFx } from './HazardFx';
+import { StormFx } from './StormFx';
 import { SampleFx } from './SampleFx';
 import { terrainTexture } from './terrainTexture';
 import { EntityLayer } from './EntityLayer';
@@ -37,6 +38,7 @@ export class FieldScene extends Phaser.Scene {
   private effects!: FieldFx;
   private eventFx!: EventFx;
   private hazardFx!: HazardFx;
+  private stormFx!: StormFx;
   private sampleFx!: SampleFx;
   private entities!: EntityLayer;
   private keys!: FieldKeys;
@@ -67,6 +69,7 @@ export class FieldScene extends Phaser.Scene {
     this.effects = new FieldFx(this);
     this.eventFx = new EventFx(this);
     this.hazardFx = new HazardFx(this);
+    this.stormFx = new StormFx(this);
     this.sampleFx = new SampleFx(this);
     this.hazards = new HazardLayer(this);
     this.ports = new PortLayer(this);
@@ -149,6 +152,7 @@ export class FieldScene extends Phaser.Scene {
 
     this.eventFx.update(snap);
     this.hazardFx.update(snap, performance.now());
+    this.stormFx.update(snap, performance.now());
     this.sampleFx.update(
       snap,
       myId,
