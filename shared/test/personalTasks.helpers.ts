@@ -27,5 +27,6 @@ export function taskMission(
   h.send(host, { t: 'design:launch' });
   const sim = h.room.simulation!;
   sim.pub.t = 0;
-  return { h, sim, ids, host };
+  const tokens = joins.map((j) => (j.ok ? j.token : ''));
+  return { h, sim, ids, host, tokens };
 }

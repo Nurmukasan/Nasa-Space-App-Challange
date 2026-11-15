@@ -2,6 +2,7 @@ import { CREW, DIG, SAMPLE, SIGNAL } from '../balance';
 import type { MissionParams, SampleSite, SampleTier } from '../types';
 import { dist, pushFx, pushLog } from './sim';
 import type { System } from './sim';
+import { taskFact } from './tasks/progress';
 
 const THRESHOLDS: Array<[SampleTier, number]> = [
   ['surface', DIG.surfaceDepth],
@@ -64,6 +65,7 @@ export const diggingSystem: System = (sim, dt) => {
       const value = Math.round(sampleValue(site, tier, sim.params) * CREW.sampleMul[a.crewClass]);
       a.carrying.push({ siteId: site.id, kind: site.kind, tier, value, by: a.id });
       site.taken.push(tier);
+      taskFact(sim, { kind: 'collect', actor: a.id, siteId: site.id, tier });
       pushFx(sim, { type: 'sample', playerId: a.id, x: site.x, y: site.y, n: value });
       pushLog(sim, a.id, 'log.sample_collected', { tier, value });
       // Do not spend the rest of this tick excavating with a full inventory.

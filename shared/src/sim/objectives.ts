@@ -5,6 +5,7 @@ import type { ObjectiveSpec } from '../scenarios';
 import type { MissionParams, Objective, ObjectiveKind } from '../types';
 import { pushFx } from './sim';
 import type { Sim, System } from './sim';
+import { finishTasks, maintainTasks } from './tasks/maintenance';
 
 function resolveTarget(spec: ObjectiveSpec, params: MissionParams): number {
   const base =
@@ -75,12 +76,16 @@ function update(sim: Sim, final: boolean): void {
 }
 
 export const objectivesSystem: System = (sim) => {
-  if (sim.pub.t >= 0 && !sim.pub.ended) update(sim, false);
+  if (sim.pub.t >= 0 && !sim.pub.ended) {
+    maintainTasks(sim);
+    update(sim, false);
+  }
 };
 
 /** Called by endMission after the final crew status is known. */
 export function finalizeObjectives(sim: Sim): void {
   update(sim, true);
+  finishTasks(sim);
 }
 
 /** Success = someone survived and every primary objective is done. */

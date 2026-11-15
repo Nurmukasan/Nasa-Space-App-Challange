@@ -7,6 +7,8 @@ import { endSession, send, startSession } from '../net/session';
 import { me, useApp } from '../state/store';
 import { ScenarioCards } from './lobby/ScenarioCards';
 import { CrewClassPicker } from './lobby/CrewClassPicker';
+import { TaskChoice } from './lobby/TaskChoice';
+import '../ui/personalTasks.css';
 import { startSoloLobby } from './lobby/solo';
 import '../ui/menu.css';
 
@@ -145,6 +147,9 @@ export function LobbyScreen() {
       </div>
       {self.role !== 'mc' && <CrewClassPicker current={self.classChosen ? self.crewClass : null} />}
       <ScenarioCards selected={room.scenario} isHost={self.isHost} />
+      {room.scenario !== 'free' && (
+        <TaskChoice enabled={room.personalTasks === true} isHost={self.isHost} />
+      )}
       {waiting.length > 0 && (
         <div className="status-line" role="status">
           {t('crew.waiting', { names: waiting.join(', ') })}

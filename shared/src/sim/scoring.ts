@@ -110,6 +110,18 @@ export function buildReport(
   operatorId: string | null = null,
 ): MissionReport {
   return {
+    ...(sim.pub.taskBoard
+      ? {
+          taskBoard: {
+            crew: sim.pub.taskBoard.crew.map((p) => ({ ...p })),
+            tasks: sim.pub.taskBoard.tasks.map((t) => ({
+              ...t,
+              ...(t.target ? { target: { ...t.target } } : {}),
+              ...(t.changes ? { changes: t.changes.map((c) => ({ ...c })) } : {}),
+            })),
+          },
+        }
+      : {}),
     score: scoreMission(sim.hidden.stats, sim.params, check, sim.pub.objectives),
     stats: { ...sim.hidden.stats },
     insights: buildInsights(sim, design),
