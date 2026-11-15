@@ -4,8 +4,8 @@ import type { Look } from './assistant';
 export const DOOR_W = 32;
 export const DOOR_H = 16;
 export const DOOR_FRAMES = 6;
-export const SCREEN_W = 64;
-export const SCREEN_H = 32;
+export const SCREEN_W = 40;
+export const SCREEN_H = 34;
 
 type Ctx = CanvasRenderingContext2D;
 const box = (g: Ctx, x: number, y: number, w: number, h: number, c: string): void => {
@@ -50,33 +50,36 @@ const INK = { neutral: '#2fd6d0', happy: '#7cf0a0', worried: '#f2c230', alarm: '
  */
 export function drawScreen(g: Ctx, look: Look, flash: boolean): void {
   const mood = look.mood;
-  // Bezel and stand.
-  box(g, 0, 0, SCREEN_W, SCREEN_H, '#12141c');
-  box(g, 1, 1, SCREEN_W - 2, SCREEN_H - 2, '#3a4150');
-  box(g, 1, 1, SCREEN_W - 2, 2, '#5a6476');
+  // Light grey monitor on a short stand, like the reference terminal.
+  g.clearRect(0, 0, SCREEN_W, SCREEN_H);
+  box(g, SCREEN_W / 2 - 4, SCREEN_H - 7, 8, 5, '#555d69');
+  box(g, SCREEN_W / 2 - 9, SCREEN_H - 3, 18, 3, '#12141c');
+  box(g, 0, 0, SCREEN_W, SCREEN_H - 6, '#12141c');
+  box(g, 1, 1, SCREEN_W - 2, SCREEN_H - 8, '#9aa3b0');
+  box(g, 1, 1, SCREEN_W - 2, 2, '#c4cbd5');
   const sx = 4,
     sy = 4,
     sw = SCREEN_W - 8,
-    sh = SCREEN_H - 9;
+    sh = SCREEN_H - 14;
   box(g, sx, sy, sw, sh, mood === 'alarm' && flash ? '#a01818' : BG[mood]);
   // Scan lines.
   for (let y = sy + 1; y < sy + sh; y += 3) box(g, sx, y, sw, 1, 'rgba(0,0,0,0.18)');
-  box(g, SCREEN_W - 9, SCREEN_H - 4, 2, 2, mood === 'alarm' ? '#ff5040' : '#3ec44e'); // power LED
+  box(g, SCREEN_W - 7, SCREEN_H - 9, 2, 1, mood === 'alarm' ? '#ff5040' : '#3ec44e'); // power LED
 
   const ink = INK[mood];
   if (look.alarm && look.text === null) {
     // Silent alarm: a big warning triangle instead of the face.
     const cx = SCREEN_W / 2;
-    for (let r = 0; r < 14; r++) box(g, cx - r * 0.75, sy + 3 + r, r * 1.5 + 1, 1, '#ffd040');
-    box(g, cx - 1, sy + 7, 2, 6, '#5a0c10');
-    box(g, cx - 1, sy + 14, 2, 2, '#5a0c10');
+    for (let r = 0; r < 14; r++) box(g, cx - r * 0.75, sy + 2 + r, r * 1.5 + 1, 1, '#ffd040');
+    box(g, cx - 1, sy + 6, 2, 5, '#5a0c10');
+    box(g, cx - 1, sy + 12, 2, 2, '#5a0c10');
     return;
   }
 
   // Eyes.
-  const ey = sy + 6,
-    lx = 20,
-    rx = 38;
+  const ey = sy + 4,
+    lx = SCREEN_W / 2 - 9,
+    rx = SCREEN_W / 2 + 3;
   if (look.eyesClosed) {
     box(g, lx, ey + 3, 6, 1, ink);
     box(g, rx, ey + 3, 6, 1, ink);
@@ -102,7 +105,7 @@ export function drawScreen(g: Ctx, look: Look, flash: boolean): void {
   }
 
   // Mouth: closed line (or smile), half open, open.
-  const my = sy + 16,
+  const my = sy + 13,
     mx = SCREEN_W / 2;
   if (look.mouth === 0) {
     if (mood === 'happy') {
