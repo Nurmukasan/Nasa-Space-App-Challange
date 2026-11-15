@@ -77,6 +77,9 @@ RED SIGNAL, lander faults, solar flare, crew awards and report findings, the mis
 Claude Code drew the four crew class sprites (engineer, scout, geologist, biologist) in code
 (`client/src/game/crewArt.ts`), modelled on AI-generated reference sheets from the team, and added the
 class picker and class perks.
+Claude Code also drew the lander interior (rooms, sliding doors, furniture) and the ARIA assistant screen
+with its talking face and alarm mode in code (`client/src/game/interior/`), from a reference picture
+supplied by the team.
 The built-in fallback sprites and sounds are procedural; NASA audio is not bundled.
 Additional asset contributions must be credited by their authors before submission.
 
