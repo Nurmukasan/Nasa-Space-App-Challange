@@ -124,3 +124,30 @@
     transition: none;
   }
 }
+
+/* inventory: sample slots and the kit counter share one tidy row */
+.helmet-inventory {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.helmet-samples {
+  gap: 6px;
+}
+.helmet-samples:not(.has-samples) .sample-slot {
+  width: 34px;
+  height: 34px;
+  box-sizing: border-box;
+  padding: 0;
+  justify-content: center;
+}
+.helmet-kits {
+  margin: 0;
+  padding: 6px 10px;
+  background: #170a0b8c;
+  border: 1px solid #a84a2e55;
+  border-radius: 10px;
+  font-size: 11px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
