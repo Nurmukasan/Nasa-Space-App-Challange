@@ -35,11 +35,15 @@ export function EvaScreen({ active = true }: { active?: boolean }) {
 
   const down = useApp((s) => s.hud?.astronauts.find((a) => a.id === s.playerId)?.status === 'down');
   const params = useApp((s) => s.room?.params);
+  // Inside the lander the helmet is off: the interior scene draws its own small header.
+  const inside = useApp(
+    (s) => s.hud?.astronauts.find((a) => a.id === s.playerId)?.status === 'inside',
+  );
   return (
     <div className={`stage ${down ? 'is-down' : ''}`}>
       <div ref={host} style={{ width: '100%', height: '100%' }} />
-      {hud && myId && params && <HelmetHud snap={hud} playerId={myId} params={params} />}
-      {solo && hud && myId && (
+      {hud && myId && params && !inside && <HelmetHud snap={hud} playerId={myId} params={params} />}
+      {solo && hud && myId && !inside && (
         <aside className="solo-tools">
           <WristMap playerId={myId} />
           <SoloSeismic snap={hud} playerId={myId} />
