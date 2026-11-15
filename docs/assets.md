@@ -208,3 +208,11 @@ art-src/           исходники: .aseprite, .psd, .kra, проекты Bee
 | Мыльные края | Масштабирование со сглаживанием | Только nearest neighbor |
 | Щелчок в петле | Обрез не по нулю | Обрезать по пересечению нуля, короткий кроссфейд |
 | Файл не появился в `npm run dev` | Dev-сервер собрал список файлов при старте | Перезапустить `npm run dev` |
+
+### Интерьер корабля
+
+Исходники команды лежат в `assets/raw/` (`tileset.png`, `base_reference.png`). Игра использует
+`client/public/assets/interior/atlas.webp` (предметы) и `tiles.webp` (тайлы пола и стен 64 px), WebP без потерь,
+каждый файл до 1,4 МБ (`ASSET_LIMITS.interiorBytes`). Карта — `client/src/game/interior/data/base.tmj` (Tiled).
+Как пересобрать — `tools/art/README.md`.
+
